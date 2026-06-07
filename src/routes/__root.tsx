@@ -78,14 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Finance Core" },
+      { name: "description", content: "Finance Hub is a general-purpose accounting and voucher system accessible via API." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Finance Core" },
+      { property: "og:description", content: "Finance Hub is a general-purpose accounting and voucher system accessible via API." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Finance Core" },
+      { name: "twitter:description", content: "Finance Hub is a general-purpose accounting and voucher system accessible via API." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0d866d28-7ee6-42d5-ba33-df9b458737ac/id-preview-43a3a543--71d47bcd-142c-4661-be6b-2d7bcddce79c.lovable.app-1780863172539.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0d866d28-7ee6-42d5-ba33-df9b458737ac/id-preview-43a3a543--71d47bcd-142c-4661-be6b-2d7bcddce79c.lovable.app-1780863172539.png" },
     ],
     links: [
       {
