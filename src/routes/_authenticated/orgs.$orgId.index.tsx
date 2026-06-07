@@ -20,33 +20,38 @@ function Dashboard() {
       const end = `${year + 1}-01-01`;
       const { data: entries, error } = await supabase
         .from("finance_entries")
-        .select("entry_type, amount_gross, amount_net, vat_amount, payment_status, entry_date")
+        .select("id, entry_type, amount_gross, payment_status")
         .eq("organization_id", orgId)
         .gte("entry_date", start)
         .lt("entry_date", end);
       if (error) throw error;
-      let income = 0, expense = 0, unpaid = 0, missingVoucher = 0;
+      let income = 0, expense = 0, unpaid = 0;
+      const expenseIds: string[] = [];
       for (const e of entries ?? []) {
-        if (e.entry_type === "income") income += Number(e.amount_gross);
-        else expense += Number(e.amount_gross);
-        if (e.payment_status === "unpaid") unpaid += Number(e.amount_gross);
+        const amt = Number(e.amount_gross);
+        if (e.entry_type === "income") income += amt;
+        else { expense += amt; expenseIds.push(e.id); }
+        if (e.payment_status === "unpaid") unpaid += amt;
       }
-      const { count: attachmentless } = await supabase
-        .from("finance_entries")
-        .select("id", { count: "exact", head: true })
-        .eq("organization_id", orgId)
-        .eq("entry_type", "expense")
-        .not("id", "in", `(${(await supabase.from("finance_attachments").select("entry_id").eq("organization_id", orgId).not("entry_id", "is", null)).data?.map(a => `'${a.entry_id}'`).join(",") || "''"})`);
-      missingVoucher = attachmentless ?? 0;
-      return { income, expense, result: income - expense, unpaid, missingVoucher, count: entries?.length ?? 0 };
+      let missing = 0;
+      if (expenseIds.length) {
+        const { data: atts } = await supabase
+          .from("finance_attachments")
+          .select("entry_id")
+          .eq("organization_id", orgId)
+          .in("entry_id", expenseIds);
+        const withAtt = new Set((atts ?? []).map((a) => a.entry_id));
+        missing = expenseIds.filter((id) => !withAtt.has(id)).length;
+      }
+      return { income, expense, result: income - expense, unpaid, missing, count: entries?.length ?? 0 };
     },
   });
 
   const stats = [
-    { label: "Inntekter", value: data?.income ?? 0, icon: TrendingUp, tone: "success" },
-    { label: "Utgifter", value: data?.expense ?? 0, icon: TrendingDown, tone: "destructive" },
-    { label: "Resultat", value: data?.result ?? 0, icon: Wallet, tone: "primary" },
-    { label: "Ubetalt", value: data?.unpaid ?? 0, icon: AlertCircle, tone: "warning" },
+    { label: "Inntekter", value: data?.income ?? 0, Icon: TrendingUp, color: "text-success" },
+    { label: "Utgifter", value: data?.expense ?? 0, Icon: TrendingDown, color: "text-destructive" },
+    { label: "Resultat", value: data?.result ?? 0, Icon: Wallet, color: "text-primary" },
+    { label: "Ubetalt", value: data?.unpaid ?? 0, Icon: AlertCircle, color: "text-warning" },
   ];
 
   return (
@@ -61,7 +66,7 @@ function Dashboard() {
           <Card key={s.label}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</CardTitle>
-              <s.icon className={`h-4 w-4 text-${s.tone === "primary" ? "primary" : s.tone === "success" ? "success" : s.tone === "destructive" ? "destructive" : "warning"}`} />
+              <s.Icon className={`h-4 w-4 ${s.color}`} />
             </CardHeader>
             <CardContent>
               <div className="tabular text-2xl font-semibold">{formatNOK(s.value)}</div>
@@ -76,7 +81,7 @@ function Dashboard() {
           <CardTitle className="text-base">Manglende bilag</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="tabular text-3xl font-semibold">{data?.missingVoucher ?? 0}</div>
+          <div className="tabular text-3xl font-semibold">{data?.missing ?? 0}</div>
           <p className="text-sm text-muted-foreground mt-1">utgiftsposter uten vedlegg</p>
         </CardContent>
       </Card>
