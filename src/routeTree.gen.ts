@@ -25,6 +25,7 @@ import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_aut
 import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
 import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
+import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -113,6 +114,12 @@ const ApiPublicV1ReportsSummaryRoute =
     path: '/api/public/v1/reports/summary',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1EntriesEntryIdAttachmentsRoute =
+  ApiPublicV1EntriesEntryIdAttachmentsRouteImport.update({
+    id: '/$entryId/attachments',
+    path: '/$entryId/attachments',
+    getParentRoute: () => ApiPublicV1EntriesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -127,9 +134,10 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRoute
-  '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
+  '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
+  '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -143,9 +151,10 @@ export interface FileRoutesByTo {
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRoute
-  '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
+  '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
+  '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -162,9 +171,10 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/_authenticated/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRoute
-  '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
+  '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
+  '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/orgs/$orgId/'
     | '/api/public/v1/reports/summary'
+    | '/api/public/v1/entries/$entryId/attachments'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/orgs/$orgId'
     | '/api/public/v1/reports/summary'
+    | '/api/public/v1/entries/$entryId/attachments'
   id:
     | '__root__'
     | '/'
@@ -218,6 +230,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/_authenticated/orgs/$orgId/'
     | '/api/public/v1/reports/summary'
+    | '/api/public/v1/entries/$entryId/attachments'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -225,7 +238,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicV1AttachmentsRoute: typeof ApiPublicV1AttachmentsRoute
-  ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRoute
+  ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRouteWithChildren
   ApiPublicV1ReportsSummaryRoute: typeof ApiPublicV1ReportsSummaryRoute
 }
 
@@ -343,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/entries/$entryId/attachments': {
+      id: '/api/public/v1/entries/$entryId/attachments'
+      path: '/$entryId/attachments'
+      fullPath: '/api/public/v1/entries/$entryId/attachments'
+      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRouteImport
+      parentRoute: typeof ApiPublicV1EntriesRoute
+    }
   }
 }
 
@@ -389,14 +409,36 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface ApiPublicV1EntriesRouteChildren {
+  ApiPublicV1EntriesEntryIdAttachmentsRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
+}
+
+const ApiPublicV1EntriesRouteChildren: ApiPublicV1EntriesRouteChildren = {
+  ApiPublicV1EntriesEntryIdAttachmentsRoute:
+    ApiPublicV1EntriesEntryIdAttachmentsRoute,
+}
+
+const ApiPublicV1EntriesRouteWithChildren =
+  ApiPublicV1EntriesRoute._addFileChildren(ApiPublicV1EntriesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicV1AttachmentsRoute: ApiPublicV1AttachmentsRoute,
-  ApiPublicV1EntriesRoute: ApiPublicV1EntriesRoute,
+  ApiPublicV1EntriesRoute: ApiPublicV1EntriesRouteWithChildren,
   ApiPublicV1ReportsSummaryRoute: ApiPublicV1ReportsSummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
