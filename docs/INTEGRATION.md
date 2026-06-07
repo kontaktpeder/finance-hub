@@ -1,0 +1,139 @@
+# Finance Core – Integration Guide
+
+Finance Core er **source of truth** for regnskap. Eksterne prosjekter (f.eks. Gold of Sicily) sender data inn via et public REST API med API-nøkkel.
+
+## Base URL
+
+```
+https://project--71d47bcd-142c-4661-be6b-2d7bcddce79c.lovable.app
+```
+
+(Bytt til custom domain når satt opp.)
+
+## Auth
+
+Alle kall krever header:
+
+```
+Authorization: Bearer fc_live_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**. Alle skriv/lese gjelder kun denne organisasjonen.
+
+## Scopes
+
+| Scope | Tilgang |
+|---|---|
+| `entries:read` | `GET /api/public/v1/entries`, `GET /api/public/v1/reports/summary` |
+| `entries:write` | `POST /api/public/v1/entries` |
+| `reports:read` | `GET /api/public/v1/reports/summary` |
+| `attachments:write` | `POST /api/public/v1/attachments` |
+
+## Endpoints
+
+### POST /api/public/v1/entries
+
+Oppretter en regnskapspost (inntekt eller utgift). Hvis `book_id` utelates brukes default book for organisasjonen.
+
+**Inntekt:**
+
+```bash
+curl -X POST "$BASE/api/public/v1/entries" \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entry_type": "income",
+    "entry_date": "2026-06-07",
+    "description": "Klink popup Oslo juni",
+    "amount_gross": 10000,
+    "vat_rate": 25,
+    "category": "Salg",
+    "source_app": "gold-of-sicily",
+    "source_type": "popup",
+    "source_ref": "klink-oslo-2026-06"
+  }'
+```
+
+**Utgift:**
+
+```bash
+curl -X POST "$BASE/api/public/v1/entries" \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entry_type": "expense",
+    "entry_date": "2026-06-07",
+    "description": "Råvarer",
+    "amount_gross": 2500,
+    "vat_rate": 15,
+    "category": "Varekost",
+    "source_app": "gold-of-sicily",
+    "source_ref": "raavarer-2026-06"
+  }'
+```
+
+**Felt-regler:**
+- `external_url` må være full URL (`https://...`) — relative paths feiler validering.
+- `vat_rate` / `vat_amount`: utelat eller send tall, **ikke `null`**. Hvis `vat_amount` utelates beregnes det fra `amount_gross` og `vat_rate`.
+- `amount_net` beregnes hvis utelatt.
+
+### GET /api/public/v1/entries
+
+```bash
+curl "$BASE/api/public/v1/entries?limit=100" -H "Authorization: Bearer $KEY"
+```
+
+### GET /api/public/v1/reports/summary
+
+```bash
+curl "$BASE/api/public/v1/reports/summary?year=2026" -H "Authorization: Bearer $KEY"
+```
+
+Returnerer månedlig sum av income/expense/vat for året.
+
+### POST /api/public/v1/attachments
+
+Last opp bilag/kvittering. `multipart/form-data` med felt `file` (påkrevd) og `entry_id` (valgfri uuid).
+
+```bash
+curl -X POST "$BASE/api/public/v1/attachments" \
+  -H "Authorization: Bearer $KEY" \
+  -F "file=@kvittering.pdf" \
+  -F "entry_id=<uuid>"
+```
+
+Returnerer `{ "data": { ... attachment ... } }` med status 201.
+
+## Idempotens
+
+Bruk `source_app` + `source_ref` for å unngå duplikater:
+
+- `source_app = gold-of-sicily`
+- `source_ref = klink-oslo-2026-06`
+
+Det er en unique index på `(organization_id, source_app, source_ref)`. Duplikat-POST returnerer **400** — klient skal håndtere som «allerede bokført».
+
+## Feilkoder
+
+| Kode | Betydning |
+|---|---|
+| 400 | Valideringsfeil / duplikat `source_ref` |
+| 401 | Manglende eller ugyldig API-nøkkel |
+| 403 | Nøkkelen mangler nødvendig scope |
+| 404 | Ressurs ikke funnet (f.eks. `entry_id` i annen org) |
+| 500 | Intern feil |
+
+## Hva klienten IKKE skal bygge
+
+Disse hører hjemme i Finance Core, ikke i klient-appen:
+
+- Full regnskaps-UI (poster-liste, filtre, redigering)
+- Medlemsstyring og roller
+- CSV/SAF-T eksport
+- API-nøkkel-administrasjon
+- Bilag/attachment-galleri på tvers av poster
+
+Klient-appen skal kun:
+1. Sende inntekter/utgifter inn med `source_app` + `source_ref`
+2. Hente `summary` for enkel status
+3. Lenke brukeren videre til Finance Core for full visning
