@@ -10,6 +10,7 @@ import {
   KeyRound,
   ChevronLeft,
   LogOut,
+  ScanLine,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId")({
@@ -62,6 +63,9 @@ function OrgLayout() {
           </Link>
           <Link to="/orgs/$orgId/entries" params={{ orgId }} className={baseLink} activeProps={activeProps}>
             <Receipt className="h-4 w-4" /> Poster
+          </Link>
+          <Link to="/orgs/$orgId/scan" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <ScanLine className="h-4 w-4" /> AI-skanning
           </Link>
           <Link to="/orgs/$orgId/reports" params={{ orgId }} className={baseLink} activeProps={activeProps}>
             <FileText className="h-4 w-4" /> Rapporter

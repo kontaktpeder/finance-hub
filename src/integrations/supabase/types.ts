@@ -347,6 +347,54 @@ export type Database = {
           },
         ]
       }
+      finance_receipt_drafts: {
+        Row: {
+          ai_model: string | null
+          ai_suggestion: Json | null
+          attachment_id: string | null
+          book_id: string
+          converted_entry_id: string | null
+          created_at: string
+          error: string | null
+          extracted_text: string | null
+          id: string
+          organization_id: string
+          status: Database["public"]["Enums"]["receipt_draft_status"]
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          ai_model?: string | null
+          ai_suggestion?: Json | null
+          attachment_id?: string | null
+          book_id: string
+          converted_entry_id?: string | null
+          created_at?: string
+          error?: string | null
+          extracted_text?: string | null
+          id?: string
+          organization_id: string
+          status?: Database["public"]["Enums"]["receipt_draft_status"]
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          ai_model?: string | null
+          ai_suggestion?: Json | null
+          attachment_id?: string | null
+          book_id?: string
+          converted_entry_id?: string | null
+          created_at?: string
+          error?: string | null
+          extracted_text?: string | null
+          id?: string
+          organization_id?: string
+          status?: Database["public"]["Enums"]["receipt_draft_status"]
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -438,6 +486,7 @@ export type Database = {
       invoice_status: "none" | "draft" | "sent" | "overdue" | "paid"
       org_role: "owner" | "admin" | "editor" | "viewer"
       payment_status: "unpaid" | "paid" | "partial" | "refunded"
+      receipt_draft_status: "draft" | "reviewed" | "converted" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -575,6 +624,7 @@ export const Constants = {
       invoice_status: ["none", "draft", "sent", "overdue", "paid"],
       org_role: ["owner", "admin", "editor", "viewer"],
       payment_status: ["unpaid", "paid", "partial", "refunded"],
+      receipt_draft_status: ["draft", "reviewed", "converted", "rejected"],
     },
   },
 } as const
