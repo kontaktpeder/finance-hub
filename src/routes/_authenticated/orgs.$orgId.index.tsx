@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNOK } from "@/lib/format";
-import { TrendingUp, TrendingDown, Wallet, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/")({
   component: Dashboard,
@@ -11,28 +11,41 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId/")({
 
 function Dashboard() {
   const { orgId } = Route.useParams();
-  const year = new Date().getFullYear();
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
 
   const { data } = useQuery({
-    queryKey: ["dashboard", orgId, year],
+    queryKey: ["dashboard", orgId, year, month],
     queryFn: async () => {
       const start = `${year}-01-01`;
       const end = `${year + 1}-01-01`;
+      const mStart = `${year}-${String(month).padStart(2, "0")}-01`;
+      const nextMonth = month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+
       const { data: entries, error } = await supabase
         .from("finance_entries")
-        .select("id, entry_type, amount_gross, payment_status")
+        .select("id, entry_type, amount_gross, payment_status, entry_date")
         .eq("organization_id", orgId)
         .gte("entry_date", start)
         .lt("entry_date", end);
       if (error) throw error;
+
       let income = 0, expense = 0, unpaid = 0;
+      let mIncome = 0, mExpense = 0, mCount = 0;
       const expenseIds: string[] = [];
       for (const e of entries ?? []) {
         const amt = Number(e.amount_gross);
         if (e.entry_type === "income") income += amt;
         else { expense += amt; expenseIds.push(e.id); }
         if (e.payment_status === "unpaid") unpaid += amt;
+        if (e.entry_date >= mStart && e.entry_date < nextMonth) {
+          mCount += 1;
+          if (e.entry_type === "income") mIncome += amt;
+          else mExpense += amt;
+        }
       }
+
       let missing = 0;
       if (expenseIds.length) {
         const { data: atts } = await supabase
@@ -43,7 +56,17 @@ function Dashboard() {
         const withAtt = new Set((atts ?? []).map((a) => a.entry_id));
         missing = expenseIds.filter((id) => !withAtt.has(id)).length;
       }
-      return { income, expense, result: income - expense, unpaid, missing, count: entries?.length ?? 0 };
+
+      return {
+        income,
+        expense,
+        result: income - expense,
+        unpaid,
+        missing,
+        count: entries?.length ?? 0,
+        mResult: mIncome - mExpense,
+        mCount,
+      };
     },
   });
 
@@ -76,15 +99,45 @@ function Dashboard() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Manglende bilag</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="tabular text-3xl font-semibold">{data?.missing ?? 0}</div>
-          <p className="text-sm text-muted-foreground mt-1">utgiftsposter uten vedlegg</p>
-        </CardContent>
-      </Card>
+      <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-3">Denne måneden</h2>
+      <div className="grid gap-4 sm:grid-cols-3 mb-8">
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Månedens resultat
+            </CardTitle>
+            <CalendarDays className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="tabular text-2xl font-semibold">{formatNOK(data?.mResult ?? 0)}</div>
+            <div className="text-xs text-muted-foreground mt-1">NOK</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Poster denne måneden
+            </CardTitle>
+            <Receipt className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="tabular text-2xl font-semibold">{data?.mCount ?? 0}</div>
+            <div className="text-xs text-muted-foreground mt-1">stk</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Mangler bilag
+            </CardTitle>
+            <FileWarning className="h-4 w-4 text-warning" />
+          </CardHeader>
+          <CardContent>
+            <div className="tabular text-2xl font-semibold">{data?.missing ?? 0}</div>
+            <div className="text-xs text-muted-foreground mt-1">utgiftsposter</div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

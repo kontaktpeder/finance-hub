@@ -1,16 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Paperclip } from "lucide-react";
+import {
+  Plus,
+  Paperclip,
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  ExternalLink,
+  FileText,
+} from "lucide-react";
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
 
@@ -18,10 +38,33 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId/entries")({
   component: EntriesPage,
 });
 
+type Entry = {
+  id: string;
+  voucher_number: string | null;
+  entry_type: "income" | "expense";
+  entry_date: string;
+  description: string;
+  counterparty: string | null;
+  category: string | null;
+  category_group: string | null;
+  amount_gross: number | string;
+  amount_net: number | string;
+  vat_amount: number | string;
+  vat_rate: number | string;
+  payment_status: string;
+  invoice_status: string;
+  source_app: string | null;
+  source_type: string | null;
+  source_ref: string | null;
+  external_url: string | null;
+  notes: string | null;
+};
+
 function EntriesPage() {
   const { orgId } = Route.useParams();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
@@ -41,25 +84,41 @@ function EntriesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("finance_entries")
-        .select("id, voucher_number, entry_type, entry_date, description, counterparty, category, amount_gross, vat_amount, payment_status, source_app, source_ref")
+        .select(
+          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes",
+        )
         .eq("organization_id", orgId)
         .order("entry_date", { ascending: false })
-        .limit(200);
+        .limit(500);
       if (error) throw error;
-      return data;
+      return data as Entry[];
     },
   });
+
+  const { income, expense } = useMemo(() => {
+    const inc: Entry[] = [];
+    const exp: Entry[] = [];
+    for (const e of entries ?? []) {
+      if (e.entry_type === "income") inc.push(e);
+      else exp.push(e);
+    }
+    return { income: inc, expense: exp };
+  }, [entries]);
 
   return (
     <div className="p-8 max-w-6xl">
       <header className="flex items-end justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Poster</h1>
-          <p className="text-sm text-muted-foreground mt-1">Inntekter og utgifter, sortert på dato.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gruppert på kategori. Klikk en post for detaljer.
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /> Ny post</Button>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" /> Ny post
+            </Button>
           </DialogTrigger>
           <NewEntryDialog
             orgId={orgId}
@@ -73,58 +132,349 @@ function EntriesPage() {
         </Dialog>
       </header>
 
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Bilag</TableHead>
-              <TableHead className="w-[100px]">Dato</TableHead>
-              <TableHead>Beskrivelse</TableHead>
-              <TableHead>Kategori</TableHead>
-              <TableHead className="text-right">Brutto</TableHead>
-              <TableHead className="text-right">MVA</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Kilde</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Laster…</TableCell></TableRow>
-            )}
-            {!isLoading && entries?.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Ingen poster ennå.</TableCell></TableRow>
-            )}
-            {entries?.map((e) => (
-              <TableRow key={e.id}>
-                <TableCell className="tabular text-xs">{e.voucher_number}</TableCell>
-                <TableCell className="tabular text-xs">{formatDate(e.entry_date)}</TableCell>
-                <TableCell>
-                  <div className="font-medium">{e.description}</div>
-                  {e.counterparty && <div className="text-xs text-muted-foreground">{e.counterparty}</div>}
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{e.category ?? "—"}</TableCell>
-                <TableCell className={`tabular text-right ${e.entry_type === "income" ? "text-success" : ""}`}>
-                  {e.entry_type === "expense" ? "−" : ""}{formatNOK(e.amount_gross)}
-                </TableCell>
-                <TableCell className="tabular text-right text-muted-foreground">{formatNOK(e.vat_amount)}</TableCell>
-                <TableCell>
-                  <Badge variant={e.payment_status === "paid" ? "default" : e.payment_status === "unpaid" ? "secondary" : "outline"} className="text-xs">
-                    {e.payment_status === "paid" ? "Betalt" : e.payment_status === "unpaid" ? "Ubetalt" : e.payment_status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {e.source_app ? `${e.source_app}` : <span className="text-muted-foreground/40">manuell</span>}
-                </TableCell>
-              </TableRow>
+      {isLoading && (
+        <div className="text-sm text-muted-foreground py-8 text-center">Laster…</div>
+      )}
+
+      {!isLoading && (
+        <div className="space-y-8">
+          <Section
+            title="Inntekter"
+            subtitle="Salg, sponsor, støtte og andre innbetalinger"
+            entries={income}
+            tone="income"
+            orgId={orgId}
+            expandedId={expandedId}
+            setExpandedId={setExpandedId}
+          />
+          <Section
+            title="Utgifter"
+            subtitle="Kostnader og utbetalinger"
+            entries={expense}
+            tone="expense"
+            orgId={orgId}
+            expandedId={expandedId}
+            setExpandedId={setExpandedId}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  subtitle,
+  entries,
+  tone,
+  orgId,
+  expandedId,
+  setExpandedId,
+}: {
+  title: string;
+  subtitle: string;
+  entries: Entry[];
+  tone: "income" | "expense";
+  orgId: string;
+  expandedId: string | null;
+  setExpandedId: (id: string | null) => void;
+}) {
+  const groups = useMemo(() => {
+    const map = new Map<string, Entry[]>();
+    for (const e of entries) {
+      const key = e.category_group || e.category || "Uten kategori";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(e);
+    }
+    return Array.from(map.entries())
+      .map(([name, items]) => {
+        const total = items.reduce((s, e) => s + Number(e.amount_gross), 0);
+        const unpaid = items
+          .filter((e) => e.payment_status === "unpaid")
+          .reduce((s, e) => s + Number(e.amount_gross), 0);
+        return { name, items, total, unpaid };
+      })
+      .sort((a, b) => b.total - a.total);
+  }, [entries]);
+
+  const sectionTotal = groups.reduce((s, g) => s + g.total, 0);
+  const sectionUnpaid = groups.reduce((s, g) => s + g.unpaid, 0);
+
+  return (
+    <section className="rounded-lg border bg-card">
+      <header className="flex items-end justify-between p-5 border-b">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+        </div>
+        <div className="text-right">
+          {sectionUnpaid > 0 && (
+            <div className="text-xs text-muted-foreground">
+              ({formatNOK(sectionUnpaid)} kr ubetalt)
+            </div>
+          )}
+          <div className="tabular text-xl font-semibold">
+            {formatNOK(sectionTotal)} <span className="text-xs text-muted-foreground font-normal">kr</span>
+          </div>
+        </div>
+      </header>
+
+      {groups.length === 0 ? (
+        <div className="p-8 text-center text-sm text-muted-foreground">
+          Ingen {tone === "income" ? "inntekter" : "utgifter"} ennå.
+        </div>
+      ) : (
+        <div>
+          {groups.map((g) => (
+            <CategoryGroup
+              key={g.name}
+              group={g}
+              orgId={orgId}
+              expandedId={expandedId}
+              setExpandedId={setExpandedId}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function CategoryGroup({
+  group,
+  orgId,
+  expandedId,
+  setExpandedId,
+}: {
+  group: { name: string; items: Entry[]; total: number; unpaid: number };
+  orgId: string;
+  expandedId: string | null;
+  setExpandedId: (id: string | null) => void;
+}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="border-b last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-3 px-5 py-3 hover:bg-muted/40 transition-colors text-left"
+      >
+        {open ? (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        )}
+        <Folder className="h-4 w-4 text-muted-foreground" />
+        <span className="font-medium">{group.name}</span>
+        <span className="text-xs text-muted-foreground">{group.items.length} linjer</span>
+        <span className="ml-auto flex items-center gap-3">
+          {group.unpaid > 0 && (
+            <span className="text-xs text-muted-foreground">
+              ({formatNOK(group.unpaid)} kr ubetalt)
+            </span>
+          )}
+          <span className="tabular font-semibold">{formatNOK(group.total)} kr</span>
+        </span>
+      </button>
+      {open && (
+        <div className="bg-muted/20">
+          <div className="grid grid-cols-[90px_90px_1fr_1fr_110px_90px_90px_24px] gap-4 px-5 py-2 text-[11px] uppercase tracking-wider text-muted-foreground border-y">
+            <span>Bilag</span>
+            <span>Dato</span>
+            <span>Motpart</span>
+            <span>Beskrivelse</span>
+            <span className="text-right">Beløp</span>
+            <span>Status</span>
+            <span>Faktura</span>
+            <span></span>
+          </div>
+          {group.items.map((e) => (
+            <EntryRow
+              key={e.id}
+              entry={e}
+              orgId={orgId}
+              expanded={expandedId === e.id}
+              onToggle={() => setExpandedId(expandedId === e.id ? null : e.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EntryRow({
+  entry,
+  orgId,
+  expanded,
+  onToggle,
+}: {
+  entry: Entry;
+  orgId: string;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`w-full grid grid-cols-[90px_90px_1fr_1fr_110px_90px_90px_24px] gap-4 px-5 py-2.5 items-center text-sm text-left hover:bg-muted/40 transition-colors ${
+          expanded ? "bg-muted/40" : ""
+        }`}
+      >
+        <span className="tabular text-xs text-muted-foreground">{entry.voucher_number ?? "—"}</span>
+        <span className="tabular text-xs text-muted-foreground">{formatDate(entry.entry_date)}</span>
+        <span className="truncate">{entry.counterparty ?? "—"}</span>
+        <span className="truncate text-muted-foreground">{entry.description}</span>
+        <span className="tabular text-right font-medium">{formatNOK(entry.amount_gross)} kr</span>
+        <span>
+          <StatusBadge kind="payment" value={entry.payment_status} />
+        </span>
+        <span>
+          <StatusBadge kind="invoice" value={entry.invoice_status} />
+        </span>
+        <span className="text-muted-foreground">
+          {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        </span>
+      </button>
+      {expanded && <DetailPanel entry={entry} orgId={orgId} />}
+    </>
+  );
+}
+
+function StatusBadge({ kind, value }: { kind: "payment" | "invoice"; value: string }) {
+  const map: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+    paid: { label: "Betalt", variant: "default" },
+    unpaid: { label: "Ubetalt", variant: "secondary" },
+    partial: { label: "Delvis", variant: "outline" },
+    received: { label: "Mottatt", variant: "default" },
+    sent: { label: "Sendt", variant: "outline" },
+    pending: { label: "Avventer", variant: "secondary" },
+    none: { label: "—", variant: "outline" },
+  };
+  const cfg = map[value] ?? { label: value, variant: "outline" as const };
+  return (
+    <Badge variant={cfg.variant} className="text-[10px] font-normal">
+      {cfg.label}
+    </Badge>
+  );
+}
+
+function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
+  const { data: attachments } = useQuery({
+    queryKey: ["entry-attachments", entry.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("finance_attachments")
+        .select("id, file_name, storage_path, mime_type, size_bytes")
+        .eq("entry_id", entry.id);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  async function openAttachment(path: string) {
+    const { data, error } = await supabase.storage
+      .from("finance-attachments")
+      .createSignedUrl(path, 60 * 10);
+    if (error) {
+      toast.error("Klarte ikke åpne bilag");
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
+  }
+
+  return (
+    <div className="border-t bg-background px-5 py-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Field label="Motpart" value={entry.counterparty} />
+        <Field label="Kategori" value={entry.category} />
+        <Field label="Kategori-gruppe" value={entry.category_group} />
+
+        <Field label="Beløp brutto" value={`${formatNOK(entry.amount_gross)} kr`} />
+        <Field label="Netto" value={`${formatNOK(entry.amount_net)} kr`} />
+        <Field
+          label="MVA"
+          value={`${formatNOK(entry.vat_amount)} kr (${Number(entry.vat_rate)}%)`}
+        />
+
+        <Field label="Betalingsstatus" value={entry.payment_status} />
+        <Field label="Fakturastatus" value={entry.invoice_status} />
+        <Field label="Bilagsnummer" value={entry.voucher_number} />
+
+        <Field label="Kildeapp" value={entry.source_app} />
+        <Field label="Kildetype" value={entry.source_type} />
+        <Field label="Kildereferanse" value={entry.source_ref} />
+      </div>
+
+      {entry.external_url && (
+        <div className="mt-4">
+          <a
+            href={entry.external_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" /> Åpne ekstern lenke
+          </a>
+        </div>
+      )}
+
+      {entry.notes && (
+        <div className="mt-5">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Notater</div>
+          <p className="text-sm whitespace-pre-wrap">{entry.notes}</p>
+        </div>
+      )}
+
+      <div className="mt-5">
+        <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Bilag</div>
+        {!attachments || attachments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Ingen vedlegg.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {attachments.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => openAttachment(a.storage_path)}
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                {a.file_name}
+                <span className="text-xs text-muted-foreground">
+                  ({Math.round((a.size_bytes ?? 0) / 1024)} kB)
+                </span>
+              </button>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Array<{ id: string; name: string; is_default: boolean }>; onCreated: () => void }) {
+function Field({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-0.5">
+        {label}
+      </div>
+      <div className="text-sm">{value ?? <span className="text-muted-foreground">—</span>}</div>
+    </div>
+  );
+}
+
+function NewEntryDialog({
+  orgId,
+  books,
+  onCreated,
+}: {
+  orgId: string;
+  books: Array<{ id: string; name: string; is_default: boolean }>;
+  onCreated: () => void;
+}) {
   const defaultBook = books.find((b) => b.is_default) ?? books[0];
   const [bookId, setBookId] = useState(defaultBook?.id ?? "");
   const [entryType, setEntryType] = useState<"income" | "expense">("expense");
@@ -132,6 +482,7 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
   const [description, setDescription] = useState("");
   const [counterparty, setCounterparty] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryGroup, setCategoryGroup] = useState("");
   const [amountGross, setAmountGross] = useState("");
   const [vatRate, setVatRate] = useState("25");
   const [notes, setNotes] = useState("");
@@ -140,7 +491,10 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!bookId) { toast.error("Velg regnskapsbok"); return; }
+    if (!bookId) {
+      toast.error("Velg regnskapsbok");
+      return;
+    }
     setBusy(true);
     try {
       const gross = Number(amountGross.replace(",", "."));
@@ -158,6 +512,7 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
           description: description.trim(),
           counterparty: counterparty.trim() || null,
           category: category.trim() || null,
+          category_group: categoryGroup.trim() || null,
           amount_gross: gross,
           vat_rate: rate,
           vat_amount: vatAmount,
@@ -172,7 +527,9 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
 
       if (file && entry) {
         const path = `${orgId}/${entry.id}/${Date.now()}-${file.name}`;
-        const { error: upErr } = await supabase.storage.from("finance-attachments").upload(path, file);
+        const { error: upErr } = await supabase.storage
+          .from("finance-attachments")
+          .upload(path, file);
         if (upErr) throw upErr;
         await supabase.from("finance_attachments").insert({
           organization_id: orgId,
@@ -195,13 +552,17 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
 
   return (
     <DialogContent className="max-w-lg">
-      <DialogHeader><DialogTitle>Ny post</DialogTitle></DialogHeader>
+      <DialogHeader>
+        <DialogTitle>Ny post</DialogTitle>
+      </DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Type</Label>
             <Select value={entryType} onValueChange={(v) => setEntryType(v as "income" | "expense")}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="income">Inntekt</SelectItem>
                 <SelectItem value="expense">Utgift</SelectItem>
@@ -210,15 +571,26 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
           </div>
           <div className="space-y-1.5">
             <Label>Dato</Label>
-            <Input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} required />
+            <Input
+              type="date"
+              value={entryDate}
+              onChange={(e) => setEntryDate(e.target.value)}
+              required
+            />
           </div>
         </div>
         <div className="space-y-1.5">
           <Label>Bok</Label>
           <Select value={bookId} onValueChange={setBookId}>
-            <SelectTrigger><SelectValue placeholder="Velg" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Velg" />
+            </SelectTrigger>
             <SelectContent>
-              {books.map((b) => (<SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>))}
+              {books.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -236,10 +608,23 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
             <Input value={category} onChange={(e) => setCategory(e.target.value)} />
           </div>
         </div>
+        <div className="space-y-1.5">
+          <Label>Kategori-gruppe (valgfritt)</Label>
+          <Input
+            value={categoryGroup}
+            onChange={(e) => setCategoryGroup(e.target.value)}
+            placeholder="f.eks. Råvarer, Honorar, Transport"
+          />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Beløp inkl. MVA</Label>
-            <Input inputMode="decimal" value={amountGross} onChange={(e) => setAmountGross(e.target.value)} required />
+            <Input
+              inputMode="decimal"
+              value={amountGross}
+              onChange={(e) => setAmountGross(e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-1.5">
             <Label>MVA-sats %</Label>
@@ -251,11 +636,19 @@ function NewEntryDialog({ orgId, books, onCreated }: { orgId: string; books: Arr
           <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label className="flex items-center gap-2"><Paperclip className="h-3.5 w-3.5" /> Bilag (valgfritt)</Label>
-          <Input type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <Label className="flex items-center gap-2">
+            <Paperclip className="h-3.5 w-3.5" /> Bilag (valgfritt)
+          </Label>
+          <Input
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
         </div>
         <DialogFooter>
-          <Button type="submit" disabled={busy}>{busy ? "Lagrer…" : "Lagre post"}</Button>
+          <Button type="submit" disabled={busy}>
+            {busy ? "Lagrer…" : "Lagre post"}
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>
