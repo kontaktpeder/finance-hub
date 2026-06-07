@@ -10,6 +10,7 @@ import {
   KeyRound,
   ChevronLeft,
   LogOut,
+  ScanLine,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId")({
