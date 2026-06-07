@@ -83,6 +83,23 @@ curl -X POST "$BASE/api/public/v1/entries" \
 curl "$BASE/api/public/v1/entries?limit=100" -H "Authorization: Bearer $KEY"
 ```
 
+Hver entry inkluderer `attachment_count` (number) og `has_attachment` (boolean) — bruk dette for paperclip-ikon og «mangler bilag»-visning.
+
+### GET /api/public/v1/entries/{entry_id}/attachments
+
+```bash
+curl "$BASE/api/public/v1/entries/<entry-uuid>/attachments" \
+  -H "Authorization: Bearer $KEY"
+```
+
+- Krever scope `entries:read`
+- Returnerer `{ "data": [...] }` med signed `url` per bilag (TTL 10 minutter)
+- Tom liste returneres som `{ "data": [] }` med 200
+- 404 hvis entry ikke finnes i organisasjonen
+- Hvert element inneholder: `id`, `entry_id`, `file_name` (+ alias `filename`), `mime_type`, `size_bytes` (+ alias `size`), `url`, `uploaded_at` (+ alias `created_at`)
+
+
+
 ### GET /api/public/v1/reports/summary
 
 ```bash
