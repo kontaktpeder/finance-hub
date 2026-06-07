@@ -40,7 +40,18 @@ const SuggestionSchema = z.object({
 
 export type ReceiptSuggestion = z.infer<typeof SuggestionSchema>;
 
-const MODEL = "google/gemini-2.5-flash";
+const MODEL = "google/gemini-3-flash-preview";
+
+function extractJson(raw: string): unknown {
+  let s = (raw ?? "").trim();
+  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  if (!s.startsWith("{") && !s.startsWith("[")) {
+    const i = s.indexOf("{");
+    const j = s.lastIndexOf("}");
+    if (i !== -1 && j > i) s = s.slice(i, j + 1);
+  }
+  return JSON.parse(s);
+}
 
 export const scanReceiptDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
