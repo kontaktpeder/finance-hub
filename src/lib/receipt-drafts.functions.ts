@@ -13,6 +13,12 @@ const ScanInput = z.object({
   sizeBytes: z.number().int().nonnegative(),
 });
 
+const ConfidenceItem = z.object({
+  field: z.string(),
+  score: z.number(),
+  note: z.string().nullable(),
+});
+
 const SuggestionSchema = z.object({
   entry_type: z.enum(["income", "expense"]),
   entry_date: z.string().describe("ISO date YYYY-MM-DD"),
@@ -29,8 +35,7 @@ const SuggestionSchema = z.object({
   pre_company_expense: z.boolean(),
   notes: z.string().nullable(),
   extracted_text: z.string(),
-  confidence: z.record(z.string(), z.number()),
-  field_notes: z.record(z.string(), z.string()),
+  confidence: z.array(ConfidenceItem),
 });
 
 export type ReceiptSuggestion = z.infer<typeof SuggestionSchema>;
