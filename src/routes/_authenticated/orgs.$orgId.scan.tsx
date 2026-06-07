@@ -253,8 +253,12 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
     },
   });
 
-  const conf = s?.confidence ?? {};
-  const notes = s?.field_notes ?? {};
+  const conf: Record<string, number> = {};
+  const notes: Record<string, string> = {};
+  for (const c of s?.confidence ?? []) {
+    conf[c.field] = c.score;
+    if (c.note) notes[c.field] = c.note;
+  }
 
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
     setForm((f) => ({ ...f, [k]: v }));
