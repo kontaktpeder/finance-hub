@@ -24,15 +24,24 @@ function NewOrg() {
     e.preventDefault();
     setBusy(true);
     try {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Ikke logget inn");
+      // Ensure we have a fresh session (JWT) before insert; refresh if needed.
+      let { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        sess = { session: refreshed.session } as typeof sess;
+      }
+      if (!sess.session?.user) {
+        navigate({ to: "/auth" });
+        throw new Error("Sesjonen har utløpt – logg inn på nytt");
+      }
+      const userId = sess.session.user.id;
       const { data: org, error } = await supabase
         .from("organizations")
         .insert({
           name: name.trim(),
           kind,
           org_number: orgNumber.trim() || null,
-          created_by: u.user.id,
+          created_by: userId,
         })
         .select("id")
         .single();
