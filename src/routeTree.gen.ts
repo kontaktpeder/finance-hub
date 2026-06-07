@@ -22,6 +22,7 @@ import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authen
 import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
 import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
 import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
+import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
 import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
 
@@ -94,6 +95,12 @@ const AuthenticatedOrgsOrgIdEntriesRoute =
     path: '/entries',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
+const AuthenticatedOrgsOrgIdAttachmentsRoute =
+  AuthenticatedOrgsOrgIdAttachmentsRouteImport.update({
+    id: '/attachments',
+    path: '/attachments',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const AuthenticatedOrgsOrgIdApiKeysRoute =
   AuthenticatedOrgsOrgIdApiKeysRouteImport.update({
     id: '/api-keys',
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -129,6 +137,7 @@ export interface FileRoutesByTo {
   '/app': typeof AuthenticatedAppRoute
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -147,6 +156,7 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/_authenticated/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  '/_authenticated/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/_authenticated/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/orgs/$orgId'
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
+    | '/orgs/$orgId/attachments'
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
+    | '/orgs/$orgId/attachments'
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
@@ -197,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orgs/$orgId'
     | '/_authenticated/orgs/new'
     | '/_authenticated/orgs/$orgId/api-keys'
+    | '/_authenticated/orgs/$orgId/attachments'
     | '/_authenticated/orgs/$orgId/entries'
     | '/_authenticated/orgs/$orgId/members'
     | '/_authenticated/orgs/$orgId/reports'
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdEntriesRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
+    '/_authenticated/orgs/$orgId/attachments': {
+      id: '/_authenticated/orgs/$orgId/attachments'
+      path: '/attachments'
+      fullPath: '/orgs/$orgId/attachments'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdAttachmentsRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/_authenticated/orgs/$orgId/api-keys': {
       id: '/_authenticated/orgs/$orgId/api-keys'
       path: '/api-keys'
@@ -328,6 +348,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdApiKeysRoute: typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  AuthenticatedOrgsOrgIdAttachmentsRoute: typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   AuthenticatedOrgsOrgIdEntriesRoute: typeof AuthenticatedOrgsOrgIdEntriesRoute
   AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
   AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -338,6 +359,8 @@ interface AuthenticatedOrgsOrgIdRouteChildren {
 const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
   {
     AuthenticatedOrgsOrgIdApiKeysRoute: AuthenticatedOrgsOrgIdApiKeysRoute,
+    AuthenticatedOrgsOrgIdAttachmentsRoute:
+      AuthenticatedOrgsOrgIdAttachmentsRoute,
     AuthenticatedOrgsOrgIdEntriesRoute: AuthenticatedOrgsOrgIdEntriesRoute,
     AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
     AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,
@@ -377,3 +400,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
