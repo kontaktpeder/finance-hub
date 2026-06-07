@@ -11,19 +11,10 @@ import {
   ChevronLeft,
   LogOut,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId")({
   component: OrgLayout,
 });
-
-const nav = [
-  { to: "/orgs/$orgId", label: "Dashbord", icon: LayoutDashboard, exact: true },
-  { to: "/orgs/$orgId/entries", label: "Poster", icon: Receipt },
-  { to: "/orgs/$orgId/reports", label: "Rapporter", icon: FileText },
-  { to: "/orgs/$orgId/members", label: "Medlemmer", icon: Users },
-  { to: "/orgs/$orgId/api-keys", label: "API-nøkler", icon: KeyRound },
-] as const;
 
 function OrgLayout() {
   const { orgId } = Route.useParams();
@@ -47,6 +38,12 @@ function OrgLayout() {
     navigate({ to: "/auth" });
   }
 
+  const activeProps = {
+    className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+  };
+  const baseLink =
+    "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors text-sidebar-foreground/80 hover:bg-sidebar-accent/50";
+
   return (
     <div className="min-h-screen bg-background grid md:grid-cols-[240px_1fr]">
       <aside className="border-r bg-sidebar flex flex-col">
@@ -60,29 +57,21 @@ function OrgLayout() {
           </div>
         </div>
         <nav className="flex-1 p-2 space-y-0.5">
-          {nav.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              params={{ orgId }}
-              activeOptions={{ exact: n.exact }}
-              className={({ isActive }: { isActive: boolean }) =>
-                cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50",
-                )
-              }
-            >
-              {(props: { isActive: boolean }) => (
-                <>
-                  <n.icon className="h-4 w-4" />
-                  {n.label}
-                </>
-              )}
-            </Link>
-          ))}
+          <Link to="/orgs/$orgId" params={{ orgId }} activeOptions={{ exact: true }} className={baseLink} activeProps={activeProps}>
+            <LayoutDashboard className="h-4 w-4" /> Dashbord
+          </Link>
+          <Link to="/orgs/$orgId/entries" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <Receipt className="h-4 w-4" /> Poster
+          </Link>
+          <Link to="/orgs/$orgId/reports" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <FileText className="h-4 w-4" /> Rapporter
+          </Link>
+          <Link to="/orgs/$orgId/members" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <Users className="h-4 w-4" /> Medlemmer
+          </Link>
+          <Link to="/orgs/$orgId/api-keys" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <KeyRound className="h-4 w-4" /> API-nøkler
+          </Link>
         </nav>
         <div className="p-2 border-t">
           <Button variant="ghost" size="sm" className="w-full justify-start" onClick={signOut}>

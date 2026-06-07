@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedOrgsNewRouteImport } from './routes/_authenticated/orgs.new'
 import { Route as AuthenticatedOrgsOrgIdRouteImport } from './routes/_authenticated/orgs.$orgId'
+import { Route as AuthenticatedOrgsOrgIdIndexRouteImport } from './routes/_authenticated/orgs.$orgId.index'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -45,20 +46,27 @@ const AuthenticatedOrgsOrgIdRoute = AuthenticatedOrgsOrgIdRouteImport.update({
   path: '/orgs/$orgId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOrgsOrgIdIndexRoute =
+  AuthenticatedOrgsOrgIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
-  '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRoute
+  '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
+  '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
-  '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRoute
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
+  '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,14 +74,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
-  '/_authenticated/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRoute
+  '/_authenticated/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/_authenticated/orgs/new': typeof AuthenticatedOrgsNewRoute
+  '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/app' | '/orgs/$orgId' | '/orgs/new'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/orgs/$orgId'
+    | '/orgs/new'
+    | '/orgs/$orgId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app' | '/orgs/$orgId' | '/orgs/new'
+  to: '/' | '/auth' | '/app' | '/orgs/new' | '/orgs/$orgId'
   id:
     | '__root__'
     | '/'
@@ -82,6 +97,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/orgs/$orgId'
     | '/_authenticated/orgs/new'
+    | '/_authenticated/orgs/$orgId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -134,18 +150,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/orgs/$orgId/': {
+      id: '/_authenticated/orgs/$orgId/'
+      path: '/'
+      fullPath: '/orgs/$orgId/'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdIndexRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
   }
 }
 
+interface AuthenticatedOrgsOrgIdRouteChildren {
+  AuthenticatedOrgsOrgIdIndexRoute: typeof AuthenticatedOrgsOrgIdIndexRoute
+}
+
+const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
+  {
+    AuthenticatedOrgsOrgIdIndexRoute: AuthenticatedOrgsOrgIdIndexRoute,
+  }
+
+const AuthenticatedOrgsOrgIdRouteWithChildren =
+  AuthenticatedOrgsOrgIdRoute._addFileChildren(
+    AuthenticatedOrgsOrgIdRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
-  AuthenticatedOrgsOrgIdRoute: typeof AuthenticatedOrgsOrgIdRoute
+  AuthenticatedOrgsOrgIdRoute: typeof AuthenticatedOrgsOrgIdRouteWithChildren
   AuthenticatedOrgsNewRoute: typeof AuthenticatedOrgsNewRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
-  AuthenticatedOrgsOrgIdRoute: AuthenticatedOrgsOrgIdRoute,
+  AuthenticatedOrgsOrgIdRoute: AuthenticatedOrgsOrgIdRouteWithChildren,
   AuthenticatedOrgsNewRoute: AuthenticatedOrgsNewRoute,
 }
 
