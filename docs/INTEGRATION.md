@@ -25,9 +25,9 @@ Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**.
 | Scope | Tilgang |
 |---|---|
 | `entries:read` | `GET /api/public/v1/entries`, `GET /api/public/v1/reports/summary` |
-| `entries:write` | `POST /api/public/v1/entries` |
+| `entries:write` | `POST /api/public/v1/entries`, `DELETE /api/public/v1/entries/{entry_id}` |
 | `reports:read` | `GET /api/public/v1/reports/summary` |
-| `attachments:write` | `POST /api/public/v1/attachments` |
+| `attachments:write` | `POST /api/public/v1/attachments`, `DELETE /api/public/v1/attachments/{attachment_id}` |
 
 ## Endpoints
 
