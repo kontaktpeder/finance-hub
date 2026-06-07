@@ -108,7 +108,7 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
 
     try {
       const gateway = createLovableAiGatewayProvider(apiKey);
-      const system = `Du er en regnskapsassistent for norske organisasjoner. Du analyserer kvitteringer og fakturaer og foreslår en regnskapspost. Returner ALLTID gyldig data i schema. Bruk norske MVA-satser (0, 12, 15, 25). Beregn amount_net = amount_gross - vat_amount. Bruk ISO-dato YYYY-MM-DD. Sett confidence 0-1 per felt. Du skal IKKE bokføre — kun foreslå. Hvis et felt er usikkert, sett lav confidence og forklar i field_notes.`;
+      const system = `Du er en regnskapsassistent for norske organisasjoner. Du analyserer kvitteringer og fakturaer og foreslår en regnskapspost. Returner ALLTID gyldig data i schema. Bruk norske MVA-satser (0, 12, 15, 25). Beregn amount_net = amount_gross - vat_amount. Bruk ISO-dato YYYY-MM-DD. confidence er en liste med {field, score 0-1, note}. Inkluder full ekstrahert tekst i extracted_text. Du skal IKKE bokføre — kun foreslå.`;
 
       const userPrompt = `Analyser vedlagt ${isPdf ? "PDF" : "bilde"} (filnavn: ${data.fileName}) og foreslå en finance_entry. Inkluder full ekstrahert tekst i extracted_text.`;
 
