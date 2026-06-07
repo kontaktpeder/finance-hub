@@ -17,6 +17,7 @@ import { Route as AuthenticatedOrgsNewRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedOrgsOrgIdRouteImport } from './routes/_authenticated/orgs.$orgId'
 import { Route as AuthenticatedOrgsOrgIdIndexRouteImport } from './routes/_authenticated/orgs.$orgId.index'
 import { Route as ApiPublicV1EntriesRouteImport } from './routes/api/public/v1/entries'
+import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authenticated/orgs.$orgId.scan'
 import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
 import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
 import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
@@ -63,6 +64,12 @@ const ApiPublicV1EntriesRoute = ApiPublicV1EntriesRouteImport.update({
   path: '/api/public/v1/entries',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedOrgsOrgIdScanRoute =
+  AuthenticatedOrgsOrgIdScanRouteImport.update({
+    id: '/scan',
+    path: '/scan',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const AuthenticatedOrgsOrgIdReportsRoute =
   AuthenticatedOrgsOrgIdReportsRouteImport.update({
     id: '/reports',
@@ -104,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
+  '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
@@ -117,6 +125,7 @@ export interface FileRoutesByTo {
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
+  '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
@@ -133,6 +142,7 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
+  '/_authenticated/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
+    | '/orgs/$orgId/scan'
     | '/api/public/v1/entries'
     | '/orgs/$orgId/'
     | '/api/public/v1/reports/summary'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
+    | '/orgs/$orgId/scan'
     | '/api/public/v1/entries'
     | '/orgs/$orgId'
     | '/api/public/v1/reports/summary'
@@ -177,6 +189,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orgs/$orgId/entries'
     | '/_authenticated/orgs/$orgId/members'
     | '/_authenticated/orgs/$orgId/reports'
+    | '/_authenticated/orgs/$orgId/scan'
     | '/api/public/v1/entries'
     | '/_authenticated/orgs/$orgId/'
     | '/api/public/v1/reports/summary'
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1EntriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/orgs/$orgId/scan': {
+      id: '/_authenticated/orgs/$orgId/scan'
+      path: '/scan'
+      fullPath: '/orgs/$orgId/scan'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdScanRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/_authenticated/orgs/$orgId/reports': {
       id: '/_authenticated/orgs/$orgId/reports'
       path: '/reports'
@@ -291,6 +311,7 @@ interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdEntriesRoute: typeof AuthenticatedOrgsOrgIdEntriesRoute
   AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
   AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
+  AuthenticatedOrgsOrgIdScanRoute: typeof AuthenticatedOrgsOrgIdScanRoute
   AuthenticatedOrgsOrgIdIndexRoute: typeof AuthenticatedOrgsOrgIdIndexRoute
 }
 
@@ -300,6 +321,7 @@ const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
     AuthenticatedOrgsOrgIdEntriesRoute: AuthenticatedOrgsOrgIdEntriesRoute,
     AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
     AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,
+    AuthenticatedOrgsOrgIdScanRoute: AuthenticatedOrgsOrgIdScanRoute,
     AuthenticatedOrgsOrgIdIndexRoute: AuthenticatedOrgsOrgIdIndexRoute,
   }
 
@@ -334,3 +356,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
