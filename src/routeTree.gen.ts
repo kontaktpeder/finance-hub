@@ -9,38 +9,203 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedOrgsNewRouteImport } from './routes/_authenticated/orgs.new'
+import { Route as AuthenticatedOrgsOrgIdRouteImport } from './routes/_authenticated/orgs.$orgId'
+import { Route as AuthenticatedOrgsOrgIdIndexRouteImport } from './routes/_authenticated/orgs.$orgId.index'
+import { Route as ApiPublicV1EntriesRouteImport } from './routes/api/public/v1/entries'
+import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
+import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
+import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
+import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
+import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrgsNewRoute = AuthenticatedOrgsNewRouteImport.update({
+  id: '/orgs/new',
+  path: '/orgs/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrgsOrgIdRoute = AuthenticatedOrgsOrgIdRouteImport.update({
+  id: '/orgs/$orgId',
+  path: '/orgs/$orgId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrgsOrgIdIndexRoute =
+  AuthenticatedOrgsOrgIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const ApiPublicV1EntriesRoute = ApiPublicV1EntriesRouteImport.update({
+  id: '/api/public/v1/entries',
+  path: '/api/public/v1/entries',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedOrgsOrgIdReportsRoute =
+  AuthenticatedOrgsOrgIdReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const AuthenticatedOrgsOrgIdMembersRoute =
+  AuthenticatedOrgsOrgIdMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const AuthenticatedOrgsOrgIdEntriesRoute =
+  AuthenticatedOrgsOrgIdEntriesRouteImport.update({
+    id: '/entries',
+    path: '/entries',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const AuthenticatedOrgsOrgIdApiKeysRoute =
+  AuthenticatedOrgsOrgIdApiKeysRouteImport.update({
+    id: '/api-keys',
+    path: '/api-keys',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const ApiPublicV1ReportsSummaryRoute =
+  ApiPublicV1ReportsSummaryRouteImport.update({
+    id: '/api/public/v1/reports/summary',
+    path: '/api/public/v1/reports/summary',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRoute
+  '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
+  '/orgs/new': typeof AuthenticatedOrgsNewRoute
+  '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
+  '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
+  '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
+  '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
+  '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRoute
+  '/orgs/new': typeof AuthenticatedOrgsNewRoute
+  '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
+  '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
+  '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
+  '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
+  '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
+  '/_authenticated/orgs/new': typeof AuthenticatedOrgsNewRoute
+  '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  '/_authenticated/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
+  '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
+  '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
+  '/api/public/v1/entries': typeof ApiPublicV1EntriesRoute
+  '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/orgs/$orgId'
+    | '/orgs/new'
+    | '/orgs/$orgId/api-keys'
+    | '/orgs/$orgId/entries'
+    | '/orgs/$orgId/members'
+    | '/orgs/$orgId/reports'
+    | '/api/public/v1/entries'
+    | '/orgs/$orgId/'
+    | '/api/public/v1/reports/summary'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/orgs/new'
+    | '/orgs/$orgId/api-keys'
+    | '/orgs/$orgId/entries'
+    | '/orgs/$orgId/members'
+    | '/orgs/$orgId/reports'
+    | '/api/public/v1/entries'
+    | '/orgs/$orgId'
+    | '/api/public/v1/reports/summary'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/app'
+    | '/_authenticated/orgs/$orgId'
+    | '/_authenticated/orgs/new'
+    | '/_authenticated/orgs/$orgId/api-keys'
+    | '/_authenticated/orgs/$orgId/entries'
+    | '/_authenticated/orgs/$orgId/members'
+    | '/_authenticated/orgs/$orgId/reports'
+    | '/api/public/v1/entries'
+    | '/_authenticated/orgs/$orgId/'
+    | '/api/public/v1/reports/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRoute
+  ApiPublicV1ReportsSummaryRoute: typeof ApiPublicV1ReportsSummaryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +213,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orgs/new': {
+      id: '/_authenticated/orgs/new'
+      path: '/orgs/new'
+      fullPath: '/orgs/new'
+      preLoaderRoute: typeof AuthenticatedOrgsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orgs/$orgId': {
+      id: '/_authenticated/orgs/$orgId'
+      path: '/orgs/$orgId'
+      fullPath: '/orgs/$orgId'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orgs/$orgId/': {
+      id: '/_authenticated/orgs/$orgId/'
+      path: '/'
+      fullPath: '/orgs/$orgId/'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdIndexRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/api/public/v1/entries': {
+      id: '/api/public/v1/entries'
+      path: '/api/public/v1/entries'
+      fullPath: '/api/public/v1/entries'
+      preLoaderRoute: typeof ApiPublicV1EntriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/orgs/$orgId/reports': {
+      id: '/_authenticated/orgs/$orgId/reports'
+      path: '/reports'
+      fullPath: '/orgs/$orgId/reports'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdReportsRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/members': {
+      id: '/_authenticated/orgs/$orgId/members'
+      path: '/members'
+      fullPath: '/orgs/$orgId/members'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdMembersRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/entries': {
+      id: '/_authenticated/orgs/$orgId/entries'
+      path: '/entries'
+      fullPath: '/orgs/$orgId/entries'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdEntriesRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/api-keys': {
+      id: '/_authenticated/orgs/$orgId/api-keys'
+      path: '/api-keys'
+      fullPath: '/orgs/$orgId/api-keys'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdApiKeysRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/api/public/v1/reports/summary': {
+      id: '/api/public/v1/reports/summary'
+      path: '/api/public/v1/reports/summary'
+      fullPath: '/api/public/v1/reports/summary'
+      preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedOrgsOrgIdRouteChildren {
+  AuthenticatedOrgsOrgIdApiKeysRoute: typeof AuthenticatedOrgsOrgIdApiKeysRoute
+  AuthenticatedOrgsOrgIdEntriesRoute: typeof AuthenticatedOrgsOrgIdEntriesRoute
+  AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
+  AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
+  AuthenticatedOrgsOrgIdIndexRoute: typeof AuthenticatedOrgsOrgIdIndexRoute
+}
+
+const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
+  {
+    AuthenticatedOrgsOrgIdApiKeysRoute: AuthenticatedOrgsOrgIdApiKeysRoute,
+    AuthenticatedOrgsOrgIdEntriesRoute: AuthenticatedOrgsOrgIdEntriesRoute,
+    AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
+    AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,
+    AuthenticatedOrgsOrgIdIndexRoute: AuthenticatedOrgsOrgIdIndexRoute,
+  }
+
+const AuthenticatedOrgsOrgIdRouteWithChildren =
+  AuthenticatedOrgsOrgIdRoute._addFileChildren(
+    AuthenticatedOrgsOrgIdRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+  AuthenticatedOrgsOrgIdRoute: typeof AuthenticatedOrgsOrgIdRouteWithChildren
+  AuthenticatedOrgsNewRoute: typeof AuthenticatedOrgsNewRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRoute,
+  AuthenticatedOrgsOrgIdRoute: AuthenticatedOrgsOrgIdRouteWithChildren,
+  AuthenticatedOrgsNewRoute: AuthenticatedOrgsNewRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ApiPublicV1EntriesRoute: ApiPublicV1EntriesRoute,
+  ApiPublicV1ReportsSummaryRoute: ApiPublicV1ReportsSummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
