@@ -71,7 +71,25 @@ export const Route = createFileRoute("/api/public/v1/entries")({
           .order("entry_date", { ascending: false })
           .limit(limit);
         if (error) return Response.json({ error: error.message }, { status: 500 });
-        return Response.json({ data });
+
+        const ids = (data ?? []).map((e) => e.id);
+        const counts: Record<string, number> = {};
+        if (ids.length > 0) {
+          const { data: atts } = await supabaseAdmin
+            .from("finance_attachments")
+            .select("entry_id")
+            .eq("organization_id", auth.client.organization_id)
+            .in("entry_id", ids);
+          for (const a of atts ?? []) {
+            if (a.entry_id) counts[a.entry_id] = (counts[a.entry_id] ?? 0) + 1;
+          }
+        }
+        const enriched = (data ?? []).map((e) => ({
+          ...e,
+          attachment_count: counts[e.id] ?? 0,
+          has_attachment: (counts[e.id] ?? 0) > 0,
+        }));
+        return Response.json({ data: enriched });
       },
       POST: async ({ request }) => {
         const auth = await authenticate(request);

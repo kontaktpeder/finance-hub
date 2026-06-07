@@ -52,10 +52,10 @@ export const Route = createFileRoute("/api/public/v1/entries/$entryId/attachment
 
         const { data: rows, error } = await supabaseAdmin
           .from("finance_attachments")
-          .select("id, file_name, mime_type, size_bytes, storage_path, created_at, entry_id")
+          .select("id, file_name, mime_type, size_bytes, storage_path, uploaded_at, entry_id")
           .eq("organization_id", auth.client.organization_id)
           .eq("entry_id", entryId)
-          .order("created_at", { ascending: false });
+          .order("uploaded_at", { ascending: false });
         if (error) return Response.json({ error: error.message }, { status: 500 });
 
         const out = await Promise.all(
@@ -72,7 +72,8 @@ export const Route = createFileRoute("/api/public/v1/entries/$entryId/attachment
               size_bytes: a.size_bytes,
               size: a.size_bytes,
               url: signed?.signedUrl ?? null,
-              created_at: a.created_at,
+              created_at: a.uploaded_at,
+              uploaded_at: a.uploaded_at,
             };
           }),
         );
