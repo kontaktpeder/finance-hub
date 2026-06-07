@@ -13,6 +13,12 @@ const ScanInput = z.object({
   sizeBytes: z.number().int().nonnegative(),
 });
 
+const ConfidenceItem = z.object({
+  field: z.string(),
+  score: z.number(),
+  note: z.string().nullable(),
+});
+
 const SuggestionSchema = z.object({
   entry_type: z.enum(["income", "expense"]),
   entry_date: z.string().describe("ISO date YYYY-MM-DD"),
@@ -29,8 +35,7 @@ const SuggestionSchema = z.object({
   pre_company_expense: z.boolean(),
   notes: z.string().nullable(),
   extracted_text: z.string(),
-  confidence: z.record(z.string(), z.number()),
-  field_notes: z.record(z.string(), z.string()),
+  confidence: z.array(ConfidenceItem),
 });
 
 export type ReceiptSuggestion = z.infer<typeof SuggestionSchema>;
@@ -103,7 +108,7 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
 
     try {
       const gateway = createLovableAiGatewayProvider(apiKey);
-      const system = `Du er en regnskapsassistent for norske organisasjoner. Du analyserer kvitteringer og fakturaer og foreslår en regnskapspost. Returner ALLTID gyldig data i schema. Bruk norske MVA-satser (0, 12, 15, 25). Beregn amount_net = amount_gross - vat_amount. Bruk ISO-dato YYYY-MM-DD. Sett confidence 0-1 per felt. Du skal IKKE bokføre — kun foreslå. Hvis et felt er usikkert, sett lav confidence og forklar i field_notes.`;
+      const system = `Du er en regnskapsassistent for norske organisasjoner. Du analyserer kvitteringer og fakturaer og foreslår en regnskapspost. Returner ALLTID gyldig data i schema. Bruk norske MVA-satser (0, 12, 15, 25). Beregn amount_net = amount_gross - vat_amount. Bruk ISO-dato YYYY-MM-DD. confidence er en liste med {field, score 0-1, note}. Inkluder full ekstrahert tekst i extracted_text. Du skal IKKE bokføre — kun foreslå.`;
 
       const userPrompt = `Analyser vedlagt ${isPdf ? "PDF" : "bilde"} (filnavn: ${data.fileName}) og foreslå en finance_entry. Inkluder full ekstrahert tekst i extracted_text.`;
 
