@@ -25,6 +25,8 @@ import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_aut
 import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
 import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
+import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
+import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
 import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
 
 const AuthRoute = AuthRouteImport.update({
@@ -114,11 +116,23 @@ const ApiPublicV1ReportsSummaryRoute =
     path: '/api/public/v1/reports/summary',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1EntriesEntryIdRoute =
+  ApiPublicV1EntriesEntryIdRouteImport.update({
+    id: '/$entryId',
+    path: '/$entryId',
+    getParentRoute: () => ApiPublicV1EntriesRoute,
+  } as any)
+const ApiPublicV1AttachmentsAttachmentIdRoute =
+  ApiPublicV1AttachmentsAttachmentIdRouteImport.update({
+    id: '/$attachmentId',
+    path: '/$attachmentId',
+    getParentRoute: () => ApiPublicV1AttachmentsRoute,
+  } as any)
 const ApiPublicV1EntriesEntryIdAttachmentsRoute =
   ApiPublicV1EntriesEntryIdAttachmentsRouteImport.update({
-    id: '/$entryId/attachments',
-    path: '/$entryId/attachments',
-    getParentRoute: () => ApiPublicV1EntriesRoute,
+    id: '/attachments',
+    path: '/attachments',
+    getParentRoute: () => ApiPublicV1EntriesEntryIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -133,9 +147,11 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
-  '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRoute
+  '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
+  '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
 }
@@ -150,9 +166,11 @@ export interface FileRoutesByTo {
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
-  '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRoute
+  '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
+  '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
 }
@@ -170,9 +188,11 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/_authenticated/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
-  '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRoute
+  '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
+  '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
 }
@@ -193,6 +213,8 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/orgs/$orgId/'
+    | '/api/public/v1/attachments/$attachmentId'
+    | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/reports/summary'
     | '/api/public/v1/entries/$entryId/attachments'
   fileRoutesByTo: FileRoutesByTo
@@ -210,6 +232,8 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/orgs/$orgId'
+    | '/api/public/v1/attachments/$attachmentId'
+    | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/reports/summary'
     | '/api/public/v1/entries/$entryId/attachments'
   id:
@@ -229,6 +253,8 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/_authenticated/orgs/$orgId/'
+    | '/api/public/v1/attachments/$attachmentId'
+    | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/reports/summary'
     | '/api/public/v1/entries/$entryId/attachments'
   fileRoutesById: FileRoutesById
@@ -237,7 +263,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
-  ApiPublicV1AttachmentsRoute: typeof ApiPublicV1AttachmentsRoute
+  ApiPublicV1AttachmentsRoute: typeof ApiPublicV1AttachmentsRouteWithChildren
   ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRouteWithChildren
   ApiPublicV1ReportsSummaryRoute: typeof ApiPublicV1ReportsSummaryRoute
 }
@@ -356,12 +382,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/entries/$entryId': {
+      id: '/api/public/v1/entries/$entryId'
+      path: '/$entryId'
+      fullPath: '/api/public/v1/entries/$entryId'
+      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdRouteImport
+      parentRoute: typeof ApiPublicV1EntriesRoute
+    }
+    '/api/public/v1/attachments/$attachmentId': {
+      id: '/api/public/v1/attachments/$attachmentId'
+      path: '/$attachmentId'
+      fullPath: '/api/public/v1/attachments/$attachmentId'
+      preLoaderRoute: typeof ApiPublicV1AttachmentsAttachmentIdRouteImport
+      parentRoute: typeof ApiPublicV1AttachmentsRoute
+    }
     '/api/public/v1/entries/$entryId/attachments': {
       id: '/api/public/v1/entries/$entryId/attachments'
-      path: '/$entryId/attachments'
+      path: '/attachments'
       fullPath: '/api/public/v1/entries/$entryId/attachments'
       preLoaderRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRouteImport
-      parentRoute: typeof ApiPublicV1EntriesRoute
+      parentRoute: typeof ApiPublicV1EntriesEntryIdRoute
     }
   }
 }
@@ -409,13 +449,42 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface ApiPublicV1EntriesRouteChildren {
+interface ApiPublicV1AttachmentsRouteChildren {
+  ApiPublicV1AttachmentsAttachmentIdRoute: typeof ApiPublicV1AttachmentsAttachmentIdRoute
+}
+
+const ApiPublicV1AttachmentsRouteChildren: ApiPublicV1AttachmentsRouteChildren =
+  {
+    ApiPublicV1AttachmentsAttachmentIdRoute:
+      ApiPublicV1AttachmentsAttachmentIdRoute,
+  }
+
+const ApiPublicV1AttachmentsRouteWithChildren =
+  ApiPublicV1AttachmentsRoute._addFileChildren(
+    ApiPublicV1AttachmentsRouteChildren,
+  )
+
+interface ApiPublicV1EntriesEntryIdRouteChildren {
   ApiPublicV1EntriesEntryIdAttachmentsRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
 }
 
+const ApiPublicV1EntriesEntryIdRouteChildren: ApiPublicV1EntriesEntryIdRouteChildren =
+  {
+    ApiPublicV1EntriesEntryIdAttachmentsRoute:
+      ApiPublicV1EntriesEntryIdAttachmentsRoute,
+  }
+
+const ApiPublicV1EntriesEntryIdRouteWithChildren =
+  ApiPublicV1EntriesEntryIdRoute._addFileChildren(
+    ApiPublicV1EntriesEntryIdRouteChildren,
+  )
+
+interface ApiPublicV1EntriesRouteChildren {
+  ApiPublicV1EntriesEntryIdRoute: typeof ApiPublicV1EntriesEntryIdRouteWithChildren
+}
+
 const ApiPublicV1EntriesRouteChildren: ApiPublicV1EntriesRouteChildren = {
-  ApiPublicV1EntriesEntryIdAttachmentsRoute:
-    ApiPublicV1EntriesEntryIdAttachmentsRoute,
+  ApiPublicV1EntriesEntryIdRoute: ApiPublicV1EntriesEntryIdRouteWithChildren,
 }
 
 const ApiPublicV1EntriesRouteWithChildren =
@@ -425,10 +494,20 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
-  ApiPublicV1AttachmentsRoute: ApiPublicV1AttachmentsRoute,
+  ApiPublicV1AttachmentsRoute: ApiPublicV1AttachmentsRouteWithChildren,
   ApiPublicV1EntriesRoute: ApiPublicV1EntriesRouteWithChildren,
   ApiPublicV1ReportsSummaryRoute: ApiPublicV1ReportsSummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -25,9 +25,9 @@ Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**.
 | Scope | Tilgang |
 |---|---|
 | `entries:read` | `GET /api/public/v1/entries`, `GET /api/public/v1/reports/summary` |
-| `entries:write` | `POST /api/public/v1/entries` |
+| `entries:write` | `POST /api/public/v1/entries`, `DELETE /api/public/v1/entries/{entry_id}` |
 | `reports:read` | `GET /api/public/v1/reports/summary` |
-| `attachments:write` | `POST /api/public/v1/attachments` |
+| `attachments:write` | `POST /api/public/v1/attachments`, `DELETE /api/public/v1/attachments/{attachment_id}` |
 
 ## Endpoints
 
@@ -120,6 +120,32 @@ curl -X POST "$BASE/api/public/v1/attachments" \
 ```
 
 Returnerer `{ "data": { ... attachment ... } }` med status 201.
+
+### DELETE /api/public/v1/attachments/{attachment_id}
+
+Sletter et bilag (storage-fil + metadata).
+
+```bash
+curl -X DELETE "$BASE/api/public/v1/attachments/<uuid>" \
+  -H "Authorization: Bearer $KEY"
+```
+
+- Krever scope `attachments:write`
+- Returnerer `{ "data": { "deleted": true, "id": "..." } }`
+- 404 hvis bilaget ikke finnes i organisasjonen
+
+### DELETE /api/public/v1/entries/{entry_id}
+
+Sletter en regnskapspost og alle tilknyttede bilag.
+
+```bash
+curl -X DELETE "$BASE/api/public/v1/entries/<uuid>" \
+  -H "Authorization: Bearer $KEY"
+```
+
+- Krever scope `entries:write`
+- Returnerer `{ "data": { "deleted": true, "id": "...", "attachments_deleted": N } }`
+- 404 hvis posten ikke finnes i organisasjonen
 
 ## Idempotens
 
