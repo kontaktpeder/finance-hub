@@ -25,7 +25,7 @@ const SuggestionSchema = z.object({
   vat_amount: z.number(),
   amount_net: z.number(),
   payment_status: z.enum(["paid", "unpaid", "partial"]),
-  invoice_status: z.enum(["none", "invoiced", "received"]),
+  invoice_status: z.enum(["none", "draft", "sent", "overdue", "paid"]),
   pre_company_expense: z.boolean(),
   notes: z.string().nullable(),
   extracted_text: z.string(),
