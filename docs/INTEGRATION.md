@@ -147,6 +147,46 @@ curl -X DELETE "$BASE/api/public/v1/entries/<uuid>" \
 - Returnerer `{ "data": { "deleted": true, "id": "...", "attachments_deleted": N } }`
 - 404 hvis posten ikke finnes i organisasjonen
 
+### POST /api/public/v1/ai/scan-receipt
+
+Stateless AI-kvitteringsskanning. Returnerer kun et forslag — **ingen** entry, attachment eller draft opprettes i Finance Core.
+
+- Krever scope `entries:write`
+- Request: `multipart/form-data` med felt `file` (påkrevd)
+- Støttede typer: JPEG, PNG, WebP, HEIC, PDF (maks 25 MB)
+
+```bash
+curl -X POST "$BASE/api/public/v1/ai/scan-receipt" \
+  -H "Authorization: Bearer $KEY" \
+  -F "file=@kvittering.jpg"
+```
+
+Response (200):
+
+```json
+{
+  "data": {
+    "entry_type": "expense",
+    "entry_date": "2026-06-07",
+    "counterparty": "Rema 1000",
+    "description": "Råvarer",
+    "category": "Varekost",
+    "amount_gross": 249.0,
+    "vat_rate": 0.15,
+    "payment_status": "paid",
+    "invoice_status": "received",
+    "before_company_founded": false,
+    "notes": null,
+    "confidence": 0.87
+  }
+}
+```
+
+Merk: `vat_rate` returneres som desimal (0.15 = 15%). Typisk klientflyt: scan → bruker godkjenner → `POST /entries` → `POST /attachments` med `entry_id`.
+
+Feil: `400 invalid_request` (mangler fil / ugyldig type / ugyldig multipart), `401` (auth), `403` (scope), `500 scan_failed` (AI feilet).
+
+
 ## Idempotens
 
 Bruk `source_app` + `source_ref` for å unngå duplikater:
