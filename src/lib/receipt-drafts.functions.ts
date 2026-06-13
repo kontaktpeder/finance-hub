@@ -23,8 +23,6 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
     // Verify membership / role via RLS-respecting client
     const { data: membership } = await supabase
@@ -37,19 +35,13 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
       throw new Error("Du har ikke tilgang til å skanne kvitteringer for denne organisasjonen.");
     }
 
-    // Download file from storage and convert to base64 data url
+    // Download file from storage
     const { data: blob, error: dlErr } = await supabase.storage
       .from("finance-attachments")
       .download(data.storagePath);
     if (dlErr || !blob) throw new Error(dlErr?.message ?? "Kunne ikke laste ned filen.");
 
     const arrayBuf = await blob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuf);
-    let bin = "";
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    const base64 = btoa(bin);
-
-    const isPdf = data.mimeType === "application/pdf";
 
     // Create attachment row (entry_id null until converted)
     const { data: attachment, error: aErr } = await supabase
