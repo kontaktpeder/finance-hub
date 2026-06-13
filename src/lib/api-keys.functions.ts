@@ -5,7 +5,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const InputSchema = z.object({
   organizationId: z.string().uuid(),
   name: z.string().min(1).max(100),
-  scopes: z.array(z.enum(["entries:read", "entries:write", "attachments:write", "reports:read"])).min(1),
+  scopes: z.array(z.enum([
+    "entries:read",
+    "entries:write",
+    "attachments:write",
+    "reports:read",
+    "invoices:read",
+    "invoices:write",
+  ])).min(1),
 });
 
 function randomToken(bytes = 24): string {

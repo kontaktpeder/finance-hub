@@ -19,16 +19,20 @@ import { Route as AuthenticatedOrgsOrgIdIndexRouteImport } from './routes/_authe
 import { Route as ApiPublicV1InvoicesRouteImport } from './routes/api/public/v1/invoices'
 import { Route as ApiPublicV1EntriesRouteImport } from './routes/api/public/v1/entries'
 import { Route as ApiPublicV1AttachmentsRouteImport } from './routes/api/public/v1/attachments'
+import { Route as AuthenticatedOrgsOrgIdSettingsRouteImport } from './routes/_authenticated/orgs.$orgId.settings'
 import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authenticated/orgs.$orgId.scan'
 import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
 import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
 import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
 import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
+import { Route as AuthenticatedOrgsOrgIdInvoicesIndexRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.index'
 import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
+import { Route as ApiPublicV1InvoicesInvoiceIdRouteImport } from './routes/api/public/v1/invoices.$invoiceId'
 import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
 import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
 import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/public/v1/ai.scan-receipt'
+import { Route as AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.$invoiceId'
 import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
 import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
 import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
@@ -83,6 +87,12 @@ const ApiPublicV1AttachmentsRoute = ApiPublicV1AttachmentsRouteImport.update({
   path: '/api/public/v1/attachments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedOrgsOrgIdSettingsRoute =
+  AuthenticatedOrgsOrgIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const AuthenticatedOrgsOrgIdScanRoute =
   AuthenticatedOrgsOrgIdScanRouteImport.update({
     id: '/scan',
@@ -119,11 +129,23 @@ const AuthenticatedOrgsOrgIdApiKeysRoute =
     path: '/api-keys',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
+const AuthenticatedOrgsOrgIdInvoicesIndexRoute =
+  AuthenticatedOrgsOrgIdInvoicesIndexRouteImport.update({
+    id: '/invoices/',
+    path: '/invoices/',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const ApiPublicV1ReportsSummaryRoute =
   ApiPublicV1ReportsSummaryRouteImport.update({
     id: '/api/public/v1/reports/summary',
     path: '/api/public/v1/reports/summary',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1InvoicesInvoiceIdRoute =
+  ApiPublicV1InvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => ApiPublicV1InvoicesRoute,
   } as any)
 const ApiPublicV1EntriesEntryIdRoute =
   ApiPublicV1EntriesEntryIdRouteImport.update({
@@ -143,17 +165,23 @@ const ApiPublicV1AiScanReceiptRoute =
     path: '/api/public/v1/ai/scan-receipt',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute =
+  AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport.update({
+    id: '/invoices/$invoiceId',
+    path: '/invoices/$invoiceId',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const ApiPublicV1InvoicesInvoiceIdSendRoute =
   ApiPublicV1InvoicesInvoiceIdSendRouteImport.update({
-    id: '/$invoiceId/send',
-    path: '/$invoiceId/send',
-    getParentRoute: () => ApiPublicV1InvoicesRoute,
+    id: '/send',
+    path: '/send',
+    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
   } as any)
 const ApiPublicV1InvoicesInvoiceIdPdfRoute =
   ApiPublicV1InvoicesInvoiceIdPdfRouteImport.update({
-    id: '/$invoiceId/pdf',
-    path: '/$invoiceId/pdf',
-    getParentRoute: () => ApiPublicV1InvoicesRoute,
+    id: '/pdf',
+    path: '/pdf',
+    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
   } as any)
 const ApiPublicV1EntriesEntryIdAttachmentsRoute =
   ApiPublicV1EntriesEntryIdAttachmentsRouteImport.update({
@@ -174,14 +202,18 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
+  '/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
+  '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
+  '/orgs/$orgId/invoices/': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
@@ -197,14 +229,18 @@ export interface FileRoutesByTo {
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
+  '/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
+  '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
+  '/orgs/$orgId/invoices': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
@@ -223,14 +259,18 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/_authenticated/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
+  '/_authenticated/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/_authenticated/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
+  '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
+  '/_authenticated/orgs/$orgId/invoices/': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
@@ -249,14 +289,18 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
     | '/orgs/$orgId/scan'
+    | '/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId/'
+    | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
+    | '/api/public/v1/invoices/$invoiceId'
     | '/api/public/v1/reports/summary'
+    | '/orgs/$orgId/invoices/'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
@@ -272,14 +316,18 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
     | '/orgs/$orgId/scan'
+    | '/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId'
+    | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
+    | '/api/public/v1/invoices/$invoiceId'
     | '/api/public/v1/reports/summary'
+    | '/orgs/$orgId/invoices'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
@@ -297,14 +345,18 @@ export interface FileRouteTypes {
     | '/_authenticated/orgs/$orgId/members'
     | '/_authenticated/orgs/$orgId/reports'
     | '/_authenticated/orgs/$orgId/scan'
+    | '/_authenticated/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/_authenticated/orgs/$orgId/'
+    | '/_authenticated/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
+    | '/api/public/v1/invoices/$invoiceId'
     | '/api/public/v1/reports/summary'
+    | '/_authenticated/orgs/$orgId/invoices/'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
@@ -393,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1AttachmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/orgs/$orgId/settings': {
+      id: '/_authenticated/orgs/$orgId/settings'
+      path: '/settings'
+      fullPath: '/orgs/$orgId/settings'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/_authenticated/orgs/$orgId/scan': {
       id: '/_authenticated/orgs/$orgId/scan'
       path: '/scan'
@@ -435,12 +494,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdApiKeysRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
+    '/_authenticated/orgs/$orgId/invoices/': {
+      id: '/_authenticated/orgs/$orgId/invoices/'
+      path: '/invoices'
+      fullPath: '/orgs/$orgId/invoices/'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesIndexRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/api/public/v1/reports/summary': {
       id: '/api/public/v1/reports/summary'
       path: '/api/public/v1/reports/summary'
       fullPath: '/api/public/v1/reports/summary'
       preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/invoices/$invoiceId': {
+      id: '/api/public/v1/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/api/public/v1/invoices/$invoiceId'
+      preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdRouteImport
+      parentRoute: typeof ApiPublicV1InvoicesRoute
     }
     '/api/public/v1/entries/$entryId': {
       id: '/api/public/v1/entries/$entryId'
@@ -463,19 +536,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1AiScanReceiptRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/orgs/$orgId/invoices/$invoiceId': {
+      id: '/_authenticated/orgs/$orgId/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/orgs/$orgId/invoices/$invoiceId'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/api/public/v1/invoices/$invoiceId/send': {
       id: '/api/public/v1/invoices/$invoiceId/send'
-      path: '/$invoiceId/send'
+      path: '/send'
       fullPath: '/api/public/v1/invoices/$invoiceId/send'
       preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdSendRouteImport
-      parentRoute: typeof ApiPublicV1InvoicesRoute
+      parentRoute: typeof ApiPublicV1InvoicesInvoiceIdRoute
     }
     '/api/public/v1/invoices/$invoiceId/pdf': {
       id: '/api/public/v1/invoices/$invoiceId/pdf'
-      path: '/$invoiceId/pdf'
+      path: '/pdf'
       fullPath: '/api/public/v1/invoices/$invoiceId/pdf'
       preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdPdfRouteImport
-      parentRoute: typeof ApiPublicV1InvoicesRoute
+      parentRoute: typeof ApiPublicV1InvoicesInvoiceIdRoute
     }
     '/api/public/v1/entries/$entryId/attachments': {
       id: '/api/public/v1/entries/$entryId/attachments'
@@ -494,7 +574,10 @@ interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
   AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
   AuthenticatedOrgsOrgIdScanRoute: typeof AuthenticatedOrgsOrgIdScanRoute
+  AuthenticatedOrgsOrgIdSettingsRoute: typeof AuthenticatedOrgsOrgIdSettingsRoute
   AuthenticatedOrgsOrgIdIndexRoute: typeof AuthenticatedOrgsOrgIdIndexRoute
+  AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
+  AuthenticatedOrgsOrgIdInvoicesIndexRoute: typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
 }
 
 const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
@@ -506,7 +589,12 @@ const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
     AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
     AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,
     AuthenticatedOrgsOrgIdScanRoute: AuthenticatedOrgsOrgIdScanRoute,
+    AuthenticatedOrgsOrgIdSettingsRoute: AuthenticatedOrgsOrgIdSettingsRoute,
     AuthenticatedOrgsOrgIdIndexRoute: AuthenticatedOrgsOrgIdIndexRoute,
+    AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute:
+      AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute,
+    AuthenticatedOrgsOrgIdInvoicesIndexRoute:
+      AuthenticatedOrgsOrgIdInvoicesIndexRoute,
   }
 
 const AuthenticatedOrgsOrgIdRouteWithChildren =
@@ -571,14 +659,30 @@ const ApiPublicV1EntriesRouteChildren: ApiPublicV1EntriesRouteChildren = {
 const ApiPublicV1EntriesRouteWithChildren =
   ApiPublicV1EntriesRoute._addFileChildren(ApiPublicV1EntriesRouteChildren)
 
-interface ApiPublicV1InvoicesRouteChildren {
+interface ApiPublicV1InvoicesInvoiceIdRouteChildren {
   ApiPublicV1InvoicesInvoiceIdPdfRoute: typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   ApiPublicV1InvoicesInvoiceIdSendRoute: typeof ApiPublicV1InvoicesInvoiceIdSendRoute
 }
 
+const ApiPublicV1InvoicesInvoiceIdRouteChildren: ApiPublicV1InvoicesInvoiceIdRouteChildren =
+  {
+    ApiPublicV1InvoicesInvoiceIdPdfRoute: ApiPublicV1InvoicesInvoiceIdPdfRoute,
+    ApiPublicV1InvoicesInvoiceIdSendRoute:
+      ApiPublicV1InvoicesInvoiceIdSendRoute,
+  }
+
+const ApiPublicV1InvoicesInvoiceIdRouteWithChildren =
+  ApiPublicV1InvoicesInvoiceIdRoute._addFileChildren(
+    ApiPublicV1InvoicesInvoiceIdRouteChildren,
+  )
+
+interface ApiPublicV1InvoicesRouteChildren {
+  ApiPublicV1InvoicesInvoiceIdRoute: typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+}
+
 const ApiPublicV1InvoicesRouteChildren: ApiPublicV1InvoicesRouteChildren = {
-  ApiPublicV1InvoicesInvoiceIdPdfRoute: ApiPublicV1InvoicesInvoiceIdPdfRoute,
-  ApiPublicV1InvoicesInvoiceIdSendRoute: ApiPublicV1InvoicesInvoiceIdSendRoute,
+  ApiPublicV1InvoicesInvoiceIdRoute:
+    ApiPublicV1InvoicesInvoiceIdRouteWithChildren,
 }
 
 const ApiPublicV1InvoicesRouteWithChildren =

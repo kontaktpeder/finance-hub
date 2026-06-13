@@ -28,6 +28,8 @@ Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**.
 | `entries:write` | `POST /api/public/v1/entries`, `DELETE /api/public/v1/entries/{entry_id}`, `POST /api/public/v1/ai/scan-receipt` |
 | `reports:read` | `GET /api/public/v1/reports/summary` |
 | `attachments:write` | `POST /api/public/v1/attachments`, `DELETE /api/public/v1/attachments/{attachment_id}` |
+| `invoices:read` | `GET /invoices`, `GET /invoices/:id`, `GET /invoices/:id/pdf` |
+| `invoices:write` | `POST /invoices`, `PATCH /invoices/:id`, `POST /invoices/:id/send` |
 
 ## Endpoints
 
@@ -220,3 +222,61 @@ Klient-appen skal kun:
 1. Sende inntekter/utgifter inn med `source_app` + `source_ref`
 2. Hente `summary` for enkel status
 3. Lenke brukeren videre til Finance Core for full visning
+
+---
+
+## Fakturaer (Invoices API)
+
+Utgående fakturaer med automatisk nummerering, PDF-lagring og låsing ved utsendelse.
+
+### Statusflyt
+
+`draft` → `sent` → `paid`
+
+- Fakturanummer tildeles ved overgang til `sent` (format `YYYY-NNNN`)
+- PDF genereres én gang ved `send` og lagres i `finance-attachments`
+- Etter `sent` kan kun `status` endres til `paid`
+- Beløp, kunde, linjer og PDF kan ikke endres etter utsendelse
+
+### POST /api/public/v1/invoices
+
+Scope: `invoices:write`. Oppretter et utkast.
+
+```json
+{
+  "issue_date": "2026-06-13",
+  "due_date": "2026-06-27",
+  "customer_name": "Kunde AS",
+  "customer_org_number": "123456789",
+  "customer_email": "faktura@kunde.no",
+  "customer_address": "Gate 1, 0150 Oslo",
+  "lines": [
+    { "description": "Konsulenttimer", "quantity": 5, "unit_price": 1200, "vat_rate": 25 }
+  ]
+}
+```
+
+Returnerer `{ "data": { "id", "status": "draft", "invoice_number": null, ... } }`.
+
+### GET /api/public/v1/invoices
+
+Scope: `invoices:read`. Query: `?limit=100&status=sent`.
+
+### GET /api/public/v1/invoices/:id
+
+Scope: `invoices:read`. Returnerer faktura med `invoice_lines`.
+
+### PATCH /api/public/v1/invoices/:id
+
+Scope: `invoices:write`.
+
+- **Draft:** send valgfrie header-felt og/eller `lines`-array. Hele linjelisten erstattes.
+- **Mark paid:** `{ "status": "paid" }` (kun gyldig fra `sent`).
+
+### POST /api/public/v1/invoices/:id/send
+
+Scope: `invoices:write`. Genererer fakturanummer, lager PDF, låser faktura.
+
+### GET /api/public/v1/invoices/:id/pdf
+
+Scope: `invoices:read`. Returnerer den lagrede PDF-en (regenereres ikke).
