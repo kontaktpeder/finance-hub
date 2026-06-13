@@ -1,8 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { generateText } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import {
+  RECEIPT_SCAN_MODEL,
+  scanReceiptContent,
+  type ReceiptSuggestion,
+} from "@/lib/receipt-scan.server";
+
+export type { ReceiptSuggestion };
 
 const ScanInput = z.object({
   organizationId: z.string().uuid(),
@@ -13,53 +18,11 @@ const ScanInput = z.object({
   sizeBytes: z.number().int().nonnegative(),
 });
 
-const ConfidenceItem = z.object({
-  field: z.string(),
-  score: z.number(),
-  note: z.string().nullable(),
-});
-
-const SuggestionSchema = z.object({
-  entry_type: z.enum(["income", "expense"]),
-  entry_date: z.string().describe("ISO date YYYY-MM-DD"),
-  counterparty: z.string().nullable(),
-  description: z.string(),
-  category: z.string().nullable(),
-  category_group: z.string().nullable(),
-  amount_gross: z.number(),
-  vat_rate: z.number(),
-  vat_amount: z.number(),
-  amount_net: z.number(),
-  payment_status: z.enum(["paid", "unpaid", "partial"]),
-  invoice_status: z.enum(["none", "draft", "sent", "overdue", "paid"]),
-  pre_company_expense: z.boolean(),
-  notes: z.string().nullable(),
-  extracted_text: z.string(),
-  confidence: z.array(ConfidenceItem),
-});
-
-export type ReceiptSuggestion = z.infer<typeof SuggestionSchema>;
-
-const MODEL = "google/gemini-3-flash-preview";
-
-function extractJson(raw: string): unknown {
-  let s = (raw ?? "").trim();
-  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-  if (!s.startsWith("{") && !s.startsWith("[")) {
-    const i = s.indexOf("{");
-    const j = s.lastIndexOf("}");
-    if (i !== -1 && j > i) s = s.slice(i, j + 1);
-  }
-  return JSON.parse(s);
-}
-
 export const scanReceiptDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
     // Verify membership / role via RLS-respecting client
     const { data: membership } = await supabase
@@ -72,19 +35,13 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
       throw new Error("Du har ikke tilgang til å skanne kvitteringer for denne organisasjonen.");
     }
 
-    // Download file from storage and convert to base64 data url
+    // Download file from storage
     const { data: blob, error: dlErr } = await supabase.storage
       .from("finance-attachments")
       .download(data.storagePath);
     if (dlErr || !blob) throw new Error(dlErr?.message ?? "Kunne ikke laste ned filen.");
 
     const arrayBuf = await blob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuf);
-    let bin = "";
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    const base64 = btoa(bin);
-
-    const isPdf = data.mimeType === "application/pdf";
 
     // Create attachment row (entry_id null until converted)
     const { data: attachment, error: aErr } = await supabase
@@ -111,67 +68,25 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
         uploaded_by: userId,
         attachment_id: attachment.id,
         status: "draft",
-        ai_model: MODEL,
+        ai_model: RECEIPT_SCAN_MODEL,
       })
       .select("id")
       .single();
     if (dErr) throw new Error(dErr.message);
 
     try {
-      const gateway = createLovableAiGatewayProvider(apiKey);
-      const system = `Du er en regnskapsassistent for norske organisasjoner. Du analyserer kvitteringer/fakturaer og foreslår en finance_entry. Bruk norske MVA-satser (0, 12, 15, 25). amount_net = amount_gross - vat_amount. ISO-dato YYYY-MM-DD. Du skal IKKE bokføre — kun foreslå.
-
-Svar KUN med ett JSON-objekt (ingen markdown, ingen forklaring) på dette skjemaet:
-{
-  "entry_type": "income" | "expense",
-  "entry_date": "YYYY-MM-DD",
-  "counterparty": string | null,
-  "description": string,
-  "category": string | null,
-  "category_group": string | null,
-  "amount_gross": number,
-  "vat_rate": number,
-  "vat_amount": number,
-  "amount_net": number,
-  "payment_status": "paid" | "unpaid" | "partial",
-  "invoice_status": "none" | "draft" | "sent" | "overdue" | "paid",
-  "pre_company_expense": boolean,
-  "notes": string | null,
-  "extracted_text": string,
-  "confidence": [ { "field": string, "score": number, "note": string | null } ]
-}
-Bruk rene tall (uten tusenskilletegn). Hvis et felt er ukjent, gjett konservativt og sett lav score i confidence.`;
-
-      const userPrompt = `Analyser vedlagt ${isPdf ? "PDF" : "bilde"} (filnavn: ${data.fileName}) og returner JSON-objektet.`;
-
-      const { text } = await generateText({
-        model: gateway(MODEL),
-        messages: [
-          { role: "system", content: system },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: userPrompt },
-              isPdf
-                ? { type: "file", data: `data:${data.mimeType};base64,${base64}`, mediaType: data.mimeType }
-                : { type: "image", image: `data:${data.mimeType};base64,${base64}` },
-            ] as any,
-          },
-        ],
+      const bytes = new Uint8Array(arrayBuf);
+      const output = await scanReceiptContent({
+        bytes,
+        mimeType: data.mimeType,
+        fileName: data.fileName,
       });
-
-      const parsed = extractJson(text);
-      const validated = SuggestionSchema.safeParse(parsed);
-      if (!validated.success) {
-        throw new Error("AI returnerte ugyldig format: " + validated.error.issues.map((i) => i.path.join(".") + " " + i.message).join("; "));
-      }
-      const output = validated.data;
 
       await supabase
         .from("finance_receipt_drafts")
         .update({
           ai_suggestion: output as any,
-          extracted_text: output.extracted_text ?? text ?? null,
+          extracted_text: output.extracted_text ?? null,
           status: "draft",
         })
         .eq("id", draft.id);
