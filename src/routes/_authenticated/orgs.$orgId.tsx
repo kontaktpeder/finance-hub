@@ -12,6 +12,8 @@ import {
   LogOut,
   ScanLine,
   Paperclip,
+  FileSpreadsheet,
+  Settings,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId")({
