@@ -18,7 +18,23 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId/api-keys")({
   component: ApiKeysPage,
 });
 
-const ALL_SCOPES = ["entries:read", "entries:write", "attachments:write", "reports:read"] as const;
+const ALL_SCOPES = [
+  "entries:read",
+  "entries:write",
+  "attachments:write",
+  "reports:read",
+  "invoices:read",
+  "invoices:write",
+] as const;
+
+const SCOPE_LABELS: Record<(typeof ALL_SCOPES)[number], string> = {
+  "entries:read": "Les poster",
+  "entries:write": "Skriv poster",
+  "attachments:write": "Last opp bilag",
+  "reports:read": "Les rapporter",
+  "invoices:read": "Les fakturaer",
+  "invoices:write": "Opprett/send fakturaer",
+};
 
 function ApiKeysPage() {
   const { orgId } = Route.useParams();
