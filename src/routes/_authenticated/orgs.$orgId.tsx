@@ -73,8 +73,14 @@ function OrgLayout() {
           <Link to="/orgs/$orgId/attachments" params={{ orgId }} className={baseLink} activeProps={activeProps}>
             <Paperclip className="h-4 w-4" /> Bilag
           </Link>
+          <Link to="/orgs/$orgId/invoices" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <FileSpreadsheet className="h-4 w-4" /> Fakturaer
+          </Link>
           <Link to="/orgs/$orgId/reports" params={{ orgId }} className={baseLink} activeProps={activeProps}>
             <FileText className="h-4 w-4" /> Rapporter
+          </Link>
+          <Link to="/orgs/$orgId/settings" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <Settings className="h-4 w-4" /> Innstillinger
           </Link>
           <Link to="/orgs/$orgId/members" params={{ orgId }} className={baseLink} activeProps={activeProps}>
             <Users className="h-4 w-4" /> Medlemmer
