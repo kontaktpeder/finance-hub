@@ -19,9 +19,11 @@ import { Route as AuthenticatedOrgsOrgIdIndexRouteImport } from './routes/_authe
 import { Route as ApiPublicV1InvoicesRouteImport } from './routes/api/public/v1/invoices'
 import { Route as ApiPublicV1EntriesRouteImport } from './routes/api/public/v1/entries'
 import { Route as ApiPublicV1AttachmentsRouteImport } from './routes/api/public/v1/attachments'
+import { Route as AuthenticatedOrgsOrgIdSettingsRouteImport } from './routes/_authenticated/orgs.$orgId.settings'
 import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authenticated/orgs.$orgId.scan'
 import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
 import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
+import { Route as AuthenticatedOrgsOrgIdInvoicesRouteImport } from './routes/_authenticated/orgs.$orgId.invoices'
 import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
 import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
@@ -84,6 +86,12 @@ const ApiPublicV1AttachmentsRoute = ApiPublicV1AttachmentsRouteImport.update({
   path: '/api/public/v1/attachments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedOrgsOrgIdSettingsRoute =
+  AuthenticatedOrgsOrgIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const AuthenticatedOrgsOrgIdScanRoute =
   AuthenticatedOrgsOrgIdScanRouteImport.update({
     id: '/scan',
@@ -100,6 +108,12 @@ const AuthenticatedOrgsOrgIdMembersRoute =
   AuthenticatedOrgsOrgIdMembersRouteImport.update({
     id: '/members',
     path: '/members',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const AuthenticatedOrgsOrgIdInvoicesRoute =
+  AuthenticatedOrgsOrgIdInvoicesRouteImport.update({
+    id: '/invoices',
+    path: '/invoices',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
 const AuthenticatedOrgsOrgIdEntriesRoute =
@@ -178,9 +192,11 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
+  '/orgs/$orgId/invoices': typeof AuthenticatedOrgsOrgIdInvoicesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
+  '/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
@@ -202,9 +218,11 @@ export interface FileRoutesByTo {
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
+  '/orgs/$orgId/invoices': typeof AuthenticatedOrgsOrgIdInvoicesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
+  '/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
@@ -229,9 +247,11 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/_authenticated/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/_authenticated/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
+  '/_authenticated/orgs/$orgId/invoices': typeof AuthenticatedOrgsOrgIdInvoicesRoute
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
   '/_authenticated/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
+  '/_authenticated/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
@@ -256,9 +276,11 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
     | '/orgs/$orgId/entries'
+    | '/orgs/$orgId/invoices'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
     | '/orgs/$orgId/scan'
+    | '/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
@@ -280,9 +302,11 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
     | '/orgs/$orgId/entries'
+    | '/orgs/$orgId/invoices'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
     | '/orgs/$orgId/scan'
+    | '/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
@@ -306,9 +330,11 @@ export interface FileRouteTypes {
     | '/_authenticated/orgs/$orgId/api-keys'
     | '/_authenticated/orgs/$orgId/attachments'
     | '/_authenticated/orgs/$orgId/entries'
+    | '/_authenticated/orgs/$orgId/invoices'
     | '/_authenticated/orgs/$orgId/members'
     | '/_authenticated/orgs/$orgId/reports'
     | '/_authenticated/orgs/$orgId/scan'
+    | '/_authenticated/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
@@ -406,6 +432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1AttachmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/orgs/$orgId/settings': {
+      id: '/_authenticated/orgs/$orgId/settings'
+      path: '/settings'
+      fullPath: '/orgs/$orgId/settings'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/_authenticated/orgs/$orgId/scan': {
       id: '/_authenticated/orgs/$orgId/scan'
       path: '/scan'
@@ -425,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/orgs/$orgId/members'
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdMembersRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/invoices': {
+      id: '/_authenticated/orgs/$orgId/invoices'
+      path: '/invoices'
+      fullPath: '/orgs/$orgId/invoices'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
     '/_authenticated/orgs/$orgId/entries': {
@@ -511,9 +551,11 @@ interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdApiKeysRoute: typeof AuthenticatedOrgsOrgIdApiKeysRoute
   AuthenticatedOrgsOrgIdAttachmentsRoute: typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   AuthenticatedOrgsOrgIdEntriesRoute: typeof AuthenticatedOrgsOrgIdEntriesRoute
+  AuthenticatedOrgsOrgIdInvoicesRoute: typeof AuthenticatedOrgsOrgIdInvoicesRoute
   AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
   AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
   AuthenticatedOrgsOrgIdScanRoute: typeof AuthenticatedOrgsOrgIdScanRoute
+  AuthenticatedOrgsOrgIdSettingsRoute: typeof AuthenticatedOrgsOrgIdSettingsRoute
   AuthenticatedOrgsOrgIdIndexRoute: typeof AuthenticatedOrgsOrgIdIndexRoute
 }
 
@@ -523,9 +565,11 @@ const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
     AuthenticatedOrgsOrgIdAttachmentsRoute:
       AuthenticatedOrgsOrgIdAttachmentsRoute,
     AuthenticatedOrgsOrgIdEntriesRoute: AuthenticatedOrgsOrgIdEntriesRoute,
+    AuthenticatedOrgsOrgIdInvoicesRoute: AuthenticatedOrgsOrgIdInvoicesRoute,
     AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
     AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,
     AuthenticatedOrgsOrgIdScanRoute: AuthenticatedOrgsOrgIdScanRoute,
+    AuthenticatedOrgsOrgIdSettingsRoute: AuthenticatedOrgsOrgIdSettingsRoute,
     AuthenticatedOrgsOrgIdIndexRoute: AuthenticatedOrgsOrgIdIndexRoute,
   }
 
@@ -633,3 +677,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
