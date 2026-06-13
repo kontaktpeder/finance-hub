@@ -67,7 +67,7 @@ const STATUS_VARIANT: Record<string, "outline" | "secondary" | "default"> = {
 function InvoiceDetailPage() {
   const { orgId, invoiceId } = Route.useParams();
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  
 
   const updateDraft = useServerFn(updateDraftInvoiceFn);
   const sendInvoice = useServerFn(sendInvoiceFn);
