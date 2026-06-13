@@ -66,7 +66,7 @@ function InvoicesPage() {
             issue_date: todayISO(),
             due_date: plusDaysISO(14),
             customer_name: "Ny kunde",
-            lines: [{ description: "", quantity: 1, unit_price: 0, vat_rate: 25 }],
+            lines: [{ description: "Ny linje", quantity: 1, unit_price: 0, vat_rate: 25 }],
           },
         },
       });
