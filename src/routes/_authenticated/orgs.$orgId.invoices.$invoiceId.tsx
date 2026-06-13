@@ -35,7 +35,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, FileDown, Send, CheckCircle2, ChevronLeft } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
 
