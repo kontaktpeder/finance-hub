@@ -48,7 +48,7 @@ export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8A
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
 
-  const { width, height } = page.size();
+  const { width, height } = page.getSize();
   const margin = 50;
   const textColor = rgb(0.1, 0.1, 0.1);
   const mutedColor = rgb(0.4, 0.4, 0.4);
