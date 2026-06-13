@@ -1,8 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { generateText } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import {
+  RECEIPT_SCAN_MODEL,
+  scanReceiptContent,
+  type ReceiptSuggestion,
+} from "@/lib/receipt-scan.server";
+
+export type { ReceiptSuggestion };
 
 const ScanInput = z.object({
   organizationId: z.string().uuid(),
@@ -12,46 +17,6 @@ const ScanInput = z.object({
   mimeType: z.string().min(1),
   sizeBytes: z.number().int().nonnegative(),
 });
-
-const ConfidenceItem = z.object({
-  field: z.string(),
-  score: z.number(),
-  note: z.string().nullable(),
-});
-
-const SuggestionSchema = z.object({
-  entry_type: z.enum(["income", "expense"]),
-  entry_date: z.string().describe("ISO date YYYY-MM-DD"),
-  counterparty: z.string().nullable(),
-  description: z.string(),
-  category: z.string().nullable(),
-  category_group: z.string().nullable(),
-  amount_gross: z.number(),
-  vat_rate: z.number(),
-  vat_amount: z.number(),
-  amount_net: z.number(),
-  payment_status: z.enum(["paid", "unpaid", "partial"]),
-  invoice_status: z.enum(["none", "draft", "sent", "overdue", "paid"]),
-  pre_company_expense: z.boolean(),
-  notes: z.string().nullable(),
-  extracted_text: z.string(),
-  confidence: z.array(ConfidenceItem),
-});
-
-export type ReceiptSuggestion = z.infer<typeof SuggestionSchema>;
-
-const MODEL = "google/gemini-3-flash-preview";
-
-function extractJson(raw: string): unknown {
-  let s = (raw ?? "").trim();
-  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-  if (!s.startsWith("{") && !s.startsWith("[")) {
-    const i = s.indexOf("{");
-    const j = s.lastIndexOf("}");
-    if (i !== -1 && j > i) s = s.slice(i, j + 1);
-  }
-  return JSON.parse(s);
-}
 
 export const scanReceiptDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
