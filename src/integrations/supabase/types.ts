@@ -395,6 +395,134 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_lines: {
+        Row: {
+          description: string
+          id: string
+          invoice_id: string
+          line_net: number
+          line_total: number
+          line_vat: number
+          quantity: number
+          sort_order: number
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          description: string
+          id?: string
+          invoice_id: string
+          line_net: number
+          line_total: number
+          line_vat: number
+          quantity?: number
+          sort_order?: number
+          unit_price: number
+          vat_rate?: number
+        }
+        Update: {
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_net?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          sort_order?: number
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_address: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_org_number: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          issue_date: string
+          locked_at: string | null
+          organization_id: string
+          pdf_attachment_id: string | null
+          seller_snapshot: Json
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          total: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_org_number?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          issue_date?: string
+          locked_at?: string | null
+          organization_id: string
+          pdf_attachment_id?: string | null
+          seller_snapshot?: Json
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_org_number?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          issue_date?: string
+          locked_at?: string | null
+          organization_id?: string
+          pdf_attachment_id?: string | null
+          seller_snapshot?: Json
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_pdf_attachment_id_fkey"
+            columns: ["pdf_attachment_id"]
+            isOneToOne: false
+            referencedRelation: "finance_attachments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -429,30 +557,51 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
+          bank_account: string | null
+          city: string | null
+          country: string
           created_at: string
           created_by: string
           id: string
+          invoice_seq: number
+          invoice_seq_year: number | null
           kind: string
           name: string
           org_number: string | null
+          postal_code: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          bank_account?: string | null
+          city?: string | null
+          country?: string
           created_at?: string
           created_by: string
           id?: string
+          invoice_seq?: number
+          invoice_seq_year?: number | null
           kind?: string
           name: string
           org_number?: string | null
+          postal_code?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          bank_account?: string | null
+          city?: string | null
+          country?: string
           created_at?: string
           created_by?: string
           id?: string
+          invoice_seq?: number
+          invoice_seq_year?: number | null
           kind?: string
           name?: string
           org_number?: string | null
+          postal_code?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -482,6 +631,8 @@ export type Database = {
         | "entries:write"
         | "attachments:write"
         | "reports:read"
+        | "invoices:read"
+        | "invoices:write"
       entry_type: "income" | "expense"
       invoice_status: "none" | "draft" | "sent" | "overdue" | "paid"
       org_role: "owner" | "admin" | "editor" | "viewer"
@@ -619,6 +770,8 @@ export const Constants = {
         "entries:write",
         "attachments:write",
         "reports:read",
+        "invoices:read",
+        "invoices:write",
       ],
       entry_type: ["income", "expense"],
       invoice_status: ["none", "draft", "sent", "overdue", "paid"],
