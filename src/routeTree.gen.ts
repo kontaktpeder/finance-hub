@@ -32,6 +32,7 @@ import { Route as ApiPublicV1InvoicesInvoiceIdRouteImport } from './routes/api/p
 import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
 import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
 import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/public/v1/ai.scan-receipt'
+import { Route as AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.$invoiceId'
 import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
 import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
 import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
@@ -164,6 +165,12 @@ const ApiPublicV1AiScanReceiptRoute =
     path: '/api/public/v1/ai/scan-receipt',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute =
+  AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport.update({
+    id: '/invoices/$invoiceId',
+    path: '/invoices/$invoiceId',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const ApiPublicV1InvoicesInvoiceIdSendRoute =
   ApiPublicV1InvoicesInvoiceIdSendRouteImport.update({
     id: '/send',
@@ -200,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
@@ -226,6 +234,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
@@ -255,6 +264,7 @@ export interface FileRoutesById {
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/_authenticated/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId/'
+    | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId'
+    | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
@@ -338,6 +350,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/_authenticated/orgs/$orgId/'
+    | '/_authenticated/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
@@ -523,6 +536,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1AiScanReceiptRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/orgs/$orgId/invoices/$invoiceId': {
+      id: '/_authenticated/orgs/$orgId/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/orgs/$orgId/invoices/$invoiceId'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/api/public/v1/invoices/$invoiceId/send': {
       id: '/api/public/v1/invoices/$invoiceId/send'
       path: '/send'
@@ -556,6 +576,7 @@ interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdScanRoute: typeof AuthenticatedOrgsOrgIdScanRoute
   AuthenticatedOrgsOrgIdSettingsRoute: typeof AuthenticatedOrgsOrgIdSettingsRoute
   AuthenticatedOrgsOrgIdIndexRoute: typeof AuthenticatedOrgsOrgIdIndexRoute
+  AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   AuthenticatedOrgsOrgIdInvoicesIndexRoute: typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
 }
 
@@ -570,6 +591,8 @@ const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
     AuthenticatedOrgsOrgIdScanRoute: AuthenticatedOrgsOrgIdScanRoute,
     AuthenticatedOrgsOrgIdSettingsRoute: AuthenticatedOrgsOrgIdSettingsRoute,
     AuthenticatedOrgsOrgIdIndexRoute: AuthenticatedOrgsOrgIdIndexRoute,
+    AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute:
+      AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute,
     AuthenticatedOrgsOrgIdInvoicesIndexRoute:
       AuthenticatedOrgsOrgIdInvoicesIndexRoute,
   }
@@ -678,3 +701,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
