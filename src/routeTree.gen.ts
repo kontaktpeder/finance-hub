@@ -26,6 +26,7 @@ import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_aut
 import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
 import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
+import { Route as ApiPublicV1InvoicesInvoiceIdRouteImport } from './routes/api/public/v1/invoices.$invoiceId'
 import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
 import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
 import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/public/v1/ai.scan-receipt'
@@ -125,6 +126,12 @@ const ApiPublicV1ReportsSummaryRoute =
     path: '/api/public/v1/reports/summary',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1InvoicesInvoiceIdRoute =
+  ApiPublicV1InvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => ApiPublicV1InvoicesRoute,
+  } as any)
 const ApiPublicV1EntriesEntryIdRoute =
   ApiPublicV1EntriesEntryIdRouteImport.update({
     id: '/$entryId',
@@ -145,15 +152,15 @@ const ApiPublicV1AiScanReceiptRoute =
   } as any)
 const ApiPublicV1InvoicesInvoiceIdSendRoute =
   ApiPublicV1InvoicesInvoiceIdSendRouteImport.update({
-    id: '/$invoiceId/send',
-    path: '/$invoiceId/send',
-    getParentRoute: () => ApiPublicV1InvoicesRoute,
+    id: '/send',
+    path: '/send',
+    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
   } as any)
 const ApiPublicV1InvoicesInvoiceIdPdfRoute =
   ApiPublicV1InvoicesInvoiceIdPdfRouteImport.update({
-    id: '/$invoiceId/pdf',
-    path: '/$invoiceId/pdf',
-    getParentRoute: () => ApiPublicV1InvoicesRoute,
+    id: '/pdf',
+    path: '/pdf',
+    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
   } as any)
 const ApiPublicV1EntriesEntryIdAttachmentsRoute =
   ApiPublicV1EntriesEntryIdAttachmentsRouteImport.update({
@@ -181,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
+  '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
@@ -204,6 +212,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
+  '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
@@ -230,6 +239,7 @@ export interface FileRoutesById {
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
+  '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
+    | '/api/public/v1/invoices/$invoiceId'
     | '/api/public/v1/reports/summary'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
@@ -279,6 +290,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
+    | '/api/public/v1/invoices/$invoiceId'
     | '/api/public/v1/reports/summary'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
@@ -304,6 +316,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
+    | '/api/public/v1/invoices/$invoiceId'
     | '/api/public/v1/reports/summary'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/invoices/$invoiceId': {
+      id: '/api/public/v1/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/api/public/v1/invoices/$invoiceId'
+      preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdRouteImport
+      parentRoute: typeof ApiPublicV1InvoicesRoute
+    }
     '/api/public/v1/entries/$entryId': {
       id: '/api/public/v1/entries/$entryId'
       path: '/$entryId'
@@ -465,17 +485,17 @@ declare module '@tanstack/react-router' {
     }
     '/api/public/v1/invoices/$invoiceId/send': {
       id: '/api/public/v1/invoices/$invoiceId/send'
-      path: '/$invoiceId/send'
+      path: '/send'
       fullPath: '/api/public/v1/invoices/$invoiceId/send'
       preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdSendRouteImport
-      parentRoute: typeof ApiPublicV1InvoicesRoute
+      parentRoute: typeof ApiPublicV1InvoicesInvoiceIdRoute
     }
     '/api/public/v1/invoices/$invoiceId/pdf': {
       id: '/api/public/v1/invoices/$invoiceId/pdf'
-      path: '/$invoiceId/pdf'
+      path: '/pdf'
       fullPath: '/api/public/v1/invoices/$invoiceId/pdf'
       preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdPdfRouteImport
-      parentRoute: typeof ApiPublicV1InvoicesRoute
+      parentRoute: typeof ApiPublicV1InvoicesInvoiceIdRoute
     }
     '/api/public/v1/entries/$entryId/attachments': {
       id: '/api/public/v1/entries/$entryId/attachments'
@@ -571,14 +591,30 @@ const ApiPublicV1EntriesRouteChildren: ApiPublicV1EntriesRouteChildren = {
 const ApiPublicV1EntriesRouteWithChildren =
   ApiPublicV1EntriesRoute._addFileChildren(ApiPublicV1EntriesRouteChildren)
 
-interface ApiPublicV1InvoicesRouteChildren {
+interface ApiPublicV1InvoicesInvoiceIdRouteChildren {
   ApiPublicV1InvoicesInvoiceIdPdfRoute: typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   ApiPublicV1InvoicesInvoiceIdSendRoute: typeof ApiPublicV1InvoicesInvoiceIdSendRoute
 }
 
+const ApiPublicV1InvoicesInvoiceIdRouteChildren: ApiPublicV1InvoicesInvoiceIdRouteChildren =
+  {
+    ApiPublicV1InvoicesInvoiceIdPdfRoute: ApiPublicV1InvoicesInvoiceIdPdfRoute,
+    ApiPublicV1InvoicesInvoiceIdSendRoute:
+      ApiPublicV1InvoicesInvoiceIdSendRoute,
+  }
+
+const ApiPublicV1InvoicesInvoiceIdRouteWithChildren =
+  ApiPublicV1InvoicesInvoiceIdRoute._addFileChildren(
+    ApiPublicV1InvoicesInvoiceIdRouteChildren,
+  )
+
+interface ApiPublicV1InvoicesRouteChildren {
+  ApiPublicV1InvoicesInvoiceIdRoute: typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+}
+
 const ApiPublicV1InvoicesRouteChildren: ApiPublicV1InvoicesRouteChildren = {
-  ApiPublicV1InvoicesInvoiceIdPdfRoute: ApiPublicV1InvoicesInvoiceIdPdfRoute,
-  ApiPublicV1InvoicesInvoiceIdSendRoute: ApiPublicV1InvoicesInvoiceIdSendRoute,
+  ApiPublicV1InvoicesInvoiceIdRoute:
+    ApiPublicV1InvoicesInvoiceIdRouteWithChildren,
 }
 
 const ApiPublicV1InvoicesRouteWithChildren =
@@ -597,3 +633,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
