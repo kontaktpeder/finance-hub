@@ -110,7 +110,7 @@ function ApiKeysPage() {
                         checked={scopes.includes(s)}
                         onCheckedChange={(c) => setScopes(c ? [...scopes, s] : scopes.filter((x) => x !== s))}
                       />
-                      <label htmlFor={s} className="text-sm tabular">{s}</label>
+                      <label htmlFor={s} className="text-sm">{SCOPE_LABELS[s]} <span className="text-muted-foreground tabular text-xs">({s})</span></label>
                     </div>
                   ))}
                 </div>
