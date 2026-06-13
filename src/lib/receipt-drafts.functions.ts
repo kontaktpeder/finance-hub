@@ -68,67 +68,25 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
         uploaded_by: userId,
         attachment_id: attachment.id,
         status: "draft",
-        ai_model: MODEL,
+        ai_model: RECEIPT_SCAN_MODEL,
       })
       .select("id")
       .single();
     if (dErr) throw new Error(dErr.message);
 
     try {
-      const gateway = createLovableAiGatewayProvider(apiKey);
-      const system = `Du er en regnskapsassistent for norske organisasjoner. Du analyserer kvitteringer/fakturaer og foreslår en finance_entry. Bruk norske MVA-satser (0, 12, 15, 25). amount_net = amount_gross - vat_amount. ISO-dato YYYY-MM-DD. Du skal IKKE bokføre — kun foreslå.
-
-Svar KUN med ett JSON-objekt (ingen markdown, ingen forklaring) på dette skjemaet:
-{
-  "entry_type": "income" | "expense",
-  "entry_date": "YYYY-MM-DD",
-  "counterparty": string | null,
-  "description": string,
-  "category": string | null,
-  "category_group": string | null,
-  "amount_gross": number,
-  "vat_rate": number,
-  "vat_amount": number,
-  "amount_net": number,
-  "payment_status": "paid" | "unpaid" | "partial",
-  "invoice_status": "none" | "draft" | "sent" | "overdue" | "paid",
-  "pre_company_expense": boolean,
-  "notes": string | null,
-  "extracted_text": string,
-  "confidence": [ { "field": string, "score": number, "note": string | null } ]
-}
-Bruk rene tall (uten tusenskilletegn). Hvis et felt er ukjent, gjett konservativt og sett lav score i confidence.`;
-
-      const userPrompt = `Analyser vedlagt ${isPdf ? "PDF" : "bilde"} (filnavn: ${data.fileName}) og returner JSON-objektet.`;
-
-      const { text } = await generateText({
-        model: gateway(MODEL),
-        messages: [
-          { role: "system", content: system },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: userPrompt },
-              isPdf
-                ? { type: "file", data: `data:${data.mimeType};base64,${base64}`, mediaType: data.mimeType }
-                : { type: "image", image: `data:${data.mimeType};base64,${base64}` },
-            ] as any,
-          },
-        ],
+      const bytes = new Uint8Array(arrayBuf);
+      const output = await scanReceiptContent({
+        bytes,
+        mimeType: data.mimeType,
+        fileName: data.fileName,
       });
-
-      const parsed = extractJson(text);
-      const validated = SuggestionSchema.safeParse(parsed);
-      if (!validated.success) {
-        throw new Error("AI returnerte ugyldig format: " + validated.error.issues.map((i) => i.path.join(".") + " " + i.message).join("; "));
-      }
-      const output = validated.data;
 
       await supabase
         .from("finance_receipt_drafts")
         .update({
           ai_suggestion: output as any,
-          extracted_text: output.extracted_text ?? text ?? null,
+          extracted_text: output.extracted_text ?? null,
           status: "draft",
         })
         .eq("id", draft.id);
