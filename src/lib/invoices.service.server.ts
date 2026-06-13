@@ -184,3 +184,92 @@ export async function replaceInvoiceLines(
     .eq("id", invoiceId);
   if (updErr) throw new Error(updErr.message);
 }
+
+export async function updateDraftInvoice(
+  supabase: any,
+  params: {
+    organizationId: string;
+    invoiceId: string;
+    patch: {
+      issue_date?: string;
+      due_date?: string | null;
+      customer_name?: string;
+      customer_org_number?: string | null;
+      customer_email?: string | null;
+      customer_address?: string | null;
+      lines?: Array<{ description: string; quantity: number; unit_price: number; vat_rate: number }>;
+    };
+  },
+) {
+  const { data: invoice, error } = await supabase
+    .from("invoices")
+    .select("id, status, locked_at")
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .maybeSingle();
+
+  if (error || !invoice) throw new Error("Faktura ikke funnet");
+  if ((invoice as any).status !== "draft" || (invoice as any).locked_at) {
+    throw new Error("Kun utkast kan redigeres");
+  }
+
+  const header: Record<string, unknown> = {};
+  if (params.patch.issue_date !== undefined) header.issue_date = params.patch.issue_date;
+  if (params.patch.due_date !== undefined) header.due_date = params.patch.due_date;
+  if (params.patch.customer_name !== undefined) header.customer_name = params.patch.customer_name;
+  if (params.patch.customer_org_number !== undefined) header.customer_org_number = params.patch.customer_org_number;
+  if (params.patch.customer_email !== undefined) header.customer_email = params.patch.customer_email;
+  if (params.patch.customer_address !== undefined) header.customer_address = params.patch.customer_address;
+
+  if (Object.keys(header).length > 0) {
+    const { error: updErr } = await supabase
+      .from("invoices")
+      .update(header)
+      .eq("id", params.invoiceId)
+      .eq("organization_id", params.organizationId)
+      .eq("status", "draft");
+    if (updErr) throw new Error(updErr.message);
+  }
+
+  if (params.patch.lines) {
+    await replaceInvoiceLines(supabase, params.invoiceId, params.patch.lines);
+  }
+
+  const { data: full, error: fetchErr } = await supabase
+    .from("invoices")
+    .select("*, invoice_lines(*)")
+    .eq("id", params.invoiceId)
+    .single();
+  if (fetchErr) throw new Error(fetchErr.message);
+  return full;
+}
+
+export async function markInvoicePaid(
+  supabase: any,
+  params: { organizationId: string; invoiceId: string },
+) {
+  const { data: invoice, error } = await supabase
+    .from("invoices")
+    .select("id, status, locked_at")
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .maybeSingle();
+
+  if (error || !invoice) throw new Error("Faktura ikke funnet");
+  if ((invoice as any).status !== "sent") {
+    throw new Error("Kun sendte fakturaer kan markeres som betalt");
+  }
+
+  const { data: updated, error: updErr } = await supabase
+    .from("invoices")
+    .update({ status: "paid" })
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .eq("status", "sent")
+    .select("*, invoice_lines(*)")
+    .single();
+
+  if (updErr) throw new Error(updErr.message);
+  return updated;
+}
+
