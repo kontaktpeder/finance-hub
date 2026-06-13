@@ -11,7 +11,7 @@ import { Plus, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/orgs/$orgId/invoices")({
+export const Route = createFileRoute("/_authenticated/orgs/$orgId/invoices/")({
   component: InvoicesPage,
 });
 
