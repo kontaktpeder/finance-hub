@@ -28,6 +28,8 @@ Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**.
 | `entries:write` | `POST /api/public/v1/entries`, `DELETE /api/public/v1/entries/{entry_id}`, `POST /api/public/v1/ai/scan-receipt` |
 | `reports:read` | `GET /api/public/v1/reports/summary` |
 | `attachments:write` | `POST /api/public/v1/attachments`, `DELETE /api/public/v1/attachments/{attachment_id}` |
+| `invoices:read` | `GET /invoices`, `GET /invoices/:id`, `GET /invoices/:id/pdf` |
+| `invoices:write` | `POST /invoices`, `PATCH /invoices/:id`, `POST /invoices/:id/send` |
 
 ## Endpoints
 
