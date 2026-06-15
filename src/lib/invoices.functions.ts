@@ -30,6 +30,7 @@ export const sendInvoiceFn = createServerFn({ method: "POST" })
       organizationId: data.organizationId,
       invoiceId: data.invoiceId,
       userId: context.userId,
+      sourceApp: "finance-core-ui",
     });
   });
 
