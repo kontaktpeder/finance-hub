@@ -1,11 +1,17 @@
 import { buildSellerSnapshot } from "./invoices.seller.server";
 import { renderInvoicePdf } from "./invoices.pdf.server";
 import { storeInvoicePdf } from "./invoices.storage.server";
+import {
+  createFinanceEntryForInvoice,
+  markFinanceEntryPaidForInvoice,
+} from "./invoices.accounting.server";
 
 export async function sendInvoice(params: {
   organizationId: string;
   invoiceId: string;
   userId?: string | null;
+  sourceApp?: string | null;
+  apiClientId?: string | null;
 }) {
   const { organizationId, invoiceId, userId } = params;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
