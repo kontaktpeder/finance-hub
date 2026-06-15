@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { authenticateApiKey, requireScope } from "@/lib/api-auth.server";
 import { InvoicePatchSchema, MarkPaidSchema } from "@/lib/invoices.validation";
 import { updateDraftInvoice, markInvoicePaid } from "@/lib/invoices.service.server";
+import { slugSourceApp } from "@/lib/invoices.accounting.server";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
