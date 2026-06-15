@@ -268,11 +268,19 @@ export async function updateDraftInvoice(
 
 export async function markInvoicePaid(
   supabase: any,
-  params: { organizationId: string; invoiceId: string },
+  params: {
+    organizationId: string;
+    invoiceId: string;
+    sourceApp?: string | null;
+    apiClientId?: string | null;
+    createdBy?: string | null;
+  },
 ) {
   const { data: invoice, error } = await supabase
     .from("invoices")
-    .select("id, status, locked_at")
+    .select(
+      "id, organization_id, status, locked_at, finance_entry_id, invoice_number, issue_date, due_date, total, subtotal, vat_amount, customer_name, paid_at",
+    )
     .eq("id", params.invoiceId)
     .eq("organization_id", params.organizationId)
     .maybeSingle();
@@ -284,7 +292,7 @@ export async function markInvoicePaid(
 
   const { data: updated, error: updErr } = await supabase
     .from("invoices")
-    .update({ status: "paid" })
+    .update({ status: "paid", paid_at: new Date().toISOString() })
     .eq("id", params.invoiceId)
     .eq("organization_id", params.organizationId)
     .eq("status", "sent")
@@ -292,6 +300,21 @@ export async function markInvoicePaid(
     .single();
 
   if (updErr) throw new Error(updErr.message);
-  return updated;
+
+  await markFinanceEntryPaidForInvoice({
+    supabase,
+    invoice: { ...(invoice as any), status: "paid" },
+    sourceApp: params.sourceApp ?? "finance-core",
+    apiClientId: params.apiClientId ?? null,
+    createdBy: params.createdBy ?? null,
+  });
+
+  const { data: refreshed } = await supabase
+    .from("invoices")
+    .select("*, invoice_lines(*)")
+    .eq("id", params.invoiceId)
+    .single();
+  return refreshed ?? updated;
 }
+
 
