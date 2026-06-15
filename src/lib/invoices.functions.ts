@@ -114,5 +114,7 @@ export const markInvoicePaidFn = createServerFn({ method: "POST" })
     return markInvoicePaid(supabaseAdmin, {
       organizationId: data.organizationId,
       invoiceId: data.invoiceId,
+      sourceApp: "finance-core-ui",
+      createdBy: context.userId,
     });
   });
