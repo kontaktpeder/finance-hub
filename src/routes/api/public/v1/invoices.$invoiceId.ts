@@ -62,6 +62,8 @@ export const Route = createFileRoute("/api/public/v1/invoices/$invoiceId")({
             const invoice = await markInvoicePaid(supabaseAdmin, {
               organizationId: auth.client.organization_id,
               invoiceId: params.invoiceId,
+              sourceApp: slugSourceApp(auth.client.name),
+              apiClientId: auth.client.id,
             });
             return Response.json({ data: invoice });
           }
