@@ -93,7 +93,23 @@ export async function sendInvoice(params: {
     .single();
   if (linkErr) throw new Error(linkErr.message);
 
-  return linked;
+  // Auto-create finance_entry after PDF is stored. Errors propagate so caller can react.
+  await createFinanceEntryForInvoice({
+    supabase: supabaseAdmin,
+    invoiceId,
+    organizationId,
+    sourceApp: params.sourceApp ?? "finance-core",
+    apiClientId: params.apiClientId ?? null,
+    createdBy: userId ?? null,
+  });
+
+  const { data: refreshed, error: refErr } = await supabaseAdmin
+    .from("invoices")
+    .select("*, invoice_lines(*)")
+    .eq("id", invoiceId)
+    .single();
+  if (refErr) throw new Error(refErr.message);
+  return refreshed ?? linked;
 }
 
 export async function createInvoiceWithLines(
