@@ -451,11 +451,13 @@ export type Database = {
           customer_name: string
           customer_org_number: string | null
           due_date: string | null
+          finance_entry_id: string | null
           id: string
           invoice_number: string | null
           issue_date: string
           locked_at: string | null
           organization_id: string
+          paid_at: string | null
           pdf_attachment_id: string | null
           seller_snapshot: Json
           status: Database["public"]["Enums"]["invoice_status"]
@@ -472,11 +474,13 @@ export type Database = {
           customer_name: string
           customer_org_number?: string | null
           due_date?: string | null
+          finance_entry_id?: string | null
           id?: string
           invoice_number?: string | null
           issue_date?: string
           locked_at?: string | null
           organization_id: string
+          paid_at?: string | null
           pdf_attachment_id?: string | null
           seller_snapshot?: Json
           status?: Database["public"]["Enums"]["invoice_status"]
@@ -493,11 +497,13 @@ export type Database = {
           customer_name?: string
           customer_org_number?: string | null
           due_date?: string | null
+          finance_entry_id?: string | null
           id?: string
           invoice_number?: string | null
           issue_date?: string
           locked_at?: string | null
           organization_id?: string
+          paid_at?: string | null
           pdf_attachment_id?: string | null
           seller_snapshot?: Json
           status?: Database["public"]["Enums"]["invoice_status"]
@@ -507,6 +513,13 @@ export type Database = {
           vat_amount?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_finance_entry_id_fkey"
+            columns: ["finance_entry_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_organization_id_fkey"
             columns: ["organization_id"]
