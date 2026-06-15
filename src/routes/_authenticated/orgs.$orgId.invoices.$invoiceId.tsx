@@ -274,6 +274,26 @@ function InvoiceDetailPage() {
       </header>
 
       <div className="grid gap-6">
+        {(status === "sent" || status === "paid") && inv.finance_entry_id && (
+          <Card>
+            <CardContent className="py-4 flex items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <div className="text-sm font-medium">Regnskapspost opprettet automatisk</div>
+                <div className="text-xs text-muted-foreground">
+                  Betalingsstatus: {status === "paid" ? "Betalt" : "Ubetalt"}
+                  {inv.paid_at ? ` · ${formatDate(inv.paid_at)}` : ""}
+                </div>
+              </div>
+              <Link
+                to="/orgs/$orgId/entries"
+                params={{ orgId }}
+                className="text-xs text-primary hover:underline"
+              >
+                Åpne regnskap →
+              </Link>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Kunde</CardTitle>

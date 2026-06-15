@@ -30,6 +30,7 @@ export const sendInvoiceFn = createServerFn({ method: "POST" })
       organizationId: data.organizationId,
       invoiceId: data.invoiceId,
       userId: context.userId,
+      sourceApp: "finance-core-ui",
     });
   });
 
@@ -113,5 +114,7 @@ export const markInvoicePaidFn = createServerFn({ method: "POST" })
     return markInvoicePaid(supabaseAdmin, {
       organizationId: data.organizationId,
       invoiceId: data.invoiceId,
+      sourceApp: "finance-core-ui",
+      createdBy: context.userId,
     });
   });

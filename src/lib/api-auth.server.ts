@@ -4,6 +4,7 @@ export type ApiClient = {
   id: string;
   organization_id: string;
   allowed_scopes: string[];
+  name: string;
 };
 
 async function sha256Hex(input: string): Promise<string> {
@@ -24,7 +25,7 @@ export async function authenticateApiKey(
   const hash = await sha256Hex(token);
   const { data: key, error } = await supabaseAdmin
     .from("api_keys")
-    .select("id, revoked_at, api_clients(id, organization_id, allowed_scopes, revoked_at)")
+    .select("id, revoked_at, api_clients(id, organization_id, allowed_scopes, name, revoked_at)")
     .eq("key_hash", hash)
     .maybeSingle();
   const client = key?.api_clients as any;
@@ -40,6 +41,7 @@ export async function authenticateApiKey(
       id: client.id,
       organization_id: client.organization_id,
       allowed_scopes: client.allowed_scopes ?? [],
+      name: client.name ?? "external",
     },
   };
 }

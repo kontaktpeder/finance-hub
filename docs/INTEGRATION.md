@@ -271,12 +271,17 @@ Scope: `invoices:read`. Returnerer faktura med `invoice_lines`.
 Scope: `invoices:write`.
 
 - **Draft:** send valgfrie header-felt og/eller `lines`-array. Hele linjelisten erstattes.
-- **Mark paid:** `{ "status": "paid" }` (kun gyldig fra `sent`).
+- **Mark paid:** `{ "status": "paid" }` (kun gyldig fra `sent`). Oppdaterer også den koblede `finance_entry` til `payment_status=paid` og setter `paid_at` (i dag).
 
 ### POST /api/public/v1/invoices/:id/send
 
 Scope: `invoices:write`. Genererer fakturanummer, lager PDF, låser faktura.
 
+Valgfri body: `{ "source_app": "gold-of-sicily" }`. Hvis utelatt brukes en slug av API-klientens navn.
+
+**Automatisk regnskap:** Når en faktura sendes, opprettes det automatisk en `finance_entry` (inntekt, ubetalt) i organisasjonens standard `finance_book`. Posten kobles tilbake via `invoices.finance_entry_id`. Hvis en post med samme `(organization_id, source_app, source_type='invoice', source_ref=invoice_number)` allerede finnes, gjenbrukes den (idempotent). Krever at organisasjonen har en bok med `is_default=true`.
+
 ### GET /api/public/v1/invoices/:id/pdf
 
 Scope: `invoices:read`. Returnerer den lagrede PDF-en (regenereres ikke).
+
