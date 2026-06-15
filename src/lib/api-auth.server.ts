@@ -4,6 +4,7 @@ export type ApiClient = {
   id: string;
   organization_id: string;
   allowed_scopes: string[];
+  name: string;
 };
 
 async function sha256Hex(input: string): Promise<string> {
