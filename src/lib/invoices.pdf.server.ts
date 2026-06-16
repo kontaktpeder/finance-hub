@@ -225,7 +225,7 @@ export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8A
         font: bold,
         color: rgb(0.85, 0.2, 0.2),
         opacity: 0.18,
-        rotate: { type: "degrees", angle: 45 } as any,
+        rotate: degrees(45),
       });
     }
   }
