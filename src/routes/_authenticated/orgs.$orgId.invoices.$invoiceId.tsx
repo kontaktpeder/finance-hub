@@ -74,6 +74,7 @@ function InvoiceDetailPage() {
   const sendInvoice = useServerFn(sendInvoiceFn);
   const markPaid = useServerFn(markInvoicePaidFn);
   const getPdf = useServerFn(getInvoicePdfUrlFn);
+  const previewPdf = useServerFn(previewDraftInvoicePdfFn);
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ["invoice", invoiceId],
