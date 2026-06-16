@@ -209,6 +209,45 @@ function InvoiceDetailPage() {
     }
   }
 
+  async function doPreview() {
+    // Open the tab synchronously so popup blockers allow it.
+    const win = window.open("", "_blank", "noopener");
+    setBusy(true);
+    try {
+      const res = await previewPdf({
+        data: {
+          organizationId: orgId,
+          invoiceId,
+          patch: {
+            issue_date,
+            due_date: due_date || null,
+            customer_name,
+            customer_org_number: customer_org_number || null,
+            customer_email: customer_email || null,
+            customer_address: customer_address || null,
+            lines,
+          },
+        },
+      });
+      const bin = atob(res.base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener");
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err: any) {
+      if (win) win.close();
+      toast.error(err.message ?? "Kunne ikke lage forhåndsvisning");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="p-8 max-w-4xl">
       <div className="mb-4">
