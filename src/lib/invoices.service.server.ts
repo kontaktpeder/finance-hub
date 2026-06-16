@@ -318,3 +318,81 @@ export async function markInvoicePaid(
 }
 
 
+
+export type PreviewLineInput = {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  vat_rate: number;
+};
+
+export type PreviewInvoicePatch = {
+  issue_date?: string;
+  due_date?: string | null;
+  customer_name?: string;
+  customer_org_number?: string | null;
+  customer_email?: string | null;
+  customer_address?: string | null;
+  lines?: PreviewLineInput[];
+};
+
+export async function previewDraftInvoicePdf(params: {
+  organizationId: string;
+  invoiceId: string;
+  patch?: PreviewInvoicePatch;
+}): Promise<Uint8Array> {
+  const { calcLine, calcInvoiceTotals } = await import("./invoices.calc");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: invoice, error } = await supabaseAdmin
+    .from("invoices")
+    .select("*, invoice_lines(*)")
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .single();
+  if (error || !invoice) throw new Error("Faktura ikke funnet");
+  const inv: any = invoice;
+  if (inv.status !== "draft") throw new Error("Kun utkast kan forhåndsvises");
+
+  const sellerSnapshot = await buildSellerSnapshot(supabaseAdmin as any, params.organizationId);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const patch = params.patch ?? {};
+
+  const dbLines = (inv.invoice_lines ?? [])
+    .slice()
+    .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((l: any) => ({
+      description: l.description ?? "",
+      quantity: Number(l.quantity),
+      unit_price: Number(l.unit_price),
+      vat_rate: Number(l.vat_rate),
+    }));
+  const rawLines: PreviewLineInput[] = (patch.lines && patch.lines.length > 0 ? patch.lines : dbLines);
+  const effectiveLines = rawLines.length > 0 ? rawLines : [{ description: "(ingen linjer)", quantity: 0, unit_price: 0, vat_rate: 0 }];
+
+  const totals = calcInvoiceTotals(effectiveLines);
+  const renderedLines = effectiveLines.map((l) => ({
+    description: l.description,
+    quantity: l.quantity,
+    unit_price: l.unit_price,
+    vat_rate: l.vat_rate,
+    ...calcLine(l),
+  }));
+
+  return await renderInvoicePdf({
+    invoice_number: "UTKAST",
+    issue_date: patch.issue_date ?? inv.issue_date ?? today,
+    due_date: patch.due_date !== undefined ? patch.due_date : inv.due_date,
+    customer_name: patch.customer_name ?? inv.customer_name ?? "",
+    customer_org_number: patch.customer_org_number !== undefined ? patch.customer_org_number : inv.customer_org_number,
+    customer_email: patch.customer_email !== undefined ? patch.customer_email : inv.customer_email,
+    customer_address: patch.customer_address !== undefined ? patch.customer_address : inv.customer_address,
+    seller_snapshot: sellerSnapshot,
+    lines: renderedLines,
+    subtotal: totals.subtotal,
+    vat_amount: totals.vat_amount,
+    total: totals.total,
+    watermark: "PREVIEW",
+  });
+}
