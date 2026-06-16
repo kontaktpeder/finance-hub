@@ -174,16 +174,24 @@ export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8A
   });
   y -= 14;
 
-  // Lines
+  // Lines (with description wrapping)
+  const descMaxWidth = colQty - colDesc - 8;
   for (const line of invoice.lines) {
-    draw(line.description.slice(0, 50), colDesc, y);
+    const wrapped = wrapText(line.description ?? "", font, 10, descMaxWidth);
+    draw(wrapped[0], colDesc, y);
     draw(String(line.quantity), colQty, y);
     draw(nok(line.unit_price), colPrice, y);
     draw(String(line.vat_rate), colVat, y);
     draw(nok(line.line_total), colTotal, y);
     y -= 14;
-    if (y < 150) break; // simple MVP: no pagination
+    for (let i = 1; i < wrapped.length; i++) {
+      draw(wrapped[i], colDesc, y);
+      y -= 12;
+      if (y < 150) break;
+    }
+    if (y < 150) break;
   }
+
 
   y -= 10;
   page.drawLine({
