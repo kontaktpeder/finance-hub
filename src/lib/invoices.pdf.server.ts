@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 import type { SellerSnapshot } from "./invoices.seller.server";
 
 function nok(n: number): string {
@@ -40,7 +40,25 @@ export type PdfInvoiceInput = {
   subtotal: number;
   vat_amount: number;
   total: number;
+  watermark?: string;
 };
+
+function wrapText(text: string, font: any, size: number, maxWidth: number): string[] {
+  const words = (text ?? "").split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.length > 0 ? lines : [""];
+}
 
 export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
@@ -156,16 +174,24 @@ export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8A
   });
   y -= 14;
 
-  // Lines
+  // Lines (with description wrapping)
+  const descMaxWidth = colQty - colDesc - 8;
   for (const line of invoice.lines) {
-    draw(line.description.slice(0, 50), colDesc, y);
+    const wrapped = wrapText(line.description ?? "", font, 10, descMaxWidth);
+    draw(wrapped[0], colDesc, y);
     draw(String(line.quantity), colQty, y);
     draw(nok(line.unit_price), colPrice, y);
     draw(String(line.vat_rate), colVat, y);
     draw(nok(line.line_total), colTotal, y);
     y -= 14;
-    if (y < 150) break; // simple MVP: no pagination
+    for (let i = 1; i < wrapped.length; i++) {
+      draw(wrapped[i], colDesc, y);
+      y -= 12;
+      if (y < 150) break;
+    }
+    if (y < 150) break;
   }
+
 
   y -= 10;
   page.drawLine({
@@ -185,6 +211,24 @@ export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8A
   y -= 18;
   draw(`Totalt å betale:`, totalsX, y, { font: bold, size: 12 });
   draw(`${nok(invoice.total)} NOK`, totalsX + 110, y, { font: bold, size: 12 });
+
+  if (invoice.watermark) {
+    const wmText = invoice.watermark;
+    const wmSize = 110;
+    const wmWidth = bold.widthOfTextAtSize(wmText, wmSize);
+    for (const p of doc.getPages()) {
+      const { width: pw, height: ph } = p.getSize();
+      p.drawText(wmText, {
+        x: pw / 2 - wmWidth / 2,
+        y: ph / 2 - wmSize / 2,
+        size: wmSize,
+        font: bold,
+        color: rgb(0.85, 0.2, 0.2),
+        opacity: 0.18,
+        rotate: degrees(45),
+      });
+    }
+  }
 
   return await doc.save();
 }

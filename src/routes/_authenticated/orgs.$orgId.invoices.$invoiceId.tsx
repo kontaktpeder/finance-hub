@@ -8,6 +8,7 @@ import {
   updateDraftInvoiceFn,
   markInvoicePaidFn,
   getInvoicePdfUrlFn,
+  previewDraftInvoicePdfFn,
 } from "@/lib/invoices.functions";
 import { calcInvoiceTotals } from "@/lib/invoices.calc";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, FileDown, Send, CheckCircle2, ChevronLeft } from "lucide-react";
+import { Plus, Trash2, FileDown, Send, CheckCircle2, ChevronLeft, Eye } from "lucide-react";
 
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
@@ -73,6 +74,7 @@ function InvoiceDetailPage() {
   const sendInvoice = useServerFn(sendInvoiceFn);
   const markPaid = useServerFn(markInvoicePaidFn);
   const getPdf = useServerFn(getInvoicePdfUrlFn);
+  const previewPdf = useServerFn(previewDraftInvoicePdfFn);
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -207,6 +209,45 @@ function InvoiceDetailPage() {
     }
   }
 
+  async function doPreview() {
+    // Open the tab synchronously so popup blockers allow it.
+    const win = window.open("", "_blank", "noopener");
+    setBusy(true);
+    try {
+      const res = await previewPdf({
+        data: {
+          organizationId: orgId,
+          invoiceId,
+          patch: {
+            issue_date,
+            due_date: due_date || null,
+            customer_name,
+            customer_org_number: customer_org_number || null,
+            customer_email: customer_email || null,
+            customer_address: customer_address || null,
+            lines,
+          },
+        },
+      });
+      const bin = atob(res.base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener");
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err: any) {
+      if (win) win.close();
+      toast.error(err.message ?? "Kunne ikke lage forhåndsvisning");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="p-8 max-w-4xl">
       <div className="mb-4">
@@ -246,6 +287,9 @@ function InvoiceDetailPage() {
           )}
           {status === "draft" && (
             <>
+              <Button variant="outline" onClick={doPreview} disabled={busy}>
+                <Eye className="h-4 w-4 mr-2" /> Forhåndsvis faktura
+              </Button>
               <Button variant="outline" onClick={save} disabled={busy}>
                 Lagre utkast
               </Button>
