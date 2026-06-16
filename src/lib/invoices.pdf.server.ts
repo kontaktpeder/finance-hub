@@ -212,5 +212,23 @@ export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8A
   draw(`Totalt å betale:`, totalsX, y, { font: bold, size: 12 });
   draw(`${nok(invoice.total)} NOK`, totalsX + 110, y, { font: bold, size: 12 });
 
+  if (invoice.watermark) {
+    const wmText = invoice.watermark;
+    const wmSize = 110;
+    const wmWidth = bold.widthOfTextAtSize(wmText, wmSize);
+    for (const p of doc.getPages()) {
+      const { width: pw, height: ph } = p.getSize();
+      p.drawText(wmText, {
+        x: pw / 2 - wmWidth / 2,
+        y: ph / 2 - wmSize / 2,
+        size: wmSize,
+        font: bold,
+        color: rgb(0.85, 0.2, 0.2),
+        opacity: 0.18,
+        rotate: { type: "degrees", angle: 45 } as any,
+      });
+    }
+  }
+
   return await doc.save();
 }
