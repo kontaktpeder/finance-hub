@@ -287,6 +287,9 @@ function InvoiceDetailPage() {
           )}
           {status === "draft" && (
             <>
+              <Button variant="outline" onClick={doPreview} disabled={busy}>
+                <Eye className="h-4 w-4 mr-2" /> Forhåndsvis faktura
+              </Button>
               <Button variant="outline" onClick={save} disabled={busy}>
                 Lagre utkast
               </Button>
