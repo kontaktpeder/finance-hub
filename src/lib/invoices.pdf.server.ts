@@ -40,7 +40,25 @@ export type PdfInvoiceInput = {
   subtotal: number;
   vat_amount: number;
   total: number;
+  watermark?: string;
 };
+
+function wrapText(text: string, font: any, size: number, maxWidth: number): string[] {
+  const words = (text ?? "").split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.length > 0 ? lines : [""];
+}
 
 export async function renderInvoicePdf(invoice: PdfInvoiceInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
