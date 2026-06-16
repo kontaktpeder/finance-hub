@@ -118,3 +118,45 @@ export const markInvoicePaidFn = createServerFn({ method: "POST" })
       createdBy: context.userId,
     });
   });
+
+const PreviewPatchSchema = z.object({
+  issue_date: z.string().optional(),
+  due_date: z.string().nullable().optional(),
+  customer_name: z.string().optional(),
+  customer_org_number: z.string().nullable().optional(),
+  customer_email: z.string().nullable().optional(),
+  customer_address: z.string().nullable().optional(),
+  lines: z
+    .array(
+      z.object({
+        description: z.string(),
+        quantity: z.number(),
+        unit_price: z.number(),
+        vat_rate: z.number(),
+      }),
+    )
+    .optional(),
+}).optional();
+
+export const previewDraftInvoicePdfFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      organizationId: z.string().uuid(),
+      invoiceId: z.string().uuid(),
+      patch: PreviewPatchSchema,
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await requireEditor(context.supabase, data.organizationId, context.userId);
+    const { previewDraftInvoicePdf } = await import("./invoices.service.server");
+    const bytes = await previewDraftInvoicePdf({
+      organizationId: data.organizationId,
+      invoiceId: data.invoiceId,
+      patch: data.patch,
+    });
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    const base64 = btoa(bin);
+    return { base64, fileName: "forhandsvisning.pdf" };
+  });
