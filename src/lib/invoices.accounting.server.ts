@@ -125,6 +125,7 @@ export async function createFinanceEntryForInvoice(params: {
     created_via: "invoice-send",
     api_client_id: params.apiClientId ?? null,
     created_by: params.createdBy ?? null,
+    ...(preferredVoucher ? { voucher_number: preferredVoucher } : {}),
   };
 
   const { data: inserted, error: insErr } = await supabase
