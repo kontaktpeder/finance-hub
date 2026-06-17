@@ -39,6 +39,21 @@ import { Plus, Trash2, FileDown, Send, CheckCircle2, ChevronLeft, Eye } from "lu
 
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
+import { CompanySearchCombobox } from "@/components/invoices/CompanySearchCombobox";
+import { formatCompanyAddress } from "@/lib/brreg";
+
+function parseAddress(addr: string | null | undefined): { street: string; postalCode: string; city: string } {
+  if (!addr) return { street: "", postalCode: "", city: "" };
+  // "gate, 1234 STED" or "gate, 1234 STED, NORGE" — take last comma segment as postal+city
+  const parts = addr.split(",").map((s) => s.trim()).filter(Boolean);
+  if (parts.length === 1) return { street: parts[0], postalCode: "", city: "" };
+  const last = parts[parts.length - 1];
+  const m = last.match(/^(\d{3,5})\s+(.+)$/);
+  if (m) {
+    return { street: parts.slice(0, -1).join(", "), postalCode: m[1], city: m[2] };
+  }
+  return { street: parts.slice(0, -1).join(", "), postalCode: "", city: last };
+}
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/invoices/$invoiceId")({
   component: InvoiceDetailPage,
@@ -93,7 +108,10 @@ function InvoiceDetailPage() {
   const [customer_name, setCustomerName] = useState("");
   const [customer_org_number, setCustomerOrgNumber] = useState("");
   const [customer_email, setCustomerEmail] = useState("");
-  const [customer_address, setCustomerAddress] = useState("");
+  const [customer_street, setCustomerStreet] = useState("");
+  const [customer_postal_code, setCustomerPostalCode] = useState("");
+  const [customer_city, setCustomerCity] = useState("");
+  const [customer_vat_registered, setCustomerVatRegistered] = useState<boolean | null>(null);
   const [issue_date, setIssueDate] = useState("");
   const [due_date, setDueDate] = useState("");
   const [lines, setLines] = useState<LineForm[]>([EMPTY_LINE]);
@@ -105,7 +123,11 @@ function InvoiceDetailPage() {
     setCustomerName(inv.customer_name ?? "");
     setCustomerOrgNumber(inv.customer_org_number ?? "");
     setCustomerEmail(inv.customer_email ?? "");
-    setCustomerAddress(inv.customer_address ?? "");
+    const parsed = parseAddress(inv.customer_address);
+    setCustomerStreet(parsed.street);
+    setCustomerPostalCode(parsed.postalCode);
+    setCustomerCity(parsed.city);
+    setCustomerVatRegistered(null);
     setIssueDate(inv.issue_date ?? "");
     setDueDate(inv.due_date ?? "");
     const sorted = (inv.invoice_lines ?? [])
@@ -122,6 +144,12 @@ function InvoiceDetailPage() {
         : [EMPTY_LINE],
     );
   }, [invoice]);
+
+  const customer_address = formatCompanyAddress({
+    address: customer_street || null,
+    postalCode: customer_postal_code || null,
+    city: customer_city || null,
+  });
 
   const totals = useMemo(() => calcInvoiceTotals(lines), [lines]);
 
@@ -347,11 +375,28 @@ function InvoiceDetailPage() {
         )}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Kunde</CardTitle>
+            <CardTitle className="text-base">Fakturamottaker</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {!readOnly && (
+              <div className="space-y-1.5">
+                <Label>Søk firmanavn eller org.nr.</Label>
+                <CompanySearchCombobox
+                  disabled={readOnly}
+                  onSelect={(c) => {
+                    setCustomerName(c.name);
+                    setCustomerOrgNumber(c.orgNumber);
+                    setCustomerStreet(c.address ?? "");
+                    setCustomerPostalCode(c.postalCode ?? "");
+                    setCustomerCity(c.city ?? "");
+                    if (c.email && !customer_email) setCustomerEmail(c.email);
+                    setCustomerVatRegistered(c.vatRegistered);
+                  }}
+                />
+              </div>
+            )}
             <div className="space-y-1.5">
-              <Label>Navn</Label>
+              <Label>Kundenavn</Label>
               <Input
                 value={customer_name}
                 onChange={(e) => setCustomerName(e.target.value)}
@@ -379,13 +424,36 @@ function InvoiceDetailPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Adresse</Label>
-              <Textarea
-                value={customer_address}
-                onChange={(e) => setCustomerAddress(e.target.value)}
+              <Input
+                value={customer_street}
+                onChange={(e) => setCustomerStreet(e.target.value)}
                 disabled={readOnly}
-                rows={2}
+                placeholder="Gate og nummer"
               />
             </div>
+            <div className="grid grid-cols-[140px_1fr] gap-3">
+              <div className="space-y-1.5">
+                <Label>Postnr.</Label>
+                <Input
+                  value={customer_postal_code}
+                  onChange={(e) => setCustomerPostalCode(e.target.value)}
+                  disabled={readOnly}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Poststed</Label>
+                <Input
+                  value={customer_city}
+                  onChange={(e) => setCustomerCity(e.target.value)}
+                  disabled={readOnly}
+                />
+              </div>
+            </div>
+            {!readOnly && customer_vat_registered !== null && (
+              <p className="text-xs text-muted-foreground">
+                MVA-registrert: {customer_vat_registered ? "Ja" : "Nei"}
+              </p>
+            )}
           </CardContent>
         </Card>
 

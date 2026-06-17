@@ -18,6 +18,7 @@ import { Route as AuthenticatedOrgsOrgIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedOrgsOrgIdIndexRouteImport } from './routes/_authenticated/orgs.$orgId.index'
 import { Route as ApiPublicV1InvoicesRouteImport } from './routes/api/public/v1/invoices'
 import { Route as ApiPublicV1EntriesRouteImport } from './routes/api/public/v1/entries'
+import { Route as ApiPublicV1CompanySearchRouteImport } from './routes/api/public/v1/company-search'
 import { Route as ApiPublicV1AttachmentsRouteImport } from './routes/api/public/v1/attachments'
 import { Route as AuthenticatedOrgsOrgIdSettingsRouteImport } from './routes/_authenticated/orgs.$orgId.settings'
 import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authenticated/orgs.$orgId.scan'
@@ -82,6 +83,12 @@ const ApiPublicV1EntriesRoute = ApiPublicV1EntriesRouteImport.update({
   path: '/api/public/v1/entries',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1CompanySearchRoute =
+  ApiPublicV1CompanySearchRouteImport.update({
+    id: '/api/public/v1/company-search',
+    path: '/api/public/v1/company-search',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicV1AttachmentsRoute = ApiPublicV1AttachmentsRouteImport.update({
   id: '/api/public/v1/attachments',
   path: '/api/public/v1/attachments',
@@ -204,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
+  '/api/public/v1/company-search': typeof ApiPublicV1CompanySearchRoute
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
@@ -231,6 +239,7 @@ export interface FileRoutesByTo {
   '/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
+  '/api/public/v1/company-search': typeof ApiPublicV1CompanySearchRoute
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
@@ -261,6 +270,7 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId/scan': typeof AuthenticatedOrgsOrgIdScanRoute
   '/_authenticated/orgs/$orgId/settings': typeof AuthenticatedOrgsOrgIdSettingsRoute
   '/api/public/v1/attachments': typeof ApiPublicV1AttachmentsRouteWithChildren
+  '/api/public/v1/company-search': typeof ApiPublicV1CompanySearchRoute
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/scan'
     | '/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
+    | '/api/public/v1/company-search'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId/'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/scan'
     | '/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
+    | '/api/public/v1/company-search'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId'
@@ -347,6 +359,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orgs/$orgId/scan'
     | '/_authenticated/orgs/$orgId/settings'
     | '/api/public/v1/attachments'
+    | '/api/public/v1/company-search'
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/_authenticated/orgs/$orgId/'
@@ -367,6 +380,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicV1AttachmentsRoute: typeof ApiPublicV1AttachmentsRouteWithChildren
+  ApiPublicV1CompanySearchRoute: typeof ApiPublicV1CompanySearchRoute
   ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRouteWithChildren
   ApiPublicV1InvoicesRoute: typeof ApiPublicV1InvoicesRouteWithChildren
   ApiPublicV1AiScanReceiptRoute: typeof ApiPublicV1AiScanReceiptRoute
@@ -436,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/v1/entries'
       fullPath: '/api/public/v1/entries'
       preLoaderRoute: typeof ApiPublicV1EntriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/company-search': {
+      id: '/api/public/v1/company-search'
+      path: '/api/public/v1/company-search'
+      fullPath: '/api/public/v1/company-search'
+      preLoaderRoute: typeof ApiPublicV1CompanySearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/v1/attachments': {
@@ -693,6 +714,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicV1AttachmentsRoute: ApiPublicV1AttachmentsRouteWithChildren,
+  ApiPublicV1CompanySearchRoute: ApiPublicV1CompanySearchRoute,
   ApiPublicV1EntriesRoute: ApiPublicV1EntriesRouteWithChildren,
   ApiPublicV1InvoicesRoute: ApiPublicV1InvoicesRouteWithChildren,
   ApiPublicV1AiScanReceiptRoute: ApiPublicV1AiScanReceiptRoute,
