@@ -77,6 +77,29 @@ export async function createFinanceEntryForInvoice(params: {
   }
 
   const bookId = await getDefaultBookId(supabase, organizationId);
+
+  // Try to reuse invoice_number as voucher_number for clarity in UI.
+  // Faktura- og bilagssekvenser kan divergere ved kollisjon: hvis bilagsnummeret
+  // allerede er brukt i boken (f.eks. av en utgift), faller vi tilbake til at
+  // trigger assign_voucher_number tildeler neste ledige bilagsnummer.
+  let preferredVoucher: string | null = null;
+  {
+    const { data: clash } = await supabase
+      .from("finance_entries")
+      .select("id")
+      .eq("book_id", bookId)
+      .eq("voucher_number", inv.invoice_number)
+      .limit(1)
+      .maybeSingle();
+    if (!clash) {
+      preferredVoucher = inv.invoice_number;
+    } else {
+      console.warn(
+        `[invoices.accounting] voucher_number ${inv.invoice_number} already used in book ${bookId}; falling back to auto-assigned voucher`,
+      );
+    }
+  }
+
   const isPaid = inv.status === "paid";
 
   const payload = {
@@ -102,6 +125,7 @@ export async function createFinanceEntryForInvoice(params: {
     created_via: "invoice-send",
     api_client_id: params.apiClientId ?? null,
     created_by: params.createdBy ?? null,
+    ...(preferredVoucher ? { voucher_number: preferredVoucher } : {}),
   };
 
   const { data: inserted, error: insErr } = await supabase
