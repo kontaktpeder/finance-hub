@@ -40,7 +40,7 @@ import { Plus, Trash2, FileDown, Send, CheckCircle2, ChevronLeft, Eye } from "lu
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
 import { CompanySearchCombobox } from "@/components/invoices/CompanySearchCombobox";
-import { formatCompanyAddress } from "@/lib/brreg.server";
+import { formatCompanyAddress } from "@/lib/brreg";
 
 function parseAddress(addr: string | null | undefined): { street: string; postalCode: string; city: string } {
   if (!addr) return { street: "", postalCode: "", city: "" };

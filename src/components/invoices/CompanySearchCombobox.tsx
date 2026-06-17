@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { CompanyLookup } from "@/lib/brreg.server";
+import type { CompanyLookup } from "@/lib/brreg";
 
 type Props = {
   onSelect: (company: CompanyLookup) => void;

@@ -1,14 +1,6 @@
-export type CompanyLookup = {
-  name: string;
-  orgNumber: string;
-  address: string | null;
-  postalCode: string | null;
-  city: string | null;
-  country: string;
-  organizationForm: string | null;
-  vatRegistered: boolean | null;
-  email: string | null;
-};
+import { formatCompanyAddress, type CompanyLookup } from "./brreg";
+export { formatCompanyAddress };
+export type { CompanyLookup };
 
 export class BrregUnavailableError extends Error {
   constructor(message = "Brønnøysund er ikke tilgjengelig akkurat nå") {
@@ -41,7 +33,9 @@ function setCached<T>(map: Map<string, CacheEntry<T>>, key: string, value: T, tt
 
 export function mapBrregEnhet(e: any): CompanyLookup {
   const adr = e?.forretningsadresse ?? e?.postadresse ?? {};
-  const addrLine = Array.isArray(adr?.adresse) ? adr.adresse.filter(Boolean).join(", ") : (adr?.adresse ?? null);
+  const addrLine = Array.isArray(adr?.adresse)
+    ? adr.adresse.filter(Boolean).join(", ")
+    : (adr?.adresse ?? null);
   return {
     name: e?.navn ?? "",
     orgNumber: String(e?.organisasjonsnummer ?? ""),
@@ -53,13 +47,6 @@ export function mapBrregEnhet(e: any): CompanyLookup {
     vatRegistered: typeof e?.registrertIMvaregisteret === "boolean" ? e.registrertIMvaregisteret : null,
     email: e?.epostadresse ?? null,
   };
-}
-
-export function formatCompanyAddress(c: Pick<CompanyLookup, "address" | "postalCode" | "city">): string {
-  const left = c.address?.trim() ?? "";
-  const right = [c.postalCode, c.city].filter(Boolean).join(" ").trim();
-  if (left && right) return `${left}, ${right}`;
-  return left || right;
 }
 
 const ORG_RE = /^\d{9}$/;
