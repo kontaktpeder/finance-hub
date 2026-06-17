@@ -211,7 +211,8 @@ function InvoiceDetailPage() {
 
   async function doPreview() {
     // Open the tab synchronously so popup blockers allow it.
-    const win = window.open("", "_blank", "noopener");
+    // NB: no "noopener" — that makes window.open() return null and we lose the reference.
+    const win = window.open("about:blank", "_blank");
     setBusy(true);
     try {
       const res = await previewPdf({
@@ -234,14 +235,20 @@ function InvoiceDetailPage() {
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       const blob = new Blob([bytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-      if (win) {
-        win.location.href = url;
+      if (win && !win.closed) {
+        win.location.replace(url);
       } else {
-        window.open(url, "_blank", "noopener");
+        // Popup blocked — fall back to download
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "forhandsvisning.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
       }
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err: any) {
-      if (win) win.close();
+      if (win && !win.closed) win.close();
       toast.error(err.message ?? "Kunne ikke lage forhåndsvisning");
     } finally {
       setBusy(false);
