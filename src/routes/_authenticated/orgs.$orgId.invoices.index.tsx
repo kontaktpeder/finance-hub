@@ -119,15 +119,20 @@ function InvoicesPage() {
               </thead>
               <tbody>
                 {invoices?.map((inv: any) => (
-                  <tr key={inv.id} className="border-b last:border-0 hover:bg-muted/30">
+                  <tr
+                    key={inv.id}
+                    className="border-b last:border-0 hover:bg-muted/30 cursor-pointer"
+                    onClick={() =>
+                      navigate({
+                        to: "/orgs/$orgId/invoices/$invoiceId",
+                        params: { orgId, invoiceId: inv.id },
+                      })
+                    }
+                  >
                     <td className="px-4 py-3 tabular">
-                      <Link
-                        to="/orgs/$orgId/invoices/$invoiceId"
-                        params={{ orgId, invoiceId: inv.id }}
-                        className="hover:underline"
-                      >
+                      <span className="hover:underline text-primary">
                         {inv.invoice_number ?? "—"}
-                      </Link>
+                      </span>
                     </td>
                     <td className="px-4 py-3">{inv.customer_name}</td>
                     <td className="px-4 py-3">{formatDate(inv.issue_date)}</td>

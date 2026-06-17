@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -278,7 +278,7 @@ function CategoryGroup({
       </button>
       {open && (
         <div className="bg-muted/20">
-          <div className="grid grid-cols-[90px_90px_1fr_1fr_110px_90px_90px_24px] gap-4 px-5 py-2 text-[11px] uppercase tracking-wider text-muted-foreground border-y">
+          <div className="grid grid-cols-[90px_90px_1fr_1fr_110px_90px_110px_24px] gap-4 px-5 py-2 text-[11px] uppercase tracking-wider text-muted-foreground border-y">
             <span>Bilag</span>
             <span>Dato</span>
             <span>Motpart</span>
@@ -314,16 +314,22 @@ function EntryRow({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const isInvoice = entry.source_type === "invoice" && entry.source_ref;
   return (
     <>
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full grid grid-cols-[90px_90px_1fr_1fr_110px_90px_90px_24px] gap-4 px-5 py-2.5 items-center text-sm text-left hover:bg-muted/40 transition-colors ${
+        className={`w-full grid grid-cols-[90px_90px_1fr_1fr_110px_90px_110px_24px] gap-4 px-5 py-2.5 items-center text-sm text-left hover:bg-muted/40 transition-colors ${
           expanded ? "bg-muted/40" : ""
         }`}
       >
-        <span className="tabular text-xs text-muted-foreground">{entry.voucher_number ?? "—"}</span>
+        <span
+          className="tabular text-xs text-muted-foreground"
+          title="Internt bilagsnummer i regnskapsboken"
+        >
+          {entry.voucher_number ?? "—"}
+        </span>
         <span className="tabular text-xs text-muted-foreground">{formatDate(entry.entry_date)}</span>
         <span className="truncate">{entry.counterparty ?? "—"}</span>
         <span className="truncate text-muted-foreground">{entry.description}</span>
@@ -332,7 +338,14 @@ function EntryRow({
           <StatusBadge kind="payment" value={entry.payment_status} />
         </span>
         <span>
-          <StatusBadge kind="invoice" value={entry.invoice_status} />
+          {isInvoice ? (
+            <div className="flex flex-col gap-0.5">
+              <span className="tabular text-xs font-medium">{entry.source_ref}</span>
+              <StatusBadge kind="invoice" value={entry.invoice_status} />
+            </div>
+          ) : (
+            <StatusBadge kind="invoice" value={entry.invoice_status} />
+          )}
         </span>
         <span className="text-muted-foreground">
           {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -385,6 +398,8 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
     window.open(data.signedUrl, "_blank");
   }
 
+  const isInvoice = entry.source_type === "invoice" && entry.source_ref;
+
   return (
     <div className="border-t bg-background px-5 py-5">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -401,11 +416,28 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
 
         <Field label="Betalingsstatus" value={entry.payment_status} />
         <Field label="Fakturastatus" value={entry.invoice_status} />
-        <Field label="Bilagsnummer" value={entry.voucher_number} />
+        <Field
+          label="Bilagsnummer"
+          value={entry.voucher_number}
+          help="Internt bilagsnummer i regnskapsboken"
+        />
 
-        <Field label="Kildeapp" value={entry.source_app} />
-        <Field label="Kildetype" value={entry.source_type} />
-        <Field label="Kildereferanse" value={entry.source_ref} />
+        {isInvoice ? (
+          <>
+            <Field label="Fakturanummer" value={entry.source_ref} />
+            <div className="md:col-span-2">
+              <p className="text-xs text-muted-foreground">
+                Fakturanummer er kundens dokument. Bilagsnummer er intern rekkefølge i boken.
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <Field label="Kildeapp" value={entry.source_app} />
+            <Field label="Kildetype" value={entry.source_type} />
+            <Field label="Kildereferanse" value={entry.source_ref} />
+          </>
+        )}
       </div>
 
       {entry.external_url && (
@@ -455,13 +487,14 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
   );
 }
 
-function Field({ label, value }: { label: string; value: string | null | undefined }) {
+function Field({ label, value, help }: { label: string; value: string | null | undefined; help?: string }) {
   return (
     <div>
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-0.5">
         {label}
       </div>
-      <div className="text-sm">{value ?? <span className="text-muted-foreground">—</span>}</div>
+      <div className="text-sm" title={help}>{value ?? <span className="text-muted-foreground">—</span>}</div>
+      {help && <p className="text-[10px] text-muted-foreground mt-0.5">{help}</p>}
     </div>
   );
 }
