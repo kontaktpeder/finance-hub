@@ -199,7 +199,6 @@ export const neonomicsProvider: BankProvider = {
     // 2) Trig consent — GET /accounts skal returnere 1426 utan consent
     const accRes = await neoFetch(ctx, "/ics/v3/accounts", {
       sessionId,
-      bankId,
       redirectUrl,
     });
     if (accRes.status === 200) {
