@@ -270,8 +270,8 @@ function BankPage() {
                       variant="outline"
                       className="justify-between h-auto py-2"
                       onClick={() => connectMut.mutate(b.bankId)}
-                      disabled={connectMut.isPending || b.requiresPsuId}
-                      title={b.requiresPsuId ? "Krev kryptert PSU-id" : undefined}
+                      disabled={connectMut.isPending || (b.requiresPsuId && !psuId.trim())}
+                      title={b.requiresPsuId && !psuId.trim() ? "Skriv inn PSU-id over for å bruke denne banken" : undefined}
                     >
                       <span className="text-sm truncate">{b.name}</span>
                       {b.requiresPsuId && (
