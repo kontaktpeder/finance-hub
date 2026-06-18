@@ -46,7 +46,7 @@ export async function syncAccounts(connectionId: string, psuIp?: string | null):
           account_name: a.accountName,
           account_number: a.accountNumber,
           currency: a.currency,
-          raw_metadata: (a.rawMetadata ?? {}) as Record<string, unknown>,
+          raw_metadata: (a.rawMetadata ?? {}) as never,
         },
         { onConflict: "bank_connection_id,provider_account_id" },
       );
@@ -98,7 +98,7 @@ export async function syncTransactions(
       counterparty: t.counterparty,
       is_income: t.isIncome,
       // finance_entry_id BLIR ALDRI sett her — bokføring er eksplisitt brukar-handling.
-      raw_payload: (t.rawPayload ?? {}) as Record<string, unknown>,
+      raw_payload: (t.rawPayload ?? {}) as never,
     }));
 
     // Batch upsert
