@@ -73,12 +73,20 @@ const STATUS_LABEL: Record<string, string> = {
   draft: "Utkast",
   sent: "Sendt",
   paid: "Betalt",
+  overdue: "Forfalt",
 };
-const STATUS_VARIANT: Record<string, "outline" | "secondary" | "default"> = {
+const STATUS_VARIANT: Record<string, "outline" | "secondary" | "default" | "destructive"> = {
   draft: "outline",
   sent: "secondary",
   paid: "default",
+  overdue: "destructive",
 };
+
+function isOverdue(status: string, dueDate: string | null | undefined): boolean {
+  if (status !== "sent" || !dueDate) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return dueDate < today;
+}
 
 function InvoiceDetailPage() {
   const { orgId, invoiceId } = Route.useParams();
@@ -160,6 +168,7 @@ function InvoiceDetailPage() {
   const inv: any = invoice;
   const status = inv.status as "draft" | "sent" | "paid";
   const readOnly = status !== "draft";
+  const displayStatus = isOverdue(status, inv.due_date) ? "overdue" : status;
 
   function updateLine(i: number, patch: Partial<LineForm>) {
     setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
@@ -301,10 +310,11 @@ function InvoiceDetailPage() {
             {inv.invoice_number ? `Faktura ${inv.invoice_number}` : "Nytt utkast"}
           </h1>
           <div className="mt-1 flex items-center gap-2">
-            <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABEL[status]}</Badge>
+            <Badge variant={STATUS_VARIANT[displayStatus]}>{STATUS_LABEL[displayStatus]}</Badge>
             {readOnly && (
               <span className="text-xs text-muted-foreground">
                 Sendt {inv.locked_at ? formatDate(inv.locked_at) : ""}
+                {displayStatus === "overdue" && inv.due_date ? ` · forfalt ${formatDate(inv.due_date)}` : ""}
               </span>
             )}
           </div>
