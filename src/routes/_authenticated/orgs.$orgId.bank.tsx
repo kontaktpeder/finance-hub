@@ -74,8 +74,11 @@ function BankPage() {
     enabled: showPicker && Boolean(status.data?.configured),
   });
 
+  const [psuId, setPsuId] = useState("");
+
   const connectMut = useMutation({
-    mutationFn: (bankId: string) => startConnect({ data: { orgId, bankId } }),
+    mutationFn: (bankId: string) =>
+      startConnect({ data: { orgId, bankId, psuId: psuId.trim() || undefined } }),
     onSuccess: (r) => {
       if (r.consentUrl) {
         window.location.href = r.consentUrl;
@@ -230,11 +233,20 @@ function BankPage() {
           <CardHeader>
             <CardTitle className="text-base">Velg bank (Norge)</CardTitle>
             <CardDescription className="text-xs">
-              Bankar merka «krev person-ID» fungerer ikkje i denne sandbox-versjonen enno. Bruk t.d.
-              Sbanken for å teste end-to-end.
+              Sandbox: bruk t.d. Sbanken med PSU-id <code>13039319955</code> for å teste end-to-end.
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="mb-3">
+              <label className="text-xs text-muted-foreground">PSU-id (fødselsnummer, valfri for sandbox-bankar utan personidentifikasjon)</label>
+              <Input
+                value={psuId}
+                onChange={(e) => setPsuId(e.target.value)}
+                placeholder="13039319955"
+                className="sm:max-w-xs"
+                inputMode="numeric"
+              />
+            </div>
             {banksQ.isLoading && (
               <div className="text-sm text-muted-foreground flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" /> Henter bankar…
@@ -258,8 +270,8 @@ function BankPage() {
                       variant="outline"
                       className="justify-between h-auto py-2"
                       onClick={() => connectMut.mutate(b.bankId)}
-                      disabled={connectMut.isPending || b.requiresPsuId}
-                      title={b.requiresPsuId ? "Krev kryptert PSU-id" : undefined}
+                      disabled={connectMut.isPending || (b.requiresPsuId && !psuId.trim())}
+                      title={b.requiresPsuId && !psuId.trim() ? "Skriv inn PSU-id over for å bruke denne banken" : undefined}
                     >
                       <span className="text-sm truncate">{b.name}</span>
                       {b.requiresPsuId && (

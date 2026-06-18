@@ -203,7 +203,7 @@ export const neonomicsProvider: BankProvider = {
     const { resourceBankId, personalIdentificationRequired } = await resolveBankResource(ctx, bankId);
     if (personalIdentificationRequired && !ctx.psuId) {
       throw new Error(
-        "Denne banken krev kryptert PSU-id/fødselsnummer før consent kan startast. Velg ein sandbox-bank utan personidentifikasjon, t.d. Sbanken, eller legg til Neonomics-kryptering som neste steg.",
+        "Denne banken krev PSU-id (fødselsnummer). Skriv inn PSU-id i feltet og prøv igjen.",
       );
     }
 
@@ -222,6 +222,7 @@ export const neonomicsProvider: BankProvider = {
     const sess = (await sessRes.json()) as { sessionId?: string; id?: string };
     const sessionId = String(sess.sessionId ?? sess.id ?? "");
     if (!sessionId) throw new Error("Neonomics: manglar sessionId");
+    console.log("[neonomics] startConnect sessionId=", sessionId, "bankId=", resourceBankId, "psuId=", ctx.psuId ? "set" : "none");
 
     // 2) Trig consent — GET /accounts skal returnere 1426 utan consent
     const accRes = await neoFetch(ctx, "/ics/v3/accounts", {
@@ -230,6 +231,7 @@ export const neonomicsProvider: BankProvider = {
     });
     if (accRes.status === 200) {
       // Allereie consented
+      console.log("[neonomics] startConnect already consented sessionId=", sessionId);
       return { providerConnectionId: sessionId, consentUrl: null };
     }
     const body = await accRes.json().catch(() => ({} as Record<string, unknown>));
@@ -244,6 +246,7 @@ export const neonomicsProvider: BankProvider = {
         `Neonomics consent-href mangler (status ${accRes.status}): ${JSON.stringify(body).slice(0, 200)}`,
       );
     }
+    console.log("[neonomics] startConnect consentUrl=", consentUrl);
     // Viktig: ikkje gjer ein ny API-call mot consentUrl — det er SCA-redirect-URL-en
     // brukaren skal til (bank-innlogging). Authenticated GET mot den gir 520/4905.
     return { providerConnectionId: sessionId, consentUrl };
