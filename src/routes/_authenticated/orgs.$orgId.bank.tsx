@@ -224,6 +224,10 @@ function BankPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Velg bank (Norge)</CardTitle>
+            <CardDescription className="text-xs">
+              Bankar merka «krev person-ID» fungerer ikkje i denne sandbox-versjonen enno. Bruk t.d.
+              Sbanken for å teste end-to-end.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {banksQ.isLoading && (
@@ -236,17 +240,30 @@ function BankPage() {
             )}
             {banksQ.data && (
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-96 overflow-auto">
-                {banksQ.data.banks.map((b) => (
-                  <Button
-                    key={b.bankId}
-                    variant="outline"
-                    className="justify-start h-auto py-2"
-                    onClick={() => connectMut.mutate(b.bankId)}
-                    disabled={connectMut.isPending}
-                  >
-                    <span className="text-sm">{b.name}</span>
-                  </Button>
-                ))}
+                {[...banksQ.data.banks]
+                  .sort((a, b) => {
+                    const ap = a.requiresPsuId ? 1 : 0;
+                    const bp = b.requiresPsuId ? 1 : 0;
+                    if (ap !== bp) return ap - bp;
+                    return a.name.localeCompare(b.name, "nb");
+                  })
+                  .map((b) => (
+                    <Button
+                      key={b.bankId}
+                      variant="outline"
+                      className="justify-between h-auto py-2"
+                      onClick={() => connectMut.mutate(b.bankId)}
+                      disabled={connectMut.isPending || b.requiresPsuId}
+                      title={b.requiresPsuId ? "Krev kryptert PSU-id" : undefined}
+                    >
+                      <span className="text-sm truncate">{b.name}</span>
+                      {b.requiresPsuId && (
+                        <Badge variant="outline" className="ml-2 text-[10px]">
+                          krev person-ID
+                        </Badge>
+                      )}
+                    </Button>
+                  ))}
               </div>
             )}
           </CardContent>
