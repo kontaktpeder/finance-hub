@@ -88,7 +88,7 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
         .from("bank_connections")
         .update({
           provider_connection_id: init.providerConnectionId,
-          raw_metadata: { redirectUrl },
+          raw_metadata: { redirectUrl } as never,
         })
         .eq("id", conn.id);
 
