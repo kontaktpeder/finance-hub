@@ -44,7 +44,11 @@ export const listBanksFn = createServerFn({ method: "GET" })
     return { banks };
   });
 
-const StartInput = z.object({ orgId: z.string().uuid(), bankId: z.string().min(1) });
+const StartInput = z.object({
+  orgId: z.string().uuid(),
+  bankId: z.string().min(1),
+  psuId: z.string().trim().min(1).max(64).optional(),
+});
 
 export const startBankConnectFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -71,6 +75,7 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
         bank_id: data.bankId,
         status: "pending",
         created_by: context.userId,
+        raw_metadata: (data.psuId ? { psuId: data.psuId } : {}) as never,
       })
       .select("id")
       .single();
@@ -80,7 +85,7 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
 
     try {
       const init = await getProvider("neonomics").startConnect(
-        { deviceId, psuIp: getPsuIpAddress() },
+        { deviceId, psuIp: getPsuIpAddress(), psuId: data.psuId ?? null },
         data.bankId,
         redirectUrl,
       );
@@ -88,10 +93,11 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
         .from("bank_connections")
         .update({
           provider_connection_id: init.providerConnectionId,
-          raw_metadata: { redirectUrl } as never,
+          raw_metadata: { redirectUrl, ...(data.psuId ? { psuId: data.psuId } : {}) } as never,
         })
         .eq("id", conn.id);
 
+      console.log("[banking] startConnect connectionId=", conn.id, "providerConnectionId=", init.providerConnectionId, "consentUrl=", init.consentUrl);
       return {
         connectionId: conn.id,
         consentUrl: init.consentUrl,
