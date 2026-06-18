@@ -14,6 +14,7 @@ import {
   Paperclip,
   FileSpreadsheet,
   Settings,
+  Landmark,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId")({
@@ -75,6 +76,9 @@ function OrgLayout() {
           </Link>
           <Link to="/orgs/$orgId/invoices" params={{ orgId }} className={baseLink} activeProps={activeProps}>
             <FileSpreadsheet className="h-4 w-4" /> Fakturaer
+          </Link>
+          <Link to="/orgs/$orgId/bank" params={{ orgId }} className={baseLink} activeProps={activeProps}>
+            <Landmark className="h-4 w-4" /> Bank
           </Link>
           <Link to="/orgs/$orgId/reports" params={{ orgId }} className={baseLink} activeProps={activeProps}>
             <FileText className="h-4 w-4" /> Rapporter
