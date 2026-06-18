@@ -224,77 +224,36 @@ export const neonomicsProvider: BankProvider = {
     if (!sessionId) throw new Error("Neonomics: manglar sessionId");
     console.log("[neonomics] startConnect sessionId=", sessionId, "bankId=", resourceBankId, "psuId=", ctx.psuId ? "set" : "none");
 
-    // 2) Trig consent — GET /accounts skal returnere 1426 utan consent
+    // 2) Trig consent — GET /accounts skal returnere 1426 utan consent, med links til SCA-URL
     const accRes = await neoFetch(ctx, "/ics/v3/accounts", {
       sessionId,
       redirectUrl,
     });
     if (accRes.status === 200) {
-      // Allereie consented
       console.log("[neonomics] startConnect already consented sessionId=", sessionId);
       return { providerConnectionId: sessionId, consentUrl: null };
     }
     const body = await accRes.json().catch(() => ({} as Record<string, unknown>));
-    const links = (body as { links?: { href?: string; rel?: string }[] }).links;
-    const consentApiUrl =
-      links?.find((l) => l.rel === "consent")?.href ??
-      links?.find((l) => l.href?.startsWith("http"))?.href ??
-      links?.[0]?.href ??
-      null;
-    if (!consentApiUrl) {
-      throw new Error(
-        `Neonomics consent-href mangler (status ${accRes.status}): ${JSON.stringify(body).slice(0, 200)}`,
-      );
-    }
-    console.log("[neonomics] startConnect consentApiUrl=", consentApiUrl);
+    console.log("[neonomics] /accounts 1426 body=", JSON.stringify(body).slice(0, 800));
+    const links = (body as { links?: { href?: string; rel?: string }[] }).links ?? [];
 
-    // consentApiUrl peikar på /ics/v3/consent/<id> som er eit Neonomics API-endepunkt.
-    // Det krev Bearer + x-session-id + x-redirect-url og returnerer 302 til bankens SCA-URL.
-    // Vi MÅ følgje det server-side med manual redirect og lese Location-header — sende
-    // brukaren rett til API-endepunktet gir "2003 Not authorised" (manglar Bearer).
-    const cfg = getNeonomicsConfig();
-    const token = await getAppToken();
-    // POST mot /ics/v3/consent/{sessionId} returnerer SCA-URL (anten i Location eller body).
-    const scaRes = await fetch(consentApiUrl, {
-      method: "POST",
-      redirect: "manual",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "x-device-id": ctx.deviceId,
-        "x-session-id": sessionId,
-        "x-redirect-url": redirectUrl,
-        "Content-Type": "application/json",
-        ...(ctx.psuId ? { "x-psu-id": ctx.psuId } : {}),
-        ...(ctx.psuIp ? { "x-psu-ip-address": ctx.psuIp } : {}),
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ redirectUrl }),
-    });
-    const loc = scaRes.headers.get("location");
-    const scaText = await scaRes.text().catch(() => "");
-    console.log("[neonomics] startConnect scaRes status=", scaRes.status, "location=", loc, "baseUrl=", cfg.baseUrl, "body=", scaText.slice(0, 400));
-    if (loc) {
-      return { providerConnectionId: sessionId, consentUrl: loc };
-    }
-    let scaBody: Record<string, unknown> = {};
-    try { scaBody = JSON.parse(scaText) as Record<string, unknown>; } catch { /* noop */ }
-    const scaLinks = (scaBody as { links?: { href?: string; rel?: string }[] }).links;
-    const scaUrl =
-      (scaBody as { url?: string }).url ??
-      (scaBody as { redirectUrl?: string }).redirectUrl ??
-      (scaBody as { scaRedirect?: string }).scaRedirect ??
-      (scaBody as { scaUrl?: string }).scaUrl ??
-      scaLinks?.find((l) => l.rel === "sca" || l.rel === "scaRedirect" || l.rel === "authorization" || l.rel === "sca-oauth")?.href ??
-      scaLinks?.find((l) => l.href?.startsWith("http") && !l.href.includes("/ics/v3/"))?.href ??
+    // href frå /accounts er brukar-URL-en — kan vere bankens SCA direkte, eller
+    // Neonomics' user-facing redirect-side. Begge skal opnast i nettlesar.
+    const consentUrl =
+      links.find((l) => l.rel === "scaRedirect" || l.rel === "sca-oauth" || l.rel === "consent-url")?.href ??
+      links.find((l) => l.rel === "consent")?.href ??
+      links.find((l) => l.href?.startsWith("http"))?.href ??
       null;
-    if (!scaUrl) {
+
+    if (!consentUrl) {
       throw new Error(
-        `Neonomics SCA-URL mangler (status ${scaRes.status}): ${scaText.slice(0, 300)}`,
+        `Neonomics consent-href mangler (status ${accRes.status}): ${JSON.stringify(body).slice(0, 300)}`,
       );
     }
-    console.log("[neonomics] startConnect scaUrl=", scaUrl);
-    return { providerConnectionId: sessionId, consentUrl: scaUrl };
+    console.log("[neonomics] startConnect consentUrl=", consentUrl, "sessionId=", sessionId);
+    return { providerConnectionId: sessionId, consentUrl };
   },
+
 
 
   async completeConnect(ctx, providerConnectionId) {
