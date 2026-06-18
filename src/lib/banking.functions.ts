@@ -139,8 +139,10 @@ export const completeBankConnectFn = createServerFn({ method: "POST" })
     if (!conn.provider_connection_id) throw new Error("Manglar provider_connection_id");
 
     const psuIp = getPsuIpAddress();
+    const meta = (conn.raw_metadata ?? {}) as { psuId?: string };
+    const psuId = meta.psuId ?? null;
     const result = await getProvider(conn.provider).completeConnect(
-      { deviceId: conn.device_id as string, psuIp },
+      { deviceId: conn.device_id as string, psuIp, psuId },
       conn.provider_connection_id,
     );
 
@@ -153,7 +155,9 @@ export const completeBankConnectFn = createServerFn({ method: "POST" })
       })
       .eq("id", conn.id);
 
+    console.log("[banking] completeConnect connectionId=", conn.id, "status=", result.status);
     const synced = await syncConnection(conn.id, psuIp);
+    console.log("[banking] completeConnect synced accounts=", synced.accounts, "transactions=", synced.transactions);
     return { ok: true as const, ...synced };
   });
 
