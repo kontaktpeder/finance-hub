@@ -40,6 +40,8 @@ export type BankTransaction = {
 export type BankProviderContext = {
   /** Stabil per organisasjon. Lagrast i bank_connections.device_id. */
   deviceId: string;
+  /** Kryptert PSU-id for banker som krev personidentifikasjon. Skal ikkje vere lik deviceId. */
+  psuId?: string | null;
   /** PSU IP-adresse (PSD2-krav for nokre providerar). */
   psuIp?: string | null;
 };

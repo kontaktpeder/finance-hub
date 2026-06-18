@@ -45,8 +45,8 @@ async function neoFetch(
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     "x-device-id": ctx.deviceId,
-    "x-psu-id": ctx.deviceId, // PSU-identifikator (kan vere lik device for ENK/privat)
     "Content-Type": "application/json",
+    ...(ctx.psuId ? { "x-psu-id": ctx.psuId } : {}),
     ...(ctx.psuIp ? { "x-psu-ip-address": ctx.psuIp } : {}),
     ...(init.sessionId ? { "x-session-id": init.sessionId } : {}),
     ...(init.bankId ? { "x-bank-id": init.bankId } : {}),
@@ -70,6 +70,7 @@ type NeoBank = {
   countryCode?: string;
   status?: string;
   supportedServices?: string[];
+  personalIdentificationRequired?: boolean;
   logo?: string | null;
   logoUrl?: string | null;
   image?: { url?: string } | null;
@@ -113,16 +114,22 @@ function mapBank(b: NeoBank): BankInfo {
   };
 }
 
-async function resolveBankResourceId(ctx: BankProviderContext, requestedBankId: string): Promise<string> {
+async function resolveBankResource(
+  ctx: BankProviderContext,
+  requestedBankId: string,
+): Promise<{ resourceBankId: string; personalIdentificationRequired: boolean }> {
   const res = await neoFetch(ctx, "/ics/v3/banks?countryCode=NO");
-  if (!res.ok) return requestedBankId;
+  if (!res.ok) return { resourceBankId: requestedBankId, personalIdentificationRequired: false };
 
   const json = (await res.json().catch(() => [])) as NeoBank[] | { data?: NeoBank[] };
   const banks = Array.isArray(json) ? json : json.data ?? [];
   const match = banks.find(
     (b) => b.id === requestedBankId || b.bankId === requestedBankId || b.bic === requestedBankId,
   );
-  return String(match?.id ?? match?.bankId ?? requestedBankId);
+  return {
+    resourceBankId: String(match?.id ?? match?.bankId ?? requestedBankId),
+    personalIdentificationRequired: Boolean(match?.personalIdentificationRequired),
+  };
 }
 
 function mapAccount(a: NeoAccount): BankAccount {
