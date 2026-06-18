@@ -191,10 +191,17 @@ export const diagnoseBanksFn = createServerFn({ method: "GET" })
     await requireBankAdmin(context.supabase, data.orgId, context.userId);
     const { getOrCreateDeviceId } = await import("./banking/BankSyncService.server");
     const { listBanksRaw } = await import("./banking/providers/neonomics.provider.server");
+    const { getNeonomicsConfig } = await import("./banking/neonomics.config.server");
 
     const deviceId = await getOrCreateDeviceId(data.orgId);
+    const cfg = getNeonomicsConfig();
     const raw = await listBanksRaw({ deviceId, psuIp: getPsuIpAddress() }, "NO");
     return {
+      env: {
+        baseUrl: cfg.baseUrl,
+        realm: cfg.realm,
+        isSandboxDefault: !process.env.NEONOMICS_BASE_URL && !process.env.NEONOMICS_REALM,
+      },
       count: raw.length,
       banks: raw.map((b) => ({
         id: b.id ?? b.bankId ?? null,
