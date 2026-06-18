@@ -27,13 +27,23 @@ async function loadConnection(connectionId: string) {
   return data;
 }
 
+function psuIdFromConn(conn: { raw_metadata?: unknown }): string | null {
+  const m = (conn.raw_metadata ?? {}) as { psuId?: string };
+  return m.psuId ?? null;
+}
+
 export async function syncAccounts(connectionId: string, psuIp?: string | null): Promise<number> {
   const conn = await loadConnection(connectionId);
   if (!conn.provider_connection_id) throw new Error("Manglar provider_connection_id");
   const provider = getProvider(conn.provider);
-  const ctx: BankProviderContext = { deviceId: conn.device_id as string, psuIp: psuIp ?? null };
+  const ctx: BankProviderContext = {
+    deviceId: conn.device_id as string,
+    psuIp: psuIp ?? null,
+    psuId: psuIdFromConn(conn),
+  };
 
   const accounts = await provider.listAccounts(ctx, conn.provider_connection_id);
+  console.log("[banking] syncAccounts connectionId=", connectionId, "count=", accounts.length);
   let count = 0;
   for (const a of accounts) {
     const { error } = await supabaseAdmin
@@ -64,7 +74,11 @@ export async function syncTransactions(
   const conn = await loadConnection(connectionId);
   if (!conn.provider_connection_id) throw new Error("Manglar provider_connection_id");
   const provider = getProvider(conn.provider);
-  const ctx: BankProviderContext = { deviceId: conn.device_id as string, psuIp: psuIp ?? null };
+  const ctx: BankProviderContext = {
+    deviceId: conn.device_id as string,
+    psuIp: psuIp ?? null,
+    psuId: psuIdFromConn(conn),
+  };
 
   const { data: accounts, error: accErr } = await supabaseAdmin
     .from("bank_accounts")
