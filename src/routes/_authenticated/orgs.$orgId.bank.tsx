@@ -188,6 +188,11 @@ function BankPage() {
           <Button size="sm" onClick={() => setShowPicker((v) => !v)}>
             {showPicker ? "Lukk bankvalg" : "Kople til bank"}
           </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/orgs/$orgId/bank/diagnostics" params={{ orgId }}>
+              Diagnostikk
+            </Link>
+          </Button>
         </div>
       </header>
 
