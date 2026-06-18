@@ -25,6 +25,7 @@ import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authen
 import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
 import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
 import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
+import { Route as AuthenticatedOrgsOrgIdBankRouteImport } from './routes/_authenticated/orgs.$orgId.bank'
 import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
 import { Route as AuthenticatedOrgsOrgIdInvoicesIndexRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.index'
@@ -124,6 +125,12 @@ const AuthenticatedOrgsOrgIdEntriesRoute =
     path: '/entries',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
+const AuthenticatedOrgsOrgIdBankRoute =
+  AuthenticatedOrgsOrgIdBankRouteImport.update({
+    id: '/bank',
+    path: '/bank',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const AuthenticatedOrgsOrgIdAttachmentsRoute =
   AuthenticatedOrgsOrgIdAttachmentsRouteImport.update({
     id: '/attachments',
@@ -205,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
+  '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -233,6 +241,7 @@ export interface FileRoutesByTo {
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
+  '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -264,6 +273,7 @@ export interface FileRoutesById {
   '/_authenticated/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/_authenticated/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
+  '/_authenticated/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
   '/_authenticated/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
+    | '/orgs/$orgId/bank'
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
+    | '/orgs/$orgId/bank'
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
@@ -353,6 +365,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orgs/new'
     | '/_authenticated/orgs/$orgId/api-keys'
     | '/_authenticated/orgs/$orgId/attachments'
+    | '/_authenticated/orgs/$orgId/bank'
     | '/_authenticated/orgs/$orgId/entries'
     | '/_authenticated/orgs/$orgId/members'
     | '/_authenticated/orgs/$orgId/reports'
@@ -501,6 +514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdEntriesRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
+    '/_authenticated/orgs/$orgId/bank': {
+      id: '/_authenticated/orgs/$orgId/bank'
+      path: '/bank'
+      fullPath: '/orgs/$orgId/bank'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/_authenticated/orgs/$orgId/attachments': {
       id: '/_authenticated/orgs/$orgId/attachments'
       path: '/attachments'
@@ -591,6 +611,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdApiKeysRoute: typeof AuthenticatedOrgsOrgIdApiKeysRoute
   AuthenticatedOrgsOrgIdAttachmentsRoute: typeof AuthenticatedOrgsOrgIdAttachmentsRoute
+  AuthenticatedOrgsOrgIdBankRoute: typeof AuthenticatedOrgsOrgIdBankRoute
   AuthenticatedOrgsOrgIdEntriesRoute: typeof AuthenticatedOrgsOrgIdEntriesRoute
   AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
   AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -606,6 +627,7 @@ const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
     AuthenticatedOrgsOrgIdApiKeysRoute: AuthenticatedOrgsOrgIdApiKeysRoute,
     AuthenticatedOrgsOrgIdAttachmentsRoute:
       AuthenticatedOrgsOrgIdAttachmentsRoute,
+    AuthenticatedOrgsOrgIdBankRoute: AuthenticatedOrgsOrgIdBankRoute,
     AuthenticatedOrgsOrgIdEntriesRoute: AuthenticatedOrgsOrgIdEntriesRoute,
     AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
     AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,
@@ -723,13 +745,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
