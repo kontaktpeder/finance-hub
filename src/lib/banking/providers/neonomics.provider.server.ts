@@ -18,7 +18,7 @@ async function getAppToken(): Promise<string> {
   if (cachedAppToken && cachedAppToken.exp - 60 > now) return cachedAppToken.token;
   const cfg = getNeonomicsConfig();
   const basic = btoa(`${cfg.clientId}:${cfg.clientSecret}`);
-  const res = await fetch(`${cfg.baseUrl}/auth/realms/sandbox/protocol/openid-connect/token`, {
+  const res = await fetch(cfg.tokenUrl, {
     method: "POST",
     headers: {
       Authorization: `Basic ${basic}`,

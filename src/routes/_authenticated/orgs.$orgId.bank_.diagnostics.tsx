@@ -46,6 +46,22 @@ function DiagnosticsPage() {
 
       <Card>
         <CardHeader className="pb-2">
+          <CardTitle className="text-base">Miljø</CardTitle>
+        </CardHeader>
+        <CardContent className="text-xs font-mono space-y-1">
+          <div>baseUrl: {banksQ.data?.env?.baseUrl ?? "—"}</div>
+          <div>realm: {banksQ.data?.env?.realm ?? "—"}</div>
+          <div>total bank count: {banksQ.data?.count ?? "—"}</div>
+          {banksQ.data?.env?.isSandboxDefault && (
+            <div className="text-muted-foreground">
+              (NEONOMICS_BASE_URL / NEONOMICS_REALM ikkje sett — bruker sandbox-default)
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
           <CardTitle className="text-base">
             {banksQ.data ? `${banksQ.data.count} bankar tilgjengelig` : "Bankar"}
           </CardTitle>
