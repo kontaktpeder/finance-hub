@@ -111,6 +111,7 @@ function mapBank(b: NeoBank): BankInfo {
     ),
     country: b.countryCode ?? "NO",
     logoUrl: b.image?.url ?? b.logo ?? b.logoUrl ?? null,
+    requiresPsuId: Boolean(b.personalIdentificationRequired),
   };
 }
 
