@@ -53,7 +53,8 @@ async function neoFetch(
     ...(init.redirectUrl ? { "x-redirect-url": init.redirectUrl } : {}),
     ...((init.headers as Record<string, string>) || {}),
   };
-  return fetch(`${cfg.baseUrl}${path}`, { ...init, headers });
+  const url = path.startsWith("http") ? path : `${cfg.baseUrl}${path}`;
+  return fetch(url, { ...init, headers });
 }
 
 type NeoBank = {
@@ -61,10 +62,14 @@ type NeoBank = {
   bankId?: string;
   bic?: string;
   name?: string;
+  bankDisplayName?: string;
+  bankOfficialName?: string;
   bankName?: string;
   fullName?: string;
   shortName?: string;
   countryCode?: string;
+  status?: string;
+  supportedServices?: string[];
   logo?: string | null;
   logoUrl?: string | null;
   image?: { url?: string } | null;
@@ -97,13 +102,27 @@ type NeoTx = {
 };
 
 function mapBank(b: NeoBank): BankInfo {
-  // Neonomics ICS v3 x-bank-id ventar BIC (t.d. "DNBANOKK"), ikkje intern composite-id.
+  // Neonomics /session ventar bank-id frå /banks (base64 composite-id), ikkje BIC.
   return {
-    bankId: String(b.bic ?? b.bankId ?? b.id ?? ""),
-    name: String(b.name ?? b.fullName ?? b.bankName ?? b.shortName ?? b.bic ?? ""),
+    bankId: String(b.id ?? b.bankId ?? ""),
+    name: String(
+      b.bankDisplayName ?? b.name ?? b.fullName ?? b.bankName ?? b.bankOfficialName ?? b.shortName ?? b.bic ?? "",
+    ),
     country: b.countryCode ?? "NO",
     logoUrl: b.image?.url ?? b.logo ?? b.logoUrl ?? null,
   };
+}
+
+async function resolveBankResourceId(ctx: BankProviderContext, requestedBankId: string): Promise<string> {
+  const res = await neoFetch(ctx, "/ics/v3/banks?countryCode=NO");
+  if (!res.ok) return requestedBankId;
+
+  const json = (await res.json().catch(() => [])) as NeoBank[] | { data?: NeoBank[] };
+  const banks = Array.isArray(json) ? json : json.data ?? [];
+  const match = banks.find(
+    (b) => b.id === requestedBankId || b.bankId === requestedBankId || b.bic === requestedBankId,
+  );
+  return String(match?.id ?? match?.bankId ?? requestedBankId);
 }
 
 function mapAccount(a: NeoAccount): BankAccount {
@@ -152,21 +171,26 @@ export const neonomicsProvider: BankProvider = {
     }
     const json = (await res.json()) as NeoBank[] | { data?: NeoBank[] };
     const arr = Array.isArray(json) ? json : json.data ?? [];
-    return arr.map(mapBank).filter((b) => b.bankId);
+    return arr
+      .filter((b) => !b.status || b.status === "AVAILABLE")
+      .filter((b) => !b.supportedServices || b.supportedServices.includes("accounts"))
+      .map(mapBank)
+      .filter((b) => b.bankId);
   },
 
   async startConnect(ctx, bankId, redirectUrl): Promise<BankConnectionInit> {
+    const resourceBankId = await resolveBankResourceId(ctx, bankId);
+
     // 1) Opprett session
     const sessRes = await neoFetch(ctx, "/ics/v3/session", {
       method: "POST",
-      bankId,
-      body: JSON.stringify({}),
+      body: JSON.stringify({ bankId: resourceBankId }),
     });
     if (!sessRes.ok) {
       const t = await sessRes.text().catch(() => "");
       throw new Error(
         `Neonomics session ${sessRes.status}: ${t.slice(0, 400)} ` +
-          `(deviceId=${ctx.deviceId.slice(0, 8)}…, bankId=${bankId})`,
+          `(deviceId=${ctx.deviceId.slice(0, 8)}…, bankId=${resourceBankId})`,
       );
     }
     const sess = (await sessRes.json()) as { sessionId?: string; id?: string };
@@ -176,7 +200,6 @@ export const neonomicsProvider: BankProvider = {
     // 2) Trig consent — GET /accounts skal returnere 1426 utan consent
     const accRes = await neoFetch(ctx, "/ics/v3/accounts", {
       sessionId,
-      bankId,
       redirectUrl,
     });
     if (accRes.status === 200) {
@@ -184,14 +207,26 @@ export const neonomicsProvider: BankProvider = {
       return { providerConnectionId: sessionId, consentUrl: null };
     }
     const body = await accRes.json().catch(() => ({} as Record<string, unknown>));
-    const links = (body as { links?: { href?: string }[] }).links;
-    const href = links?.[0]?.href;
-    if (!href) {
+    const links = (body as { links?: { href?: string; rel?: string }[] }).links;
+    const consentApiUrl = links?.find((l) => l.rel === "consent")?.href ?? links?.[0]?.href;
+    if (!consentApiUrl) {
       throw new Error(
         `Neonomics consent-href mangler (status ${accRes.status}): ${JSON.stringify(body).slice(0, 200)}`,
       );
     }
-    return { providerConnectionId: sessionId, consentUrl: href };
+
+    const consentRes = await neoFetch(ctx, consentApiUrl, { redirectUrl });
+    if (!consentRes.ok) {
+      const txt = await consentRes.text().catch(() => "");
+      throw new Error(`Neonomics consent ${consentRes.status}: ${txt.slice(0, 300)}`);
+    }
+    const consentBody = (await consentRes.json().catch(() => ({}))) as { links?: { href?: string; rel?: string }[] };
+    const consentUrl =
+      consentBody.links?.find((l) => l.rel === "consent")?.href ?? consentBody.links?.[0]?.href;
+    if (!consentUrl) {
+      throw new Error(`Neonomics bank-consent URL mangler: ${JSON.stringify(consentBody).slice(0, 200)}`);
+    }
+    return { providerConnectionId: sessionId, consentUrl };
   },
 
   async completeConnect(ctx, providerConnectionId) {
