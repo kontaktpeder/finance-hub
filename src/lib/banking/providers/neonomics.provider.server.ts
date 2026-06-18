@@ -234,24 +234,18 @@ export const neonomicsProvider: BankProvider = {
     }
     const body = await accRes.json().catch(() => ({} as Record<string, unknown>));
     const links = (body as { links?: { href?: string; rel?: string }[] }).links;
-    const consentApiUrl = links?.find((l) => l.rel === "consent")?.href ?? links?.[0]?.href;
-    if (!consentApiUrl) {
+    const consentUrl =
+      links?.find((l) => l.rel === "consent")?.href ??
+      links?.find((l) => l.href?.startsWith("http"))?.href ??
+      links?.[0]?.href ??
+      null;
+    if (!consentUrl) {
       throw new Error(
         `Neonomics consent-href mangler (status ${accRes.status}): ${JSON.stringify(body).slice(0, 200)}`,
       );
     }
-
-    const consentRes = await neoFetch(ctx, consentApiUrl, { redirectUrl });
-    if (!consentRes.ok) {
-      const txt = await consentRes.text().catch(() => "");
-      throw new Error(`Neonomics consent ${consentRes.status}: ${txt.slice(0, 300)}`);
-    }
-    const consentBody = (await consentRes.json().catch(() => ({}))) as { links?: { href?: string; rel?: string }[] };
-    const consentUrl =
-      consentBody.links?.find((l) => l.rel === "consent")?.href ?? consentBody.links?.[0]?.href;
-    if (!consentUrl) {
-      throw new Error(`Neonomics bank-consent URL mangler: ${JSON.stringify(consentBody).slice(0, 200)}`);
-    }
+    // Viktig: ikkje gjer ein ny API-call mot consentUrl — det er SCA-redirect-URL-en
+    // brukaren skal til (bank-innlogging). Authenticated GET mot den gir 520/4905.
     return { providerConnectionId: sessionId, consentUrl };
   },
 
