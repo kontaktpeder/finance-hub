@@ -121,7 +121,9 @@ export async function syncTransactions(
       .upsert(rows, { onConflict: "bank_account_id,provider_transaction_id", ignoreDuplicates: false });
     if (insErr) throw new Error(`Upsert transaksjonar feila: ${insErr.message}`);
     total += rows.length;
+    console.log("[banking] syncTransactions account=", acc.id, "rows=", rows.length);
   }
+  console.log("[banking] syncTransactions connectionId=", connectionId, "total=", total);
   return total;
 }
 
