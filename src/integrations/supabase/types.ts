@@ -138,6 +138,207 @@ export type Database = {
           },
         ]
       }
+      bank_accounts: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          bank_connection_id: string
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          provider_account_id: string
+          raw_metadata: Json
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_connection_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          provider_account_id: string
+          raw_metadata?: Json
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_connection_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          provider_account_id?: string
+          raw_metadata?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_bank_connection_id_fkey"
+            columns: ["bank_connection_id"]
+            isOneToOne: false
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_connections: {
+        Row: {
+          bank_id: string | null
+          bank_name: string | null
+          consent_expires_at: string | null
+          created_at: string
+          created_by: string | null
+          device_id: string
+          id: string
+          last_sync_at: string | null
+          last_sync_error: string | null
+          organization_id: string
+          provider: string
+          provider_connection_id: string | null
+          raw_metadata: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bank_id?: string | null
+          bank_name?: string | null
+          consent_expires_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          device_id: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          organization_id: string
+          provider?: string
+          provider_connection_id?: string | null
+          raw_metadata?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bank_id?: string | null
+          bank_name?: string | null
+          consent_expires_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          device_id?: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          organization_id?: string
+          provider?: string
+          provider_connection_id?: string | null
+          raw_metadata?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          booking_date: string | null
+          category: string | null
+          counterparty: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          finance_entry_id: string | null
+          id: string
+          is_income: boolean
+          organization_id: string
+          provider_transaction_id: string
+          raw_payload: Json
+          status: string
+          transaction_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          booking_date?: string | null
+          category?: string | null
+          counterparty?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          finance_entry_id?: string | null
+          id?: string
+          is_income: boolean
+          organization_id: string
+          provider_transaction_id: string
+          raw_payload?: Json
+          status?: string
+          transaction_date: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          booking_date?: string | null
+          category?: string | null
+          counterparty?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          finance_entry_id?: string | null
+          id?: string
+          is_income?: boolean
+          organization_id?: string
+          provider_transaction_id?: string
+          raw_payload?: Json
+          status?: string
+          transaction_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_finance_entry_id_fkey"
+            columns: ["finance_entry_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finance_attachments: {
         Row: {
           entry_id: string | null
