@@ -168,6 +168,19 @@ function mapTx(t: NeoTx): BankTransaction {
   };
 }
 
+export async function listBanksRaw(
+  ctx: BankProviderContext,
+  country = "NO",
+): Promise<NeoBank[]> {
+  const res = await neoFetch(ctx, `/ics/v3/banks?countryCode=${encodeURIComponent(country)}`);
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Neonomics listBanksRaw ${res.status}: ${t.slice(0, 300)}`);
+  }
+  const json = (await res.json()) as NeoBank[] | { data?: NeoBank[] };
+  return Array.isArray(json) ? json : json.data ?? [];
+}
+
 export const neonomicsProvider: BankProvider = {
   name: "neonomics",
 
