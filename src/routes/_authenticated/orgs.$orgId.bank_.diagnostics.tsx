@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Search } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/orgs/$orgId/bank/diagnostics")({
+export const Route = createFileRoute("/_authenticated/orgs/$orgId/bank_/diagnostics")({
   component: DiagnosticsPage,
 });
 

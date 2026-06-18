@@ -12,7 +12,7 @@ const Search = z.object({
   result: z.string().optional(),
 });
 
-export const Route = createFileRoute("/_authenticated/orgs/$orgId/bank/callback")({
+export const Route = createFileRoute("/_authenticated/orgs/$orgId/bank_/callback")({
   validateSearch: (s) => Search.parse(s),
   component: BankCallback,
 });
