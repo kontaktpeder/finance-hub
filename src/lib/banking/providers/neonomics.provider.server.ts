@@ -140,7 +140,10 @@ export const neonomicsProvider: BankProvider = {
 
   async listBanks(ctx, country = "NO"): Promise<BankInfo[]> {
     const res = await neoFetch(ctx, `/ics/v3/banks?countryCode=${encodeURIComponent(country)}`);
-    if (!res.ok) throw new Error(`Neonomics listBanks ${res.status}`);
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      throw new Error(`Neonomics listBanks ${res.status}: ${t.slice(0, 300)}`);
+    }
     const json = (await res.json()) as NeoBank[] | { data?: NeoBank[] };
     const arr = Array.isArray(json) ? json : json.data ?? [];
     return arr.map(mapBank).filter((b) => b.bankId);
@@ -153,7 +156,13 @@ export const neonomicsProvider: BankProvider = {
       bankId,
       body: JSON.stringify({}),
     });
-    if (!sessRes.ok) throw new Error(`Neonomics session ${sessRes.status}`);
+    if (!sessRes.ok) {
+      const t = await sessRes.text().catch(() => "");
+      throw new Error(
+        `Neonomics session ${sessRes.status}: ${t.slice(0, 400)} ` +
+          `(deviceId=${ctx.deviceId.slice(0, 8)}…, bankId=${bankId})`,
+      );
+    }
     const sess = (await sessRes.json()) as { sessionId?: string; id?: string };
     const sessionId = String(sess.sessionId ?? sess.id ?? "");
     if (!sessionId) throw new Error("Neonomics: manglar sessionId");
