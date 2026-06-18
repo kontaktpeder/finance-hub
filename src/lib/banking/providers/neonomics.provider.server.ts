@@ -53,7 +53,8 @@ async function neoFetch(
     ...(init.redirectUrl ? { "x-redirect-url": init.redirectUrl } : {}),
     ...((init.headers as Record<string, string>) || {}),
   };
-  return fetch(`${cfg.baseUrl}${path}`, { ...init, headers });
+  const url = path.startsWith("http") ? path : `${cfg.baseUrl}${path}`;
+  return fetch(url, { ...init, headers });
 }
 
 type NeoBank = {
@@ -206,14 +207,26 @@ export const neonomicsProvider: BankProvider = {
       return { providerConnectionId: sessionId, consentUrl: null };
     }
     const body = await accRes.json().catch(() => ({} as Record<string, unknown>));
-    const links = (body as { links?: { href?: string }[] }).links;
-    const href = links?.[0]?.href;
-    if (!href) {
+    const links = (body as { links?: { href?: string; rel?: string }[] }).links;
+    const consentApiUrl = links?.find((l) => l.rel === "consent")?.href ?? links?.[0]?.href;
+    if (!consentApiUrl) {
       throw new Error(
         `Neonomics consent-href mangler (status ${accRes.status}): ${JSON.stringify(body).slice(0, 200)}`,
       );
     }
-    return { providerConnectionId: sessionId, consentUrl: href };
+
+    const consentRes = await neoFetch(ctx, consentApiUrl, { redirectUrl });
+    if (!consentRes.ok) {
+      const txt = await consentRes.text().catch(() => "");
+      throw new Error(`Neonomics consent ${consentRes.status}: ${txt.slice(0, 300)}`);
+    }
+    const consentBody = (await consentRes.json().catch(() => ({}))) as { links?: { href?: string; rel?: string }[] };
+    const consentUrl =
+      consentBody.links?.find((l) => l.rel === "consent")?.href ?? consentBody.links?.[0]?.href;
+    if (!consentUrl) {
+      throw new Error(`Neonomics bank-consent URL mangler: ${JSON.stringify(consentBody).slice(0, 200)}`);
+    }
+    return { providerConnectionId: sessionId, consentUrl };
   },
 
   async completeConnect(ctx, providerConnectionId) {
