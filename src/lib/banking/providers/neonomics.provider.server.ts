@@ -186,7 +186,12 @@ export const neonomicsProvider: BankProvider = {
   },
 
   async startConnect(ctx, bankId, redirectUrl): Promise<BankConnectionInit> {
-    const resourceBankId = await resolveBankResourceId(ctx, bankId);
+    const { resourceBankId, personalIdentificationRequired } = await resolveBankResource(ctx, bankId);
+    if (personalIdentificationRequired && !ctx.psuId) {
+      throw new Error(
+        "Denne banken krev kryptert PSU-id/fødselsnummer før consent kan startast. Velg ein sandbox-bank utan personidentifikasjon, t.d. Sbanken, eller legg til Neonomics-kryptering som neste steg.",
+      );
+    }
 
     // 1) Opprett session
     const sessRes = await neoFetch(ctx, "/ics/v3/session", {
