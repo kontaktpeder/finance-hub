@@ -74,8 +74,11 @@ function BankPage() {
     enabled: showPicker && Boolean(status.data?.configured),
   });
 
+  const [psuId, setPsuId] = useState("");
+
   const connectMut = useMutation({
-    mutationFn: (bankId: string) => startConnect({ data: { orgId, bankId } }),
+    mutationFn: (bankId: string) =>
+      startConnect({ data: { orgId, bankId, psuId: psuId.trim() || undefined } }),
     onSuccess: (r) => {
       if (r.consentUrl) {
         window.location.href = r.consentUrl;
