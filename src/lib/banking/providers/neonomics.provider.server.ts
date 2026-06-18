@@ -111,6 +111,7 @@ function mapBank(b: NeoBank): BankInfo {
     ),
     country: b.countryCode ?? "NO",
     logoUrl: b.image?.url ?? b.logo ?? b.logoUrl ?? null,
+    requiresPsuId: Boolean(b.personalIdentificationRequired),
   };
 }
 
@@ -165,6 +166,19 @@ function mapTx(t: NeoTx): BankTransaction {
     isIncome: amt > 0,
     rawPayload: t as unknown as Record<string, unknown>,
   };
+}
+
+export async function listBanksRaw(
+  ctx: BankProviderContext,
+  country = "NO",
+): Promise<NeoBank[]> {
+  const res = await neoFetch(ctx, `/ics/v3/banks?countryCode=${encodeURIComponent(country)}`);
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Neonomics listBanksRaw ${res.status}: ${t.slice(0, 300)}`);
+  }
+  const json = (await res.json()) as NeoBank[] | { data?: NeoBank[] };
+  return Array.isArray(json) ? json : json.data ?? [];
 }
 
 export const neonomicsProvider: BankProvider = {

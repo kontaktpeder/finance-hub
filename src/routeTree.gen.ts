@@ -35,6 +35,7 @@ import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/publ
 import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
 import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/public/v1/ai.scan-receipt'
 import { Route as AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.$invoiceId'
+import { Route as AuthenticatedOrgsOrgIdBankDiagnosticsRouteImport } from './routes/_authenticated/orgs.$orgId.bank.diagnostics'
 import { Route as AuthenticatedOrgsOrgIdBankCallbackRouteImport } from './routes/_authenticated/orgs.$orgId.bank.callback'
 import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
 import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
@@ -186,6 +187,12 @@ const AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute =
     path: '/invoices/$invoiceId',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
+const AuthenticatedOrgsOrgIdBankDiagnosticsRoute =
+  AuthenticatedOrgsOrgIdBankDiagnosticsRouteImport.update({
+    id: '/diagnostics',
+    path: '/diagnostics',
+    getParentRoute: () => AuthenticatedOrgsOrgIdBankRoute,
+  } as any)
 const AuthenticatedOrgsOrgIdBankCallbackRoute =
   AuthenticatedOrgsOrgIdBankCallbackRouteImport.update({
     id: '/callback',
@@ -231,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/orgs/$orgId/bank/callback': typeof AuthenticatedOrgsOrgIdBankCallbackRoute
+  '/orgs/$orgId/bank/diagnostics': typeof AuthenticatedOrgsOrgIdBankDiagnosticsRoute
   '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
@@ -261,6 +269,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/orgs/$orgId/bank/callback': typeof AuthenticatedOrgsOrgIdBankCallbackRoute
+  '/orgs/$orgId/bank/diagnostics': typeof AuthenticatedOrgsOrgIdBankDiagnosticsRoute
   '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
@@ -294,6 +303,7 @@ export interface FileRoutesById {
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
   '/_authenticated/orgs/$orgId/bank/callback': typeof AuthenticatedOrgsOrgIdBankCallbackRoute
+  '/_authenticated/orgs/$orgId/bank/diagnostics': typeof AuthenticatedOrgsOrgIdBankDiagnosticsRoute
   '/_authenticated/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/invoices'
     | '/orgs/$orgId/'
     | '/orgs/$orgId/bank/callback'
+    | '/orgs/$orgId/bank/diagnostics'
     | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/invoices'
     | '/orgs/$orgId'
     | '/orgs/$orgId/bank/callback'
+    | '/orgs/$orgId/bank/diagnostics'
     | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
@@ -389,6 +401,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/invoices'
     | '/_authenticated/orgs/$orgId/'
     | '/_authenticated/orgs/$orgId/bank/callback'
+    | '/_authenticated/orgs/$orgId/bank/diagnostics'
     | '/_authenticated/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
+    '/_authenticated/orgs/$orgId/bank/diagnostics': {
+      id: '/_authenticated/orgs/$orgId/bank/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/orgs/$orgId/bank/diagnostics'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankDiagnosticsRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdBankRoute
+    }
     '/_authenticated/orgs/$orgId/bank/callback': {
       id: '/_authenticated/orgs/$orgId/bank/callback'
       path: '/callback'
@@ -630,12 +650,15 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedOrgsOrgIdBankRouteChildren {
   AuthenticatedOrgsOrgIdBankCallbackRoute: typeof AuthenticatedOrgsOrgIdBankCallbackRoute
+  AuthenticatedOrgsOrgIdBankDiagnosticsRoute: typeof AuthenticatedOrgsOrgIdBankDiagnosticsRoute
 }
 
 const AuthenticatedOrgsOrgIdBankRouteChildren: AuthenticatedOrgsOrgIdBankRouteChildren =
   {
     AuthenticatedOrgsOrgIdBankCallbackRoute:
       AuthenticatedOrgsOrgIdBankCallbackRoute,
+    AuthenticatedOrgsOrgIdBankDiagnosticsRoute:
+      AuthenticatedOrgsOrgIdBankDiagnosticsRoute,
   }
 
 const AuthenticatedOrgsOrgIdBankRouteWithChildren =

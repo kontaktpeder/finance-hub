@@ -183,6 +183,31 @@ export const syncBankFn = createServerFn({ method: "POST" })
     return { ok: true as const, accounts, transactions, count: conns?.length ?? 0 };
   });
 
+export const diagnoseBanksFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => OrgInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { requireBankAdmin, getPsuIpAddress } = await import("./banking/banking.utils.server");
+    await requireBankAdmin(context.supabase, data.orgId, context.userId);
+    const { getOrCreateDeviceId } = await import("./banking/BankSyncService.server");
+    const { listBanksRaw } = await import("./banking/providers/neonomics.provider.server");
+
+    const deviceId = await getOrCreateDeviceId(data.orgId);
+    const raw = await listBanksRaw({ deviceId, psuIp: getPsuIpAddress() }, "NO");
+    return {
+      count: raw.length,
+      banks: raw.map((b) => ({
+        id: b.id ?? b.bankId ?? null,
+        bic: b.bic ?? null,
+        name:
+          b.bankDisplayName ?? b.name ?? b.fullName ?? b.bankName ?? b.bankOfficialName ?? b.shortName ?? null,
+        status: b.status ?? null,
+        supportedServices: b.supportedServices ?? null,
+        personalIdentificationRequired: Boolean(b.personalIdentificationRequired),
+      })),
+    };
+  });
+
 const TxInput = z.object({ orgId: z.string().uuid(), days: z.number().int().min(1).max(365).default(90) });
 
 export const listBankTransactionsFn = createServerFn({ method: "GET" })
