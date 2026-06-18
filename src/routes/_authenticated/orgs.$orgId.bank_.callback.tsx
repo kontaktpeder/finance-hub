@@ -28,7 +28,7 @@ function BankCallback() {
     if (ranRef.current) return;
     ranRef.current = true;
     (async () => {
-      console.log("[bank/callback] search params=", search, "orgId=", orgId);
+      console.log("[bank/callback] search params=", search, "orgId=", orgId, "rawQuery=", typeof window !== "undefined" ? window.location.search : "");
       if (!search.connectionId) {
         toast.error("Manglar connectionId i callback");
         navigate({ to: "/orgs/$orgId/bank", params: { orgId } });
