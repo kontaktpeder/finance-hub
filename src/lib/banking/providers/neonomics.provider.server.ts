@@ -59,10 +59,15 @@ async function neoFetch(
 type NeoBank = {
   id?: string;
   bankId?: string;
+  bic?: string;
   name?: string;
+  bankName?: string;
+  fullName?: string;
+  shortName?: string;
   countryCode?: string;
   logo?: string | null;
   logoUrl?: string | null;
+  image?: { url?: string } | null;
 };
 type NeoAccount = {
   id?: string;
@@ -92,11 +97,12 @@ type NeoTx = {
 };
 
 function mapBank(b: NeoBank): BankInfo {
+  // Neonomics ICS v3 x-bank-id ventar BIC (t.d. "DNBANOKK"), ikkje intern composite-id.
   return {
-    bankId: String(b.id ?? b.bankId ?? ""),
-    name: String(b.name ?? ""),
+    bankId: String(b.bic ?? b.bankId ?? b.id ?? ""),
+    name: String(b.name ?? b.fullName ?? b.bankName ?? b.shortName ?? b.bic ?? ""),
     country: b.countryCode ?? "NO",
-    logoUrl: b.logo ?? b.logoUrl ?? null,
+    logoUrl: b.image?.url ?? b.logo ?? b.logoUrl ?? null,
   };
 }
 
