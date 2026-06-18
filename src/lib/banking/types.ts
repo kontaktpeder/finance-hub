@@ -8,6 +8,8 @@ export type BankInfo = {
   name: string;
   country?: string;
   logoUrl?: string | null;
+  /** True om banken krev kryptert PSU-id/fødselsnummer før consent kan startast. */
+  requiresPsuId?: boolean;
 };
 
 export type BankConnectionInit = {
