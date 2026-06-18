@@ -91,6 +91,7 @@ function NewOrg() {
                 <Select value={kind} onValueChange={setKind}>
                   <SelectTrigger id="kind"><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="private">Privat</SelectItem>
                     <SelectItem value="enk">ENK</SelectItem>
                     <SelectItem value="as">AS</SelectItem>
                     <SelectItem value="other">Annet</SelectItem>

@@ -35,6 +35,7 @@ import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/publ
 import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
 import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/public/v1/ai.scan-receipt'
 import { Route as AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.$invoiceId'
+import { Route as AuthenticatedOrgsOrgIdBankCallbackRouteImport } from './routes/_authenticated/orgs.$orgId.bank.callback'
 import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
 import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
 import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
@@ -185,6 +186,12 @@ const AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute =
     path: '/invoices/$invoiceId',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
+const AuthenticatedOrgsOrgIdBankCallbackRoute =
+  AuthenticatedOrgsOrgIdBankCallbackRouteImport.update({
+    id: '/callback',
+    path: '/callback',
+    getParentRoute: () => AuthenticatedOrgsOrgIdBankRoute,
+  } as any)
 const ApiPublicV1InvoicesInvoiceIdSendRoute =
   ApiPublicV1InvoicesInvoiceIdSendRouteImport.update({
     id: '/send',
@@ -212,7 +219,7 @@ export interface FileRoutesByFullPath {
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
-  '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
+  '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRouteWithChildren
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/orgs/$orgId/bank/callback': typeof AuthenticatedOrgsOrgIdBankCallbackRoute
   '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
@@ -241,7 +249,7 @@ export interface FileRoutesByTo {
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
-  '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
+  '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRouteWithChildren
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -252,6 +260,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/orgs/$orgId/bank/callback': typeof AuthenticatedOrgsOrgIdBankCallbackRoute
   '/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
@@ -273,7 +282,7 @@ export interface FileRoutesById {
   '/_authenticated/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/_authenticated/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
-  '/_authenticated/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
+  '/_authenticated/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRouteWithChildren
   '/_authenticated/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -284,6 +293,7 @@ export interface FileRoutesById {
   '/api/public/v1/entries': typeof ApiPublicV1EntriesRouteWithChildren
   '/api/public/v1/invoices': typeof ApiPublicV1InvoicesRouteWithChildren
   '/_authenticated/orgs/$orgId/': typeof AuthenticatedOrgsOrgIdIndexRoute
+  '/_authenticated/orgs/$orgId/bank/callback': typeof AuthenticatedOrgsOrgIdBankCallbackRoute
   '/_authenticated/orgs/$orgId/invoices/$invoiceId': typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute
   '/api/public/v1/ai/scan-receipt': typeof ApiPublicV1AiScanReceiptRoute
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId/'
+    | '/orgs/$orgId/bank/callback'
     | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/orgs/$orgId'
+    | '/orgs/$orgId/bank/callback'
     | '/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
@@ -376,6 +388,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/entries'
     | '/api/public/v1/invoices'
     | '/_authenticated/orgs/$orgId/'
+    | '/_authenticated/orgs/$orgId/bank/callback'
     | '/_authenticated/orgs/$orgId/invoices/$invoiceId'
     | '/api/public/v1/ai/scan-receipt'
     | '/api/public/v1/attachments/$attachmentId'
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
+    '/_authenticated/orgs/$orgId/bank/callback': {
+      id: '/_authenticated/orgs/$orgId/bank/callback'
+      path: '/callback'
+      fullPath: '/orgs/$orgId/bank/callback'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankCallbackRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdBankRoute
+    }
     '/api/public/v1/invoices/$invoiceId/send': {
       id: '/api/public/v1/invoices/$invoiceId/send'
       path: '/send'
@@ -608,10 +628,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedOrgsOrgIdBankRouteChildren {
+  AuthenticatedOrgsOrgIdBankCallbackRoute: typeof AuthenticatedOrgsOrgIdBankCallbackRoute
+}
+
+const AuthenticatedOrgsOrgIdBankRouteChildren: AuthenticatedOrgsOrgIdBankRouteChildren =
+  {
+    AuthenticatedOrgsOrgIdBankCallbackRoute:
+      AuthenticatedOrgsOrgIdBankCallbackRoute,
+  }
+
+const AuthenticatedOrgsOrgIdBankRouteWithChildren =
+  AuthenticatedOrgsOrgIdBankRoute._addFileChildren(
+    AuthenticatedOrgsOrgIdBankRouteChildren,
+  )
+
 interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdApiKeysRoute: typeof AuthenticatedOrgsOrgIdApiKeysRoute
   AuthenticatedOrgsOrgIdAttachmentsRoute: typeof AuthenticatedOrgsOrgIdAttachmentsRoute
-  AuthenticatedOrgsOrgIdBankRoute: typeof AuthenticatedOrgsOrgIdBankRoute
+  AuthenticatedOrgsOrgIdBankRoute: typeof AuthenticatedOrgsOrgIdBankRouteWithChildren
   AuthenticatedOrgsOrgIdEntriesRoute: typeof AuthenticatedOrgsOrgIdEntriesRoute
   AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
   AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -627,7 +662,8 @@ const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
     AuthenticatedOrgsOrgIdApiKeysRoute: AuthenticatedOrgsOrgIdApiKeysRoute,
     AuthenticatedOrgsOrgIdAttachmentsRoute:
       AuthenticatedOrgsOrgIdAttachmentsRoute,
-    AuthenticatedOrgsOrgIdBankRoute: AuthenticatedOrgsOrgIdBankRoute,
+    AuthenticatedOrgsOrgIdBankRoute:
+      AuthenticatedOrgsOrgIdBankRouteWithChildren,
     AuthenticatedOrgsOrgIdEntriesRoute: AuthenticatedOrgsOrgIdEntriesRoute,
     AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
     AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,
