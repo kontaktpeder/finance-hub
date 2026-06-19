@@ -116,12 +116,41 @@ function mapBank(b: NeoBank): BankInfo {
   };
 }
 
+function isSbankenBank(
+  bic: string | null | undefined,
+  name: string | null | undefined,
+): boolean {
+  return /SBAK/i.test(bic ?? "") || /sbanken/i.test(name ?? "");
+}
+
+function effectiveRequiresPsuId(
+  personalIdentificationRequired: boolean,
+  bic: string | null | undefined,
+  name: string | null | undefined,
+  isSandbox: boolean,
+): boolean {
+  if (isSandbox && isSbankenBank(bic, name)) return false;
+  return personalIdentificationRequired;
+}
+
 async function resolveBankResource(
   ctx: BankProviderContext,
   requestedBankId: string,
-): Promise<{ resourceBankId: string; personalIdentificationRequired: boolean }> {
+): Promise<{
+  resourceBankId: string;
+  personalIdentificationRequired: boolean;
+  bic: string | null;
+  name: string | null;
+}> {
   const res = await neoFetch(ctx, "/ics/v3/banks?countryCode=NO");
-  if (!res.ok) return { resourceBankId: requestedBankId, personalIdentificationRequired: false };
+  if (!res.ok) {
+    return {
+      resourceBankId: requestedBankId,
+      personalIdentificationRequired: false,
+      bic: null,
+      name: null,
+    };
+  }
 
   const json = (await res.json().catch(() => [])) as NeoBank[] | { data?: NeoBank[] };
   const banks = Array.isArray(json) ? json : json.data ?? [];
@@ -131,6 +160,15 @@ async function resolveBankResource(
   return {
     resourceBankId: String(match?.id ?? match?.bankId ?? requestedBankId),
     personalIdentificationRequired: Boolean(match?.personalIdentificationRequired),
+    bic: match?.bic ?? null,
+    name:
+      match?.bankDisplayName ??
+      match?.name ??
+      match?.fullName ??
+      match?.bankName ??
+      match?.bankOfficialName ??
+      match?.shortName ??
+      null,
   };
 }
 
