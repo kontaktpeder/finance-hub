@@ -116,12 +116,41 @@ function mapBank(b: NeoBank): BankInfo {
   };
 }
 
+function isSbankenBank(
+  bic: string | null | undefined,
+  name: string | null | undefined,
+): boolean {
+  return /SBAK/i.test(bic ?? "") || /sbanken/i.test(name ?? "");
+}
+
+function effectiveRequiresPsuId(
+  personalIdentificationRequired: boolean,
+  bic: string | null | undefined,
+  name: string | null | undefined,
+  isSandbox: boolean,
+): boolean {
+  if (isSandbox && isSbankenBank(bic, name)) return false;
+  return personalIdentificationRequired;
+}
+
 async function resolveBankResource(
   ctx: BankProviderContext,
   requestedBankId: string,
-): Promise<{ resourceBankId: string; personalIdentificationRequired: boolean }> {
+): Promise<{
+  resourceBankId: string;
+  personalIdentificationRequired: boolean;
+  bic: string | null;
+  name: string | null;
+}> {
   const res = await neoFetch(ctx, "/ics/v3/banks?countryCode=NO");
-  if (!res.ok) return { resourceBankId: requestedBankId, personalIdentificationRequired: false };
+  if (!res.ok) {
+    return {
+      resourceBankId: requestedBankId,
+      personalIdentificationRequired: false,
+      bic: null,
+      name: null,
+    };
+  }
 
   const json = (await res.json().catch(() => [])) as NeoBank[] | { data?: NeoBank[] };
   const banks = Array.isArray(json) ? json : json.data ?? [];
@@ -131,6 +160,15 @@ async function resolveBankResource(
   return {
     resourceBankId: String(match?.id ?? match?.bankId ?? requestedBankId),
     personalIdentificationRequired: Boolean(match?.personalIdentificationRequired),
+    bic: match?.bic ?? null,
+    name:
+      match?.bankDisplayName ??
+      match?.name ??
+      match?.fullName ??
+      match?.bankName ??
+      match?.bankOfficialName ??
+      match?.shortName ??
+      null,
   };
 }
 
@@ -201,15 +239,41 @@ export const neonomicsProvider: BankProvider = {
   },
 
   async startConnect(ctx, bankId, redirectUrl): Promise<BankConnectionInit> {
-    const { resourceBankId, personalIdentificationRequired } = await resolveBankResource(ctx, bankId);
-    if (personalIdentificationRequired && !ctx.psuId) {
+    const { resourceBankId, personalIdentificationRequired, bic, name } =
+      await resolveBankResource(ctx, bankId);
+    const cfg = getNeonomicsConfig();
+    const isSandbox =
+      cfg.baseUrl.includes("sandbox") || cfg.baseUrl.includes("development");
+    const requiresPsuId = effectiveRequiresPsuId(
+      personalIdentificationRequired,
+      bic,
+      name,
+      isSandbox,
+    );
+    const isSbankenSandbox = isSandbox && isSbankenBank(bic, name);
+
+    console.log("[neonomics] startConnect bank", {
+      name,
+      bic,
+      id: resourceBankId,
+      personalIdentificationRequired,
+      effectiveRequiresPsuId: requiresPsuId,
+      isSbankenSandbox,
+    });
+
+    if (requiresPsuId && !ctx.psuId) {
       throw new Error(
         "Denne banken krev PSU-id (fødselsnummer). Skriv inn PSU-id i feltet og prøv igjen.",
       );
     }
 
+    const connectCtx: BankProviderContext = {
+      ...ctx,
+      psuId: requiresPsuId ? ctx.psuId : null,
+    };
+
     // 1) Opprett session
-    const sessRes = await neoFetch(ctx, "/ics/v3/session", {
+    const sessRes = await neoFetch(connectCtx, "/ics/v3/session", {
       method: "POST",
       body: JSON.stringify({ bankId: resourceBankId }),
     });
@@ -226,7 +290,7 @@ export const neonomicsProvider: BankProvider = {
     console.log("[neonomics] startConnect sessionId=", sessionId, "bankId=", resourceBankId, "psuId=", ctx.psuId ? "set" : "none");
 
     // 2) Trig consent — GET /accounts skal returnere 1426 utan consent, med links til SCA-URL
-    const accRes = await neoFetch(ctx, "/ics/v3/accounts", {
+    const accRes = await neoFetch(connectCtx, "/ics/v3/accounts", {
       sessionId,
       redirectUrl,
     });
@@ -247,17 +311,12 @@ export const neonomicsProvider: BankProvider = {
       );
     }
 
-    const cfg = getNeonomicsConfig();
-    const isSandbox = cfg.baseUrl.includes("sandbox") || cfg.baseUrl.includes("development");
-    // Sbanken sandbox bank id (base64 of "Sbanken.v1SBAKNOBB")
-    const isSbankenSandbox = isSandbox && /sbank/i.test(resourceBankId);
-
     const token = await getAppToken();
-    const psuIpForConsent = ctx.psuIp ?? (isSandbox ? "127.0.0.1" : null);
+    const psuIpForConsent = connectCtx.psuIp ?? (isSandbox ? "127.0.0.1" : null);
 
     const consentHeaders: Record<string, string> = {
       Authorization: `Bearer ${token}`,
-      "x-device-id": ctx.deviceId,
+      "x-device-id": connectCtx.deviceId,
       Accept: "application/json",
     };
     if (psuIpForConsent) consentHeaders["x-psu-ip-address"] = psuIpForConsent;
@@ -265,8 +324,8 @@ export const neonomicsProvider: BankProvider = {
     if (!isSbankenSandbox) {
       consentHeaders["x-session-id"] = sessionId;
       if (redirectUrl) consentHeaders["x-redirect-url"] = redirectUrl;
-      if (personalIdentificationRequired && ctx.psuId) {
-        consentHeaders["x-psu-id"] = ctx.psuId;
+      if (requiresPsuId && connectCtx.psuId) {
+        consentHeaders["x-psu-id"] = connectCtx.psuId;
       }
     }
 
