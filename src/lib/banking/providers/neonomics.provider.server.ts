@@ -311,17 +311,12 @@ export const neonomicsProvider: BankProvider = {
       );
     }
 
-    const cfg = getNeonomicsConfig();
-    const isSandbox = cfg.baseUrl.includes("sandbox") || cfg.baseUrl.includes("development");
-    // Sbanken sandbox bank id (base64 of "Sbanken.v1SBAKNOBB")
-    const isSbankenSandbox = isSandbox && /sbank/i.test(resourceBankId);
-
     const token = await getAppToken();
-    const psuIpForConsent = ctx.psuIp ?? (isSandbox ? "127.0.0.1" : null);
+    const psuIpForConsent = connectCtx.psuIp ?? (isSandbox ? "127.0.0.1" : null);
 
     const consentHeaders: Record<string, string> = {
       Authorization: `Bearer ${token}`,
-      "x-device-id": ctx.deviceId,
+      "x-device-id": connectCtx.deviceId,
       Accept: "application/json",
     };
     if (psuIpForConsent) consentHeaders["x-psu-ip-address"] = psuIpForConsent;
@@ -329,8 +324,8 @@ export const neonomicsProvider: BankProvider = {
     if (!isSbankenSandbox) {
       consentHeaders["x-session-id"] = sessionId;
       if (redirectUrl) consentHeaders["x-redirect-url"] = redirectUrl;
-      if (personalIdentificationRequired && ctx.psuId) {
-        consentHeaders["x-psu-id"] = ctx.psuId;
+      if (requiresPsuId && connectCtx.psuId) {
+        consentHeaders["x-psu-id"] = connectCtx.psuId;
       }
     }
 
