@@ -105,7 +105,7 @@ function ScanPage() {
   );
 
   return (
-    <div className="p-8 max-w-7xl">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" /> AI-skanning av kvitteringer

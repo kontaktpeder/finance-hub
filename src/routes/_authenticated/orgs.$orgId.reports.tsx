@@ -87,7 +87,7 @@ function ReportsPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl space-y-10">
+    <div className="p-4 sm:p-6 md:p-8 max-w-6xl space-y-10">
       <header className="flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Rapporter {year}</h1>
