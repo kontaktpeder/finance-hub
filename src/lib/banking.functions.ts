@@ -163,6 +163,49 @@ export const completeBankConnectFn = createServerFn({ method: "POST" })
     return { ok: true as const, ...synced };
   });
 
+const DeleteInput = z.object({
+  orgId: z.string().uuid(),
+  connectionId: z.string().uuid(),
+});
+
+export const deleteBankConnectionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => DeleteInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { requireBankAdmin } = await import("./banking/banking.utils.server");
+    await requireBankAdmin(context.supabase, data.orgId, context.userId);
+    const { supabaseAdmin } = await import("./../integrations/supabase/client.server");
+
+    const { data: conn, error } = await supabaseAdmin
+      .from("bank_connections")
+      .select("id, status")
+      .eq("id", data.connectionId)
+      .eq("organization_id", data.orgId)
+      .single();
+    if (error || !conn) throw new Error("Bank-tilkobling ikkje funnen");
+    if (conn.status !== "error" && conn.status !== "pending") {
+      throw new Error("Berre tilkoblingar med status feil/venter kan slettast");
+    }
+
+    const { data: accs } = await supabaseAdmin
+      .from("bank_accounts")
+      .select("id")
+      .eq("bank_connection_id", conn.id);
+    const accIds = (accs ?? []).map((a) => a.id);
+    if (accIds.length > 0) {
+      await supabaseAdmin.from("bank_transactions").delete().in("bank_account_id", accIds);
+      await supabaseAdmin.from("bank_accounts").delete().in("id", accIds);
+    }
+    const { error: delErr } = await supabaseAdmin
+      .from("bank_connections")
+      .delete()
+      .eq("id", conn.id);
+    if (delErr) throw new Error(delErr.message);
+    return { ok: true as const };
+  });
+
+
+
 export const syncBankFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => OrgInput.parse(input))
