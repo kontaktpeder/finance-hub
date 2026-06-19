@@ -105,8 +105,8 @@ function InvoicesPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
               <thead className="border-b text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="text-left px-4 py-3">Nr.</th>
