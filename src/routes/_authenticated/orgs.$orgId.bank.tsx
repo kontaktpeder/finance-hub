@@ -288,23 +288,47 @@ function BankPage() {
             {banksQ.data && (
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-96 overflow-auto">
                 {[...banksQ.data.banks]
-                  .sort((a, b) => {
-                    const ap = a.requiresPsuId ? 1 : 0;
-                    const bp = b.requiresPsuId ? 1 : 0;
-                    if (ap !== bp) return ap - bp;
-                    return a.name.localeCompare(b.name, "nb");
+                  .map((b) => {
+                    // Sbanken sandbox er kjent for ikkje å krevje PSU-id sjølv om
+                    // Neonomics-feltet personalIdentificationRequired av og til er true.
+                    const bic = (b as { bic?: string | null }).bic ?? "";
+                    const isSbanken = /SBAK/i.test(bic) || /sbanken/i.test(b.name);
+                    const effectiveRequiresPsuId = isSbanken ? false : Boolean(b.requiresPsuId);
+                    const disabled =
+                      connectMut.isPending || (effectiveRequiresPsuId && !psuId.trim());
+                    const disabledReason = effectiveRequiresPsuId && !psuId.trim()
+                      ? "Skriv inn PSU-id over for å bruke denne banken"
+                      : null;
+                    if (typeof window !== "undefined") {
+                      console.log("[bank-picker]", {
+                        name: b.name,
+                        bic,
+                        id: b.bankId,
+                        personalIdentificationRequired: b.requiresPsuId,
+                        effectiveRequiresPsuId,
+                        disabled,
+                        disabledReason,
+                      });
+                    }
+                    return { b, effectiveRequiresPsuId, disabled, disabledReason };
                   })
-                  .map((b) => (
+                  .sort((a, x) => {
+                    const ap = a.effectiveRequiresPsuId ? 1 : 0;
+                    const bp = x.effectiveRequiresPsuId ? 1 : 0;
+                    if (ap !== bp) return ap - bp;
+                    return a.b.name.localeCompare(x.b.name, "nb");
+                  })
+                  .map(({ b, effectiveRequiresPsuId, disabled, disabledReason }) => (
                     <Button
                       key={b.bankId}
                       variant="outline"
                       className="justify-between h-auto py-2"
                       onClick={() => connectMut.mutate(b.bankId)}
-                      disabled={connectMut.isPending || (b.requiresPsuId && !psuId.trim())}
-                      title={b.requiresPsuId && !psuId.trim() ? "Skriv inn PSU-id over for å bruke denne banken" : undefined}
+                      disabled={disabled}
+                      title={disabledReason ?? undefined}
                     >
                       <span className="text-sm truncate">{b.name}</span>
-                      {b.requiresPsuId && (
+                      {effectiveRequiresPsuId && (
                         <Badge variant="outline" className="ml-2 text-[10px]">
                           krev person-ID
                         </Badge>
