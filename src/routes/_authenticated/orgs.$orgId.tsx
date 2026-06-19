@@ -24,7 +24,15 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId")({
   component: OrgLayout,
 });
 
-const navItems = [
+type NavItem = {
+  to: "/orgs/$orgId" | "/orgs/$orgId/entries" | "/orgs/$orgId/scan" | "/orgs/$orgId/invoices" | "/orgs/$orgId/bank" | "/orgs/$orgId/attachments" | "/orgs/$orgId/reports" | "/orgs/$orgId/settings" | "/orgs/$orgId/members" | "/orgs/$orgId/api-keys";
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  primary?: boolean;
+};
+
+const navItems: NavItem[] = [
   { to: "/orgs/$orgId", label: "Dashbord", icon: LayoutDashboard, exact: true, primary: true },
   { to: "/orgs/$orgId/entries", label: "Poster", icon: Receipt, primary: true },
   { to: "/orgs/$orgId/scan", label: "Skann", icon: ScanLine, primary: true },
@@ -35,7 +43,7 @@ const navItems = [
   { to: "/orgs/$orgId/settings", label: "Innstillinger", icon: Settings },
   { to: "/orgs/$orgId/members", label: "Medlemmer", icon: Users },
   { to: "/orgs/$orgId/api-keys", label: "API-nøkler", icon: KeyRound },
-] as const;
+];
 
 function OrgLayout() {
   const { orgId } = Route.useParams();
