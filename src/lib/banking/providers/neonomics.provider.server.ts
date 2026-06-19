@@ -273,7 +273,7 @@ export const neonomicsProvider: BankProvider = {
     };
 
     // 1) Opprett session
-    const sessRes = await neoFetch(ctx, "/ics/v3/session", {
+    const sessRes = await neoFetch(connectCtx, "/ics/v3/session", {
       method: "POST",
       body: JSON.stringify({ bankId: resourceBankId }),
     });
@@ -290,7 +290,7 @@ export const neonomicsProvider: BankProvider = {
     console.log("[neonomics] startConnect sessionId=", sessionId, "bankId=", resourceBankId, "psuId=", ctx.psuId ? "set" : "none");
 
     // 2) Trig consent — GET /accounts skal returnere 1426 utan consent, med links til SCA-URL
-    const accRes = await neoFetch(ctx, "/ics/v3/accounts", {
+    const accRes = await neoFetch(connectCtx, "/ics/v3/accounts", {
       sessionId,
       redirectUrl,
     });
