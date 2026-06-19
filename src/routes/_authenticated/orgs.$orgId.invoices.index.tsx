@@ -84,7 +84,7 @@ function InvoicesPage() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-5xl">
-      <header className="flex items-end justify-between mb-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Fakturaer</h1>
           <p className="text-sm text-muted-foreground mt-1">Utgående fakturaer.</p>

@@ -304,7 +304,7 @@ function InvoiceDetailPage() {
         </Link>
       </div>
 
-      <header className="flex items-end justify-between mb-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             {inv.invoice_number ? `Faktura ${inv.invoice_number}` : "Nytt utkast"}

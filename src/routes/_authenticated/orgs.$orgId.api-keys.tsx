@@ -76,7 +76,7 @@ function ApiKeysPage() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-3xl">
-      <header className="flex items-end justify-between mb-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">API-nøkler</h1>
           <p className="text-sm text-muted-foreground mt-1">Nøkler gir tilgang til kun denne organisasjonen.</p>
