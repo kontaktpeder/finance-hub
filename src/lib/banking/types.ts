@@ -6,6 +6,7 @@ export type BankConnectionStatus = "pending" | "active" | "expired" | "error" | 
 export type BankInfo = {
   bankId: string;
   name: string;
+  bic?: string | null;
   country?: string;
   logoUrl?: string | null;
   /** True om banken krev kryptert PSU-id/fødselsnummer før consent kan startast. */
