@@ -56,6 +56,7 @@ function BankPage() {
   const startConnect = useServerFn(startBankConnectFn);
   const sync = useServerFn(syncBankFn);
   const listTx = useServerFn(listBankTransactionsFn);
+  const deleteConn = useServerFn(deleteBankConnectionFn);
 
   const status = useQuery({
     queryKey: ["bank-status", orgId],
