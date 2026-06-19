@@ -234,6 +234,25 @@ function BankPage() {
               {c.last_sync_error && (
                 <CardContent className="text-xs text-destructive pt-0">{c.last_sync_error}</CardContent>
               )}
+              {(c.status === "error" || c.status === "pending") && (
+                <CardContent className="pt-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm("Slette denne feilede tilkoblinga?")) deleteMut.mutate(c.id);
+                    }}
+                    disabled={deleteMut.isPending}
+                  >
+                    {deleteMut.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    Slett feilet tilkobling
+                  </Button>
+                </CardContent>
+              )}
             </Card>
           ))}
         </div>
