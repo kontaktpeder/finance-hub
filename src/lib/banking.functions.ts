@@ -81,7 +81,9 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
       .single();
     if (insErr || !conn) throw new Error(insErr?.message ?? "Klarte ikkje opprette tilkobling");
 
-    const redirectUrl = `${getAppOrigin()}/orgs/${data.orgId}/bank/callback?connectionId=${conn.id}`;
+    const appOrigin = getAppOrigin();
+    const redirectUrl = `${appOrigin}/orgs/${data.orgId}/bank/callback?connectionId=${conn.id}`;
+    console.log("[banking] startConnect appOrigin=", appOrigin, "redirectUrl=", redirectUrl);
 
     try {
       const init = await getProvider("neonomics").startConnect(
