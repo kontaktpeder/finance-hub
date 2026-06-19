@@ -24,9 +24,9 @@ function MembersPage() {
   });
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 sm:p-6 md:p-8 max-w-3xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Medlemmer</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Medlemmer</h1>
         <p className="text-sm text-muted-foreground mt-1">Personer med tilgang til denne organisasjonen.</p>
       </header>
       <Card>

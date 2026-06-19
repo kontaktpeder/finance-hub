@@ -32,24 +32,24 @@ function OrgList() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground grid place-items-center font-semibold text-sm">F</div>
-            <span className="font-semibold tracking-tight">Finance Core</span>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-7 w-7 shrink-0 rounded-md bg-primary text-primary-foreground grid place-items-center font-semibold text-sm">F</div>
+            <span className="font-semibold tracking-tight truncate">Finance Core</span>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut className="h-4 w-4 mr-2" /> Logg ut
+            <LogOut className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Logg ut</span>
           </Button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-12">
-        <div className="flex items-end justify-between mb-8">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8 sm:py-12">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Organisasjoner</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Organisasjoner</h1>
             <p className="text-sm text-muted-foreground mt-1">Velg en organisasjon eller opprett en ny.</p>
           </div>
-          <Button asChild>
+          <Button asChild className="shrink-0">
             <Link to="/orgs/new"><Plus className="h-4 w-4 mr-2" /> Ny organisasjon</Link>
           </Button>
         </div>
