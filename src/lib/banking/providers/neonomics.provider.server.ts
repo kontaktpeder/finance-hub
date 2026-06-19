@@ -239,12 +239,38 @@ export const neonomicsProvider: BankProvider = {
   },
 
   async startConnect(ctx, bankId, redirectUrl): Promise<BankConnectionInit> {
-    const { resourceBankId, personalIdentificationRequired } = await resolveBankResource(ctx, bankId);
-    if (personalIdentificationRequired && !ctx.psuId) {
+    const { resourceBankId, personalIdentificationRequired, bic, name } =
+      await resolveBankResource(ctx, bankId);
+    const cfg = getNeonomicsConfig();
+    const isSandbox =
+      cfg.baseUrl.includes("sandbox") || cfg.baseUrl.includes("development");
+    const requiresPsuId = effectiveRequiresPsuId(
+      personalIdentificationRequired,
+      bic,
+      name,
+      isSandbox,
+    );
+    const isSbankenSandbox = isSandbox && isSbankenBank(bic, name);
+
+    console.log("[neonomics] startConnect bank", {
+      name,
+      bic,
+      id: resourceBankId,
+      personalIdentificationRequired,
+      effectiveRequiresPsuId: requiresPsuId,
+      isSbankenSandbox,
+    });
+
+    if (requiresPsuId && !ctx.psuId) {
       throw new Error(
         "Denne banken krev PSU-id (fødselsnummer). Skriv inn PSU-id i feltet og prøv igjen.",
       );
     }
+
+    const connectCtx: BankProviderContext = {
+      ...ctx,
+      psuId: requiresPsuId ? ctx.psuId : null,
+    };
 
     // 1) Opprett session
     const sessRes = await neoFetch(ctx, "/ics/v3/session", {
