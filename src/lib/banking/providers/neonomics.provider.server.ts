@@ -246,27 +246,51 @@ export const neonomicsProvider: BankProvider = {
       );
     }
 
-    console.log(
-      "[neonomics] consent GET selectedBank=",
-      resourceBankId,
-      "consentHref=",
-      consentHref,
-      "x-redirect-url=",
-      redirectUrl,
-    );
+    const cfg = getNeonomicsConfig();
+    const isSandbox = cfg.baseUrl.includes("sandbox") || cfg.baseUrl.includes("development");
+    // Sbanken sandbox bank id (base64 of "Sbanken.v1SBAKNOBB")
+    const isSbankenSandbox = isSandbox && /sbank/i.test(resourceBankId);
 
     const token = await getAppToken();
+    const psuIpForConsent = ctx.psuIp ?? (isSandbox ? "127.0.0.1" : null);
+
     const consentHeaders: Record<string, string> = {
       Authorization: `Bearer ${token}`,
       "x-device-id": ctx.deviceId,
-      "x-session-id": sessionId,
-      "x-redirect-url": redirectUrl,
       Accept: "application/json",
     };
-    if (ctx.psuIp) consentHeaders["x-psu-ip-address"] = ctx.psuIp;
-    if (personalIdentificationRequired && ctx.psuId) {
-      consentHeaders["x-psu-id"] = ctx.psuId;
+    if (psuIpForConsent) consentHeaders["x-psu-ip-address"] = psuIpForConsent;
+    // Sbanken sandbox: omit x-session-id (already in path), x-redirect-url, x-psu-id
+    if (!isSbankenSandbox) {
+      consentHeaders["x-session-id"] = sessionId;
+      if (redirectUrl) consentHeaders["x-redirect-url"] = redirectUrl;
+      if (personalIdentificationRequired && ctx.psuId) {
+        consentHeaders["x-psu-id"] = ctx.psuId;
+      }
     }
+
+    console.log("[neonomics] consent request audit", {
+      selectedBank: resourceBankId,
+      sessionId,
+      method: "GET",
+      url: consentHref,
+      isSbankenSandbox,
+      headers: {
+        Authorization: consentHeaders.Authorization ? "yes" : "no",
+        Accept: consentHeaders.Accept ? "yes" : "no",
+        "x-device-id": consentHeaders["x-device-id"] ? "yes" : "no",
+        "x-psu-ip-address": consentHeaders["x-psu-ip-address"] ? "yes" : "no",
+        "x-session-id": consentHeaders["x-session-id"] ? "yes" : "no",
+        "x-redirect-url": consentHeaders["x-redirect-url"] ? "yes" : "no",
+        "x-psu-id": consentHeaders["x-psu-id"] ? "yes" : "no",
+      },
+      headerValues: {
+        "x-device-id": consentHeaders["x-device-id"]?.slice(0, 8) + "…",
+        "x-psu-ip-address": consentHeaders["x-psu-ip-address"] ?? null,
+        "x-session-id": consentHeaders["x-session-id"] ?? null,
+        "x-redirect-url": consentHeaders["x-redirect-url"] ?? null,
+      },
+    });
 
     const scaRes = await fetch(consentHref, {
       method: "GET",
