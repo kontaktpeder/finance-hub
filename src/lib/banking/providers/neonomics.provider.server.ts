@@ -246,36 +246,46 @@ export const neonomicsProvider: BankProvider = {
       );
     }
 
-    // Bygg URL med redirect_url som QUERY-param (ikkje header).
-    const consentUrlObj = new URL(consentHref);
-    consentUrlObj.searchParams.set("redirect_url", redirectUrl);
-    const fullConsentUrl = consentUrlObj.toString();
-    console.log("[neonomics] consent GET (no token)=", fullConsentUrl);
+    console.log(
+      "[neonomics] consent GET selectedBank=",
+      resourceBankId,
+      "consentHref=",
+      consentHref,
+      "x-redirect-url=",
+      redirectUrl,
+    );
 
     const token = await getAppToken();
-    const scaRes = await fetch(fullConsentUrl, {
+    const consentHeaders: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+      "x-device-id": ctx.deviceId,
+      "x-session-id": sessionId,
+      "x-redirect-url": redirectUrl,
+      Accept: "application/json",
+    };
+    if (ctx.psuIp) consentHeaders["x-psu-ip-address"] = ctx.psuIp;
+    if (personalIdentificationRequired && ctx.psuId) {
+      consentHeaders["x-psu-id"] = ctx.psuId;
+    }
+
+    const scaRes = await fetch(consentHref, {
       method: "GET",
       redirect: "manual",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "x-device-id": ctx.deviceId,
-        "x-session-id": sessionId,
-        Accept: "application/json",
-        ...(ctx.psuId ? { "x-psu-id": ctx.psuId } : {}),
-        ...(ctx.psuIp ? { "x-psu-ip-address": ctx.psuIp } : {}),
-      },
+      headers: consentHeaders,
     });
     const loc = scaRes.headers.get("location");
     const scaText = await scaRes.text().catch(() => "");
-    const looksExternal = !!loc && !loc.includes("/ics/v3/");
     console.log(
-      "[neonomics] consent response status=", scaRes.status,
-      "location=", loc,
-      "externalSca=", looksExternal,
-      "body=", scaText.slice(0, 600),
+      "[neonomics] consent response status=",
+      scaRes.status,
+      "body=",
+      scaText.slice(0, 800),
+      "location=",
+      loc,
     );
 
     if (loc) {
+      console.log("[neonomics] consent SCA URL=", loc);
       return { providerConnectionId: sessionId, consentUrl: loc };
     }
     let scaBody: Record<string, unknown> = {};
@@ -292,8 +302,10 @@ export const neonomicsProvider: BankProvider = {
         `Neonomics SCA-URL mangler (status ${scaRes.status}): ${scaText.slice(0, 300)}`,
       );
     }
+    console.log("[neonomics] consent SCA URL=", scaUrl);
     return { providerConnectionId: sessionId, consentUrl: scaUrl };
   },
+
 
 
 
