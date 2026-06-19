@@ -106,17 +106,17 @@ function EntriesPage() {
   }, [entries]);
 
   return (
-    <div className="p-8 max-w-6xl">
-      <header className="flex items-end justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Poster</h1>
+    <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Poster</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gruppert på kategori. Klikk en post for detaljer.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="shrink-0">
               <Plus className="h-4 w-4 mr-2" /> Ny post
             </Button>
           </DialogTrigger>
@@ -277,7 +277,8 @@ function CategoryGroup({
         </span>
       </button>
       {open && (
-        <div className="bg-muted/20">
+        <div className="bg-muted/20 overflow-x-auto">
+          <div className="min-w-[900px]">
           <div className="grid grid-cols-[90px_90px_1fr_1fr_110px_90px_110px_24px] gap-4 px-5 py-2 text-[11px] uppercase tracking-wider text-muted-foreground border-y">
             <span>Bilag</span>
             <span>Dato</span>
@@ -297,6 +298,7 @@ function CategoryGroup({
               onToggle={() => setExpandedId(expandedId === e.id ? null : e.id)}
             />
           ))}
+          </div>
         </div>
       )}
     </div>

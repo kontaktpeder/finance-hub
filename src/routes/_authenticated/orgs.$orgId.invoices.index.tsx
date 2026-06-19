@@ -83,8 +83,8 @@ function InvoicesPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl">
-      <header className="flex items-end justify-between mb-6">
+    <div className="p-4 sm:p-6 md:p-8 max-w-5xl">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Fakturaer</h1>
           <p className="text-sm text-muted-foreground mt-1">Utgående fakturaer.</p>
@@ -105,8 +105,8 @@ function InvoicesPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
               <thead className="border-b text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="text-left px-4 py-3">Nr.</th>

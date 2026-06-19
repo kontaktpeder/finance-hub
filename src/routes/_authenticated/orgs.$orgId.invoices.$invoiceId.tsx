@@ -162,7 +162,7 @@ function InvoiceDetailPage() {
   const totals = useMemo(() => calcInvoiceTotals(lines), [lines]);
 
   if (isLoading || !invoice) {
-    return <div className="p-8 text-sm text-muted-foreground">Laster…</div>;
+    return <div className="p-4 sm:p-8 text-sm text-muted-foreground">Laster…</div>;
   }
 
   const inv: any = invoice;
@@ -293,7 +293,7 @@ function InvoiceDetailPage() {
   }
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 md:p-8 max-w-4xl">
       <div className="mb-4">
         <Link
           to="/orgs/$orgId/invoices"
@@ -304,7 +304,7 @@ function InvoiceDetailPage() {
         </Link>
       </div>
 
-      <header className="flex items-end justify-between mb-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             {inv.invoice_number ? `Faktura ${inv.invoice_number}` : "Nytt utkast"}

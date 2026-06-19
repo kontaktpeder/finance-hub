@@ -78,9 +78,9 @@ function Dashboard() {
   ];
 
   return (
-    <div className="p-8 max-w-6xl">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Dashbord {year}</h1>
+    <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
+      <header className="mb-6 md:mb-8">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Dashbord {year}</h1>
         <p className="text-sm text-muted-foreground mt-1">{data?.count ?? 0} poster i år</p>
       </header>
 

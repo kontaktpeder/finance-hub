@@ -183,16 +183,16 @@ function BankPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight flex items-center gap-2">
             <Landmark className="h-6 w-6" /> Bank
           </h1>
           <p className="text-sm text-muted-foreground">
             Importerte transaksjonar er ikkje bokført. Du vel sjølv kva som blir regnskapspost.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {hasActive && (
             <Button variant="outline" size="sm" onClick={() => syncMut.mutate()} disabled={syncMut.isPending}>
               {syncMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
@@ -403,9 +403,9 @@ function BankPage() {
 
               <div className="divide-y">
                 {filteredTx.map((t) => (
-                  <div key={t.id} className="flex items-center gap-3 py-2 text-sm">
-                    <div className="w-20 text-xs text-muted-foreground">
-                      {new Date(t.transaction_date).toLocaleDateString("nb-NO")}
+                  <div key={t.id} className="flex items-start gap-3 py-2 text-sm">
+                    <div className="w-16 shrink-0 text-xs text-muted-foreground tabular-nums">
+                      {new Date(t.transaction_date).toLocaleDateString("nb-NO", { day: "2-digit", month: "2-digit" })}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="truncate">{t.description ?? "—"}</div>
@@ -413,7 +413,7 @@ function BankPage() {
                         <div className="text-xs text-muted-foreground truncate">{t.counterparty}</div>
                       )}
                     </div>
-                    <div className={`flex items-center gap-1 tabular-nums ${t.is_income ? "text-emerald-600" : "text-foreground"}`}>
+                    <div className={`shrink-0 flex items-center gap-1 tabular-nums text-right ${t.is_income ? "text-emerald-600" : "text-foreground"}`}>
                       {t.is_income ? <ArrowDownRight className="h-3.5 w-3.5" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
                       {fmtAmount(Number(t.amount), t.currency)}
                     </div>
