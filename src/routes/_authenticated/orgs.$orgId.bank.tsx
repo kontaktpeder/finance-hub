@@ -8,13 +8,14 @@ import {
   startBankConnectFn,
   syncBankFn,
   listBankTransactionsFn,
+  deleteBankConnectionFn,
 } from "@/lib/banking.functions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Landmark, RefreshCw, Loader2, ArrowDownRight, ArrowUpRight, AlertTriangle } from "lucide-react";
+import { Landmark, RefreshCw, Loader2, ArrowDownRight, ArrowUpRight, AlertTriangle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/bank")({
