@@ -8,13 +8,14 @@ import {
   startBankConnectFn,
   syncBankFn,
   listBankTransactionsFn,
+  deleteBankConnectionFn,
 } from "@/lib/banking.functions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Landmark, RefreshCw, Loader2, ArrowDownRight, ArrowUpRight, AlertTriangle } from "lucide-react";
+import { Landmark, RefreshCw, Loader2, ArrowDownRight, ArrowUpRight, AlertTriangle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/bank")({
@@ -55,6 +56,7 @@ function BankPage() {
   const startConnect = useServerFn(startBankConnectFn);
   const sync = useServerFn(syncBankFn);
   const listTx = useServerFn(listBankTransactionsFn);
+  const deleteConn = useServerFn(deleteBankConnectionFn);
 
   const status = useQuery({
     queryKey: ["bank-status", orgId],
@@ -96,6 +98,15 @@ function BankPage() {
       toast.success(`Synka ${r.count} tilkobling(ar): ${r.transactions} transaksjon(ar).`);
       qc.invalidateQueries({ queryKey: ["bank-status", orgId] });
       qc.invalidateQueries({ queryKey: ["bank-tx", orgId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (connectionId: string) => deleteConn({ data: { orgId, connectionId } }),
+    onSuccess: () => {
+      toast.success("Tilkobling sletta.");
+      qc.invalidateQueries({ queryKey: ["bank-status", orgId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -222,6 +233,25 @@ function BankPage() {
               </CardHeader>
               {c.last_sync_error && (
                 <CardContent className="text-xs text-destructive pt-0">{c.last_sync_error}</CardContent>
+              )}
+              {(c.status === "error" || c.status === "pending") && (
+                <CardContent className="pt-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm("Slette denne feilede tilkoblinga?")) deleteMut.mutate(c.id);
+                    }}
+                    disabled={deleteMut.isPending}
+                  >
+                    {deleteMut.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    Slett feilet tilkobling
+                  </Button>
+                </CardContent>
               )}
             </Card>
           ))}
