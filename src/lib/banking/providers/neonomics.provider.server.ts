@@ -109,6 +109,7 @@ function mapBank(b: NeoBank): BankInfo {
     name: String(
       b.bankDisplayName ?? b.name ?? b.fullName ?? b.bankName ?? b.bankOfficialName ?? b.shortName ?? b.bic ?? "",
     ),
+    bic: b.bic ?? null,
     country: b.countryCode ?? "NO",
     logoUrl: b.image?.url ?? b.logo ?? b.logoUrl ?? null,
     requiresPsuId: Boolean(b.personalIdentificationRequired),
