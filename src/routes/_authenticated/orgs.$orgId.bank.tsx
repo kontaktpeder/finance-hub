@@ -102,6 +102,15 @@ function BankPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMut = useMutation({
+    mutationFn: (connectionId: string) => deleteConn({ data: { orgId, connectionId } }),
+    onSuccess: () => {
+      toast.success("Tilkobling sletta.");
+      qc.invalidateQueries({ queryKey: ["bank-status", orgId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
 
