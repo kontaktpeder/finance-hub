@@ -125,7 +125,7 @@ function ScanPage() {
       </Alert>
 
       <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6">
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0">
           <div className="rounded-md border bg-card p-4 space-y-3">
             <h2 className="font-medium text-sm">Last opp ny kvittering</h2>
             <div className="space-y-1.5">
@@ -143,6 +143,7 @@ function ScanPage() {
                 type="file"
                 accept="image/*,application/pdf"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                className="max-w-full"
               />
             </div>
             <Button onClick={handleScan} disabled={scanning || !file} className="w-full">
@@ -162,13 +163,13 @@ function ScanPage() {
                     onClick={() => setActiveDraftId(d.id)}
                     className={`w-full text-left p-3 hover:bg-accent/40 transition ${activeDraftId === d.id ? "bg-accent/60" : ""}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-medium truncate">
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <div className="text-sm font-medium truncate min-w-0 flex-1">
                         {d.ai_suggestion?.description ?? "Uten beskrivelse"}
                       </div>
                       <StatusBadge status={d.status} />
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5 tabular">
+                    <div className="text-xs text-muted-foreground mt-0.5 tabular truncate">
                       {d.ai_suggestion?.amount_gross != null
                         ? `${d.ai_suggestion.amount_gross} ${d.ai_suggestion?.entry_date ?? ""}`
                         : new Date(d.created_at).toLocaleString("nb-NO")}
@@ -180,7 +181,7 @@ function ScanPage() {
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           {activeDraft ? (
             <ReviewPanel
               orgId={orgId}
