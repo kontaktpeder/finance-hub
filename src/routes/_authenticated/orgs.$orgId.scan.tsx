@@ -107,8 +107,9 @@ function ScanPage() {
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" /> AI-skanning av kvitteringer
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight flex items-start gap-2">
+          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0 mt-1" />
+          <span className="min-w-0 break-words">AI-skanning av kvitteringer</span>
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Last opp kvittering/faktura, få AI-forslag og kontroller før posten opprettes.
@@ -308,12 +309,12 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div className="rounded-md border bg-muted/30 min-h-[600px] flex items-center justify-center overflow-hidden">
+      <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden">
         {signedUrl ? (
           mimeType === "application/pdf" ? (
-            <iframe src={signedUrl} className="w-full h-[700px]" title="Dokument" />
+            <iframe src={signedUrl} className="w-full h-[60vh] sm:h-[700px]" title="Dokument" />
           ) : (
-            <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[700px] object-contain" />
+            <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[60vh] sm:max-h-[700px] object-contain" />
           )
         ) : (
           <div className="text-sm text-muted-foreground">Laster dokument…</div>
