@@ -54,7 +54,7 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => StartInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { requireBankAdmin, getPsuIpAddress, getAppOrigin } = await import(
+    const { requireBankAdmin, getPsuIpAddress, getAppOrigin, normalizePsuId, maskPsuId } = await import(
       "./banking/banking.utils.server"
     );
     await requireBankAdmin(context.supabase, data.orgId, context.userId);
@@ -64,6 +64,10 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
     const { getProvider } = await import("./banking/providers/index.server");
 
     const deviceId = await getOrCreateDeviceId(data.orgId);
+    const psuId = normalizePsuId(data.psuId);
+    if (data.psuId && !psuId) {
+      throw new Error("Ugyldig PSU-id. Skriv inn 11-sifret fødselsnummer.");
+    }
 
     // Opprett pending bank_connection FØR vi treffer provider — så vi har id til callback
     const { data: conn, error: insErr } = await supabaseAdmin
@@ -75,7 +79,7 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
         bank_id: data.bankId,
         status: "pending",
         created_by: context.userId,
-        raw_metadata: (data.psuId ? { psuId: data.psuId } : {}) as never,
+        raw_metadata: (psuId ? { psuId } : {}) as never,
       })
       .select("id")
       .single();
@@ -83,11 +87,11 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
 
     const appOrigin = getAppOrigin();
     const redirectUrl = `${appOrigin}/orgs/${data.orgId}/bank/callback?connectionId=${conn.id}`;
-    console.log("[banking] startConnect appOrigin=", appOrigin, "redirectUrl=", redirectUrl);
+    console.log("[banking] startConnect appOrigin=", appOrigin, "redirectUrl=", redirectUrl, "psuId=", maskPsuId(psuId));
 
     try {
       const init = await getProvider("neonomics").startConnect(
-        { deviceId, psuIp: getPsuIpAddress(), psuId: data.psuId ?? null },
+        { deviceId, psuIp: getPsuIpAddress(), psuId },
         data.bankId,
         redirectUrl,
       );
@@ -95,7 +99,7 @@ export const startBankConnectFn = createServerFn({ method: "POST" })
         .from("bank_connections")
         .update({
           provider_connection_id: init.providerConnectionId,
-          raw_metadata: { redirectUrl, ...(data.psuId ? { psuId: data.psuId } : {}) } as never,
+          raw_metadata: { redirectUrl, ...(psuId ? { psuId } : {}) } as never,
         })
         .eq("id", conn.id);
 
