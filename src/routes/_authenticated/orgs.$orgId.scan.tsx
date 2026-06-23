@@ -124,7 +124,7 @@ function ScanPage() {
         </AlertDescription>
       </Alert>
 
-      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-6">
         <div className="space-y-4 min-w-0">
           <div className="rounded-md border bg-card p-4 space-y-3">
             <h2 className="font-medium text-sm">Last opp ny kvittering</h2>
