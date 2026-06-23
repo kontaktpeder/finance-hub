@@ -107,8 +107,9 @@ function ScanPage() {
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" /> AI-skanning av kvitteringer
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight flex items-start gap-2">
+          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0 mt-1" />
+          <span className="min-w-0 break-words">AI-skanning av kvitteringer</span>
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Last opp kvittering/faktura, få AI-forslag og kontroller før posten opprettes.
