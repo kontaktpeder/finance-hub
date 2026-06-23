@@ -145,6 +145,14 @@
     border-color: var(--color-border);
   }
 
+  html,
+  body {
+    /* Prevent horizontal scroll bounce on iOS Safari when content briefly
+       exceeds viewport during orientation/keyboard transitions. */
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -154,5 +162,27 @@
   .tabular {
     font-variant-numeric: tabular-nums;
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  /* iOS Safari: 100vh includes the dynamic URL bar, which causes layout
+     jumps and content cut off behind the bottom nav. Prefer dvh where
+     supported. */
+  @supports (height: 100dvh) {
+    .min-h-screen {
+      min-height: 100dvh;
+    }
+    .h-screen {
+      height: 100dvh;
+    }
+  }
+
+  /* iOS Safari zooms when an input/select/textarea has font-size < 16px on
+     focus. Force at least 16px on touch devices. */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 }
