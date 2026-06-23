@@ -309,12 +309,12 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div className="rounded-md border bg-muted/30 min-h-[600px] flex items-center justify-center overflow-hidden">
+      <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden">
         {signedUrl ? (
           mimeType === "application/pdf" ? (
-            <iframe src={signedUrl} className="w-full h-[700px]" title="Dokument" />
+            <iframe src={signedUrl} className="w-full h-[60vh] sm:h-[700px]" title="Dokument" />
           ) : (
-            <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[700px] object-contain" />
+            <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[60vh] sm:max-h-[700px] object-contain" />
           )
         ) : (
           <div className="text-sm text-muted-foreground">Laster dokument…</div>
