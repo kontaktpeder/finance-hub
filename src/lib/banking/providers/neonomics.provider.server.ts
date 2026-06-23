@@ -269,7 +269,7 @@ export const neonomicsProvider: BankProvider = {
 
     const connectCtx: BankProviderContext = {
       ...ctx,
-      psuId: requiresPsuId ? ctx.psuId : null,
+      psuId: ctx.psuId ?? null,
     };
 
     // 1) Opprett session
@@ -320,13 +320,14 @@ export const neonomicsProvider: BankProvider = {
       Accept: "application/json",
     };
     if (psuIpForConsent) consentHeaders["x-psu-ip-address"] = psuIpForConsent;
-    // Sbanken sandbox: omit x-session-id (already in path), x-redirect-url, x-psu-id
+    // Sbanken sandbox: omit x-session-id (already in path) and x-redirect-url,
+    // but keep x-psu-id if the user explicitly provided it.
     if (!isSbankenSandbox) {
       consentHeaders["x-session-id"] = sessionId;
       if (redirectUrl) consentHeaders["x-redirect-url"] = redirectUrl;
-      if (requiresPsuId && connectCtx.psuId) {
-        consentHeaders["x-psu-id"] = connectCtx.psuId;
-      }
+    }
+    if (connectCtx.psuId) {
+      consentHeaders["x-psu-id"] = connectCtx.psuId;
     }
 
     console.log("[neonomics] consent request audit", {
