@@ -310,7 +310,7 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden">
+      <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden min-w-0">
         {signedUrl ? (
           mimeType === "application/pdf" ? (
             <iframe src={signedUrl} className="w-full h-[60vh] sm:h-[700px]" title="Dokument" />
@@ -322,7 +322,8 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
         )}
       </div>
 
-      <div className="rounded-md border bg-card p-4 space-y-3">
+      <div className="rounded-md border bg-card p-4 space-y-3 min-w-0">
+
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-medium">AI-forslag</div>
