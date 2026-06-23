@@ -13,6 +13,19 @@ export function getPsuIpAddress(): string | null {
   return null;
 }
 
+/** Normaliserer norsk fødselsnummer til 11 siffer. Returnerer null om ugyldig. */
+export function normalizePsuId(value?: string | null): string | null {
+  const digits = (value ?? "").replace(/\D/g, "");
+  return digits.length === 11 ? digits : null;
+}
+
+/** Maskerer PSU-id for logging: viser kun siste 4 siffer. */
+export function maskPsuId(value?: string | null): string {
+  const n = normalizePsuId(value);
+  if (!n) return value ? "invalid" : "none";
+  return "*******" + n.slice(-4);
+}
+
 export function getAppOrigin(): string {
   try {
     const req = getRequest();
