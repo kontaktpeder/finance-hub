@@ -299,7 +299,34 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant={m.variant} className="text-[10px]">{m.label}</Badge>;
 }
 
-function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: (entryId: string) => void }) {
+function ReviewPanel({ orgId, draftId, onConverted }: { orgId: string; draftId: string; onConverted: (entryId: string) => void }) {
+  const convertFn = useServerFn(convertDraftToEntry);
+
+  const { data: draft, isLoading: draftLoading } = useQuery({
+    queryKey: ["receipt-draft", draftId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("finance_receipt_drafts")
+        .select("id, status, ai_suggestion, attachment_id, book_id, created_at")
+        .eq("id", draftId)
+        .single();
+      if (error) throw error;
+      return data as unknown as DraftRow;
+    },
+    staleTime: 60_000,
+  });
+
+  if (draftLoading || !draft) {
+    return (
+      <div className="rounded-md border bg-card p-12 text-center text-muted-foreground text-sm">
+        Laster AI-forslag…
+      </div>
+    );
+  }
+  return <ReviewPanelInner orgId={orgId} draft={draft} onConverted={onConverted} />;
+}
+
+function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: (entryId: string) => void }) {
   const convertFn = useServerFn(convertDraftToEntry);
   const s = draft.ai_suggestion;
   const [form, setForm] = useState(() => ({
