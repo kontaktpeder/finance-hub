@@ -66,12 +66,12 @@ function ScanPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("finance_receipt_drafts")
-        .select("id, status, ai_suggestion, attachment_id, book_id, created_at")
+        .select("id, status, attachment_id, book_id, created_at")
         .eq("organization_id", orgId)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data as unknown as DraftRow[];
+      return data as unknown as DraftListRow[];
     },
   });
 
