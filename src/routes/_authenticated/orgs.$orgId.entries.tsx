@@ -464,10 +464,12 @@ function EntryRow({
           {entry.voucher_number ?? "—"}
         </span>
         <span className="tabular text-xs text-muted-foreground">{formatDate(entry.entry_date)}</span>
-        <span className="truncate flex items-center gap-2">
+        <span className="truncate">{entry.counterparty ?? "—"}</span>
+        <span className="truncate text-muted-foreground flex items-center gap-2">
           <span className="truncate">{entry.description}</span>
           <PreCompanyBadge pre={entry.pre_company_expense} />
         </span>
+
 
         <span className="tabular text-right font-medium">{formatNOK(entry.amount_gross)} kr</span>
         <span>
