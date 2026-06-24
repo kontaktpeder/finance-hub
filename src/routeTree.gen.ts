@@ -25,6 +25,7 @@ import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authen
 import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
 import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
 import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
+import { Route as AuthenticatedOrgsOrgIdDashboardRouteImport } from './routes/_authenticated/orgs.$orgId.dashboard'
 import { Route as AuthenticatedOrgsOrgIdBankRouteImport } from './routes/_authenticated/orgs.$orgId.bank'
 import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
@@ -127,6 +128,12 @@ const AuthenticatedOrgsOrgIdEntriesRoute =
     path: '/entries',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
+const AuthenticatedOrgsOrgIdDashboardRoute =
+  AuthenticatedOrgsOrgIdDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
 const AuthenticatedOrgsOrgIdBankRoute =
   AuthenticatedOrgsOrgIdBankRouteImport.update({
     id: '/bank',
@@ -227,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
+  '/orgs/$orgId/dashboard': typeof AuthenticatedOrgsOrgIdDashboardRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -258,6 +266,7 @@ export interface FileRoutesByTo {
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
+  '/orgs/$orgId/dashboard': typeof AuthenticatedOrgsOrgIdDashboardRoute
   '/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -292,6 +301,7 @@ export interface FileRoutesById {
   '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/_authenticated/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   '/_authenticated/orgs/$orgId/bank': typeof AuthenticatedOrgsOrgIdBankRoute
+  '/_authenticated/orgs/$orgId/dashboard': typeof AuthenticatedOrgsOrgIdDashboardRoute
   '/_authenticated/orgs/$orgId/entries': typeof AuthenticatedOrgsOrgIdEntriesRoute
   '/_authenticated/orgs/$orgId/members': typeof AuthenticatedOrgsOrgIdMembersRoute
   '/_authenticated/orgs/$orgId/reports': typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -326,6 +336,7 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
     | '/orgs/$orgId/bank'
+    | '/orgs/$orgId/dashboard'
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
     | '/orgs/$orgId/bank'
+    | '/orgs/$orgId/dashboard'
     | '/orgs/$orgId/entries'
     | '/orgs/$orgId/members'
     | '/orgs/$orgId/reports'
@@ -390,6 +402,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orgs/$orgId/api-keys'
     | '/_authenticated/orgs/$orgId/attachments'
     | '/_authenticated/orgs/$orgId/bank'
+    | '/_authenticated/orgs/$orgId/dashboard'
     | '/_authenticated/orgs/$orgId/entries'
     | '/_authenticated/orgs/$orgId/members'
     | '/_authenticated/orgs/$orgId/reports'
@@ -540,6 +553,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdEntriesRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
+    '/_authenticated/orgs/$orgId/dashboard': {
+      id: '/_authenticated/orgs/$orgId/dashboard'
+      path: '/dashboard'
+      fullPath: '/orgs/$orgId/dashboard'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdDashboardRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
     '/_authenticated/orgs/$orgId/bank': {
       id: '/_authenticated/orgs/$orgId/bank'
       path: '/bank'
@@ -652,6 +672,7 @@ interface AuthenticatedOrgsOrgIdRouteChildren {
   AuthenticatedOrgsOrgIdApiKeysRoute: typeof AuthenticatedOrgsOrgIdApiKeysRoute
   AuthenticatedOrgsOrgIdAttachmentsRoute: typeof AuthenticatedOrgsOrgIdAttachmentsRoute
   AuthenticatedOrgsOrgIdBankRoute: typeof AuthenticatedOrgsOrgIdBankRoute
+  AuthenticatedOrgsOrgIdDashboardRoute: typeof AuthenticatedOrgsOrgIdDashboardRoute
   AuthenticatedOrgsOrgIdEntriesRoute: typeof AuthenticatedOrgsOrgIdEntriesRoute
   AuthenticatedOrgsOrgIdMembersRoute: typeof AuthenticatedOrgsOrgIdMembersRoute
   AuthenticatedOrgsOrgIdReportsRoute: typeof AuthenticatedOrgsOrgIdReportsRoute
@@ -670,6 +691,7 @@ const AuthenticatedOrgsOrgIdRouteChildren: AuthenticatedOrgsOrgIdRouteChildren =
     AuthenticatedOrgsOrgIdAttachmentsRoute:
       AuthenticatedOrgsOrgIdAttachmentsRoute,
     AuthenticatedOrgsOrgIdBankRoute: AuthenticatedOrgsOrgIdBankRoute,
+    AuthenticatedOrgsOrgIdDashboardRoute: AuthenticatedOrgsOrgIdDashboardRoute,
     AuthenticatedOrgsOrgIdEntriesRoute: AuthenticatedOrgsOrgIdEntriesRoute,
     AuthenticatedOrgsOrgIdMembersRoute: AuthenticatedOrgsOrgIdMembersRoute,
     AuthenticatedOrgsOrgIdReportsRoute: AuthenticatedOrgsOrgIdReportsRoute,

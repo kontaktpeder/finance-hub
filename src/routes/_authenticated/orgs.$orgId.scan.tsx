@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Upload, Sparkles, Check, Loader2 } from "lucide-react";
+import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { scanReceiptDraft, convertDraftToEntry, type ReceiptSuggestion } from "@/lib/receipt-drafts.functions";
+
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/scan")({
   component: ScanPage,
@@ -31,11 +32,14 @@ type DraftRow = {
 function ScanPage() {
   const { orgId } = Route.useParams();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const scanFn = useServerFn(scanReceiptDraft);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [convertedEntryId, setConvertedEntryId] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [bookId, setBookId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
+
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
@@ -111,7 +115,9 @@ function ScanPage() {
       toast.success("AI-forslag klart");
       setFiles([]);
       setActiveDraftId(res.draftId);
+      setConvertedEntryId(null);
       qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
+
     } catch (err: any) {
       toast.error(err.message ?? "Skanning feilet");
     } finally {
@@ -162,10 +168,12 @@ function ScanPage() {
               <Input
                 type="file"
                 accept="image/*,application/pdf"
+                capture="environment"
                 multiple
                 onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
                 className="max-w-full"
               />
+
               <p className="text-[11px] text-muted-foreground">
                 Du kan laste opp flere bilder av samme kvittering/faktura, eller én PDF. Maks 10 filer / 25 MB totalt.
               </p>
@@ -177,25 +185,73 @@ function ScanPage() {
                 </ul>
               )}
             </div>
-            <Button onClick={handleScan} disabled={scanning || files.length === 0} className="w-full">
-              {scanning ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Skanner…</> : <><Upload className="h-4 w-4 mr-2" /> Skann med AI</>}
+            <Button onClick={handleScan} disabled={scanning || files.length === 0} size="lg" className="w-full text-base">
+              {scanning ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Skanner…</> : <><Camera className="h-5 w-5 mr-2" /> Skann bilag med AI</>}
             </Button>
+
           </div>
 
         </div>
 
         <div className="min-w-0">
-          {activeDraft ? (
+          {convertedEntryId ? (
+            <div className="rounded-md border bg-card p-6 sm:p-8 text-center space-y-5">
+              <div className="mx-auto h-14 w-14 rounded-full bg-emerald-500/10 grid place-items-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Bilag opprettet</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Posten er bokført. Hva vil du gjøre nå?
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setConvertedEntryId(null);
+                    setActiveDraftId(null);
+                    setFiles([]);
+                    if (typeof window !== "undefined") {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                >
+                  <Camera className="h-4 w-4 mr-2" /> Skann neste
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() =>
+                    navigate({ to: "/orgs/$orgId/entries", params: { orgId } })
+                  }
+                >
+                  Se post <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  onClick={() =>
+                    navigate({ to: "/orgs/$orgId/entries", params: { orgId } })
+                  }
+                >
+                  Gå til poster
+                </Button>
+              </div>
+            </div>
+          ) : activeDraft ? (
             <ReviewPanel
               orgId={orgId}
               draft={activeDraft}
-              onConverted={() => {
+              onConverted={(entryId) => {
+                setConvertedEntryId(entryId);
                 qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
                 qc.invalidateQueries({ queryKey: ["entries", orgId] });
               }}
             />
           ) : (
             <div className="rounded-md border bg-card p-12 text-center text-muted-foreground">
+
               Velg eller skann et utkast for å se AI-forslaget her.
             </div>
           )}
@@ -249,7 +305,7 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant={m.variant} className="text-[10px]">{m.label}</Badge>;
 }
 
-function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: () => void }) {
+function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: (entryId: string) => void }) {
   const convertFn = useServerFn(convertDraftToEntry);
   const s = draft.ai_suggestion;
   const [form, setForm] = useState(() => ({
@@ -331,7 +387,7 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
     if (draft.status === "converted") { toast.error("Allerede bokført"); return; }
     setBusy(true);
     try {
-      await convertFn({
+      const res = await convertFn({
         data: {
           organizationId: orgId,
           draftId: draft.id,
@@ -355,7 +411,8 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
         },
       });
       toast.success("Post opprettet");
-      onConverted();
+      onConverted(res.entryId);
+
     } catch (err: any) {
       toast.error(err.message ?? "Klarte ikke opprette post");
     } finally {
