@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -39,7 +39,9 @@ import { Plus, Trash2, FileDown, Send, CheckCircle2, ChevronLeft, Eye } from "lu
 
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
-import { CompanySearchCombobox } from "@/components/invoices/CompanySearchCombobox";
+const CompanySearchCombobox = lazy(() =>
+  import("@/components/invoices/CompanySearchCombobox").then((m) => ({ default: m.CompanySearchCombobox })),
+);
 import { formatCompanyAddress } from "@/lib/brreg";
 
 function parseAddress(addr: string | null | undefined): { street: string; postalCode: string; city: string } {
@@ -391,18 +393,20 @@ function InvoiceDetailPage() {
             {!readOnly && (
               <div className="space-y-1.5">
                 <Label>Søk firmanavn eller org.nr.</Label>
-                <CompanySearchCombobox
-                  disabled={readOnly}
-                  onSelect={(c) => {
-                    setCustomerName(c.name);
-                    setCustomerOrgNumber(c.orgNumber);
-                    setCustomerStreet(c.address ?? "");
-                    setCustomerPostalCode(c.postalCode ?? "");
-                    setCustomerCity(c.city ?? "");
-                    if (c.email && !customer_email) setCustomerEmail(c.email);
-                    setCustomerVatRegistered(c.vatRegistered);
-                  }}
-                />
+                <Suspense fallback={null}>
+                  <CompanySearchCombobox
+                    disabled={readOnly}
+                    onSelect={(c) => {
+                      setCustomerName(c.name);
+                      setCustomerOrgNumber(c.orgNumber);
+                      setCustomerStreet(c.address ?? "");
+                      setCustomerPostalCode(c.postalCode ?? "");
+                      setCustomerCity(c.city ?? "");
+                      if (c.email && !customer_email) setCustomerEmail(c.email);
+                      setCustomerVatRegistered(c.vatRegistered);
+                    }}
+                  />
+                </Suspense>
               </div>
             )}
             <div className="space-y-1.5">

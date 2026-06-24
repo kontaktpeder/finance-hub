@@ -149,7 +149,7 @@ function EntriesPage() {
         )
         .eq("organization_id", orgId)
         .order("entry_date", { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return data as Entry[];
     },
@@ -355,7 +355,7 @@ function CategoryGroup({
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div className="border-b last:border-b-0">
       <button

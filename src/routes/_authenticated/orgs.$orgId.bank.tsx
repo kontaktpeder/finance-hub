@@ -299,17 +299,6 @@ function BankPage() {
                     const disabledReason = effectiveRequiresPsuId && !psuId.trim()
                       ? "Skriv inn PSU-id over for å bruke denne banken"
                       : null;
-                    if (typeof window !== "undefined") {
-                      console.log("[bank-picker]", {
-                        name: b.name,
-                        bic,
-                        id: b.bankId,
-                        personalIdentificationRequired: b.requiresPsuId,
-                        effectiveRequiresPsuId,
-                        disabled,
-                        disabledReason,
-                      });
-                    }
                     return { b, effectiveRequiresPsuId, disabled, disabledReason };
                   })
                   .sort((a, x) => {

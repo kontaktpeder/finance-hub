@@ -20,13 +20,16 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId/scan")({
   component: ScanPage,
 });
 
-type DraftRow = {
+type DraftListRow = {
   id: string;
   status: string;
-  ai_suggestion: ReceiptSuggestion | null;
   attachment_id: string | null;
   book_id: string;
   created_at: string;
+};
+
+type DraftRow = DraftListRow & {
+  ai_suggestion: ReceiptSuggestion | null;
 };
 
 function ScanPage() {
@@ -63,12 +66,12 @@ function ScanPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("finance_receipt_drafts")
-        .select("id, status, ai_suggestion, attachment_id, book_id, created_at")
+        .select("id, status, attachment_id, book_id, created_at")
         .eq("organization_id", orgId)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data as unknown as DraftRow[];
+      return data as unknown as DraftListRow[];
     },
   });
 
@@ -125,10 +128,6 @@ function ScanPage() {
     }
   }
 
-  const activeDraft = useMemo(
-    () => drafts?.find((d) => d.id === activeDraftId) ?? null,
-    [drafts, activeDraftId]
-  );
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl">
@@ -239,10 +238,10 @@ function ScanPage() {
                 </Button>
               </div>
             </div>
-          ) : activeDraft ? (
+          ) : activeDraftId ? (
             <ReviewPanel
               orgId={orgId}
-              draft={activeDraft}
+              draftId={activeDraftId}
               onConverted={(entryId) => {
                 setConvertedEntryId(entryId);
                 qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
@@ -258,7 +257,7 @@ function ScanPage() {
         </div>
       </div>
 
-      <details className="mt-6 rounded-md border bg-card group" open={!activeDraft}>
+      <details className="mt-6 rounded-md border bg-card group" open={!activeDraftId}>
         <summary className="p-3 border-b text-sm font-medium cursor-pointer flex items-center justify-between list-none [&::-webkit-details-marker]:hidden">
           <span>Utkast {drafts?.length ? `(${drafts.length})` : ""}</span>
           <span className="text-xs text-muted-foreground transition-transform group-open:rotate-180">▾</span>
@@ -275,14 +274,9 @@ function ScanPage() {
               >
                 <div className="flex items-center justify-between gap-2 min-w-0">
                   <div className="text-sm font-medium truncate min-w-0 flex-1">
-                    {d.ai_suggestion?.description ?? "Uten beskrivelse"}
+                    {new Date(d.created_at).toLocaleString("nb-NO")}
                   </div>
                   <StatusBadge status={d.status} />
-                </div>
-                <div className="text-xs text-muted-foreground mt-0.5 tabular truncate">
-                  {d.ai_suggestion?.amount_gross != null
-                    ? `${d.ai_suggestion.amount_gross} ${d.ai_suggestion?.entry_date ?? ""}`
-                    : new Date(d.created_at).toLocaleString("nb-NO")}
                 </div>
               </button>
             </li>
@@ -305,7 +299,34 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant={m.variant} className="text-[10px]">{m.label}</Badge>;
 }
 
-function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: (entryId: string) => void }) {
+function ReviewPanel({ orgId, draftId, onConverted }: { orgId: string; draftId: string; onConverted: (entryId: string) => void }) {
+  const convertFn = useServerFn(convertDraftToEntry);
+
+  const { data: draft, isLoading: draftLoading } = useQuery({
+    queryKey: ["receipt-draft", draftId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("finance_receipt_drafts")
+        .select("id, status, ai_suggestion, attachment_id, book_id, created_at")
+        .eq("id", draftId)
+        .single();
+      if (error) throw error;
+      return data as unknown as DraftRow;
+    },
+    staleTime: 60_000,
+  });
+
+  if (draftLoading || !draft) {
+    return (
+      <div className="rounded-md border bg-card p-12 text-center text-muted-foreground text-sm">
+        Laster AI-forslag…
+      </div>
+    );
+  }
+  return <ReviewPanelInner orgId={orgId} draft={draft} onConverted={onConverted} />;
+}
+
+function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: (entryId: string) => void }) {
   const convertFn = useServerFn(convertDraftToEntry);
   const s = draft.ai_suggestion;
   const [form, setForm] = useState(() => ({
