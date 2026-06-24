@@ -74,7 +74,18 @@ function OrgLayout() {
   const baseLink =
     "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors text-sidebar-foreground/80 hover:bg-sidebar-accent/50";
 
-  const primaryTabs = navItems.filter((i) => i.primary);
+  // Order so Skann sits in the middle of the mobile bottom bar (FAB position)
+  const bottomTabOrder = [
+    "/orgs/$orgId/dashboard",
+    "/orgs/$orgId/entries",
+    "/orgs/$orgId/scan",
+    "/orgs/$orgId/reports",
+    "/orgs/$orgId/attachments",
+  ];
+  const primaryTabs = bottomTabOrder
+    .map((to) => navItems.find((i) => i.to === to))
+    .filter((t): t is NavItem => !!t);
+
 
   function NavList({ onNavigate }: { onNavigate?: () => void }) {
     return (
