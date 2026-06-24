@@ -30,13 +30,18 @@ import {
   Folder,
   ExternalLink,
   FileText,
+  Download,
 } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
+
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/entries")({
   component: EntriesPage,
 });
+
+type PreFilter = "all" | "pre" | "ordinary";
 
 type Entry = {
   id: string;
@@ -58,13 +63,68 @@ type Entry = {
   source_ref: string | null;
   external_url: string | null;
   notes: string | null;
+  pre_company_expense: boolean;
 };
+
+function preCompanyLabel(pre: boolean): string {
+  return pre ? "Før stiftelse" : "Ordinær";
+}
+
+function matchesPreFilter(entry: Entry, filter: PreFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "pre") return entry.pre_company_expense;
+  return !entry.pre_company_expense;
+}
+
+function sumByPreAndType(entries: Entry[], pre: boolean) {
+  let income = 0;
+  let expense = 0;
+  for (const e of entries) {
+    if (e.pre_company_expense !== pre) continue;
+    const amt = Number(e.amount_gross);
+    if (e.entry_type === "income") income += amt;
+    else expense += amt;
+  }
+  return { income, expense };
+}
+
+function exportEntriesCsv(entries: Entry[], orgId: string) {
+  const header = [
+    "voucher_number", "entry_type", "entry_date", "description", "counterparty",
+    "category", "category_group", "amount_gross", "amount_net", "vat_rate", "vat_amount",
+    "payment_status", "invoice_status", "pre_company_expense", "pre_company_label",
+  ];
+  const rows = [header.join(",")];
+  for (const e of entries) {
+    const row: Record<string, unknown> = {
+      ...e,
+      pre_company_expense: e.pre_company_expense ? "true" : "false",
+      pre_company_label: preCompanyLabel(e.pre_company_expense),
+    };
+    rows.push(
+      header.map((k) => {
+        const v = row[k] ?? "";
+        const s = String(v).replace(/"/g, '""');
+        return /[,"\n]/.test(s) ? `"${s}"` : s;
+      }).join(","),
+    );
+  }
+  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `poster-${orgId.slice(0, 8)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
 function EntriesPage() {
   const { orgId } = Route.useParams();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [preFilter, setPreFilter] = useState<PreFilter>("all");
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
@@ -85,7 +145,7 @@ function EntriesPage() {
       const { data, error } = await supabase
         .from("finance_entries")
         .select(
-          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes",
+          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes, pre_company_expense",
         )
         .eq("organization_id", orgId)
         .order("entry_date", { ascending: false })
@@ -95,42 +155,84 @@ function EntriesPage() {
     },
   });
 
+  const filteredEntries = useMemo(
+    () => (entries ?? []).filter((e) => matchesPreFilter(e, preFilter)),
+    [entries, preFilter],
+  );
+
   const { income, expense } = useMemo(() => {
     const inc: Entry[] = [];
     const exp: Entry[] = [];
-    for (const e of entries ?? []) {
+    for (const e of filteredEntries) {
       if (e.entry_type === "income") inc.push(e);
       else exp.push(e);
     }
     return { income: inc, expense: exp };
-  }, [entries]);
+  }, [filteredEntries]);
+
+  const hasAnyPre = useMemo(
+    () => (entries ?? []).some((e) => e.pre_company_expense),
+    [entries],
+  );
 
   return (
     <div className="p-3 sm:p-6 md:p-8 max-w-6xl">
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Poster</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gruppert på kategori. Klikk en post for detaljer.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="shrink-0">
-              <Plus className="h-4 w-4 mr-2" /> Ny post
-            </Button>
-          </DialogTrigger>
-          <NewEntryDialog
-            orgId={orgId}
-            books={books ?? []}
-            onCreated={() => {
-              qc.invalidateQueries({ queryKey: ["entries", orgId] });
-              qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
-              setOpen(false);
-            }}
-          />
-        </Dialog>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportEntriesCsv(filteredEntries, orgId)}
+            disabled={filteredEntries.length === 0}
+          >
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">CSV</span>
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Ny post</span>
+              </Button>
+            </DialogTrigger>
+            <NewEntryDialog
+              orgId={orgId}
+              books={books ?? []}
+              onCreated={() => {
+                qc.invalidateQueries({ queryKey: ["entries", orgId] });
+                qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
+                setOpen(false);
+              }}
+            />
+          </Dialog>
+        </div>
       </header>
+
+      {hasAnyPre && (
+        <div className="mb-4 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground">Vis:</span>
+            <ToggleGroup
+              type="single"
+              value={preFilter}
+              onValueChange={(v) => v && setPreFilter(v as PreFilter)}
+              variant="outline"
+              size="sm"
+            >
+              <ToggleGroupItem value="all">Alle</ToggleGroupItem>
+              <ToggleGroupItem value="pre">Før stiftelse</ToggleGroupItem>
+              <ToggleGroupItem value="ordinary">Ordinære</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+          <PreCompanyTotals entries={entries ?? []} activeFilter={preFilter} />
+        </div>
+      )}
 
       {isLoading && (
         <div className="text-sm text-muted-foreground py-8 text-center">Laster…</div>
@@ -159,6 +261,7 @@ function EntriesPage() {
         </div>
       )}
     </div>
+
   );
 }
 
@@ -329,8 +432,11 @@ function EntryRow({
         }`}
       >
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">
-            {entry.counterparty ?? entry.description}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="truncate text-sm font-medium">
+              {entry.counterparty ?? entry.description}
+            </span>
+            <PreCompanyBadge pre={entry.pre_company_expense} />
           </div>
           <div className="truncate text-xs text-muted-foreground mt-0.5">
             {formatDate(entry.entry_date)}
@@ -341,6 +447,7 @@ function EntryRow({
           {formatNOK(entry.amount_gross)}
         </div>
       </button>
+
 
       {/* Desktop row */}
       <button
@@ -358,7 +465,12 @@ function EntryRow({
         </span>
         <span className="tabular text-xs text-muted-foreground">{formatDate(entry.entry_date)}</span>
         <span className="truncate">{entry.counterparty ?? "—"}</span>
-        <span className="truncate text-muted-foreground">{entry.description}</span>
+        <span className="truncate text-muted-foreground flex items-center gap-2">
+          <span className="truncate">{entry.description}</span>
+          <PreCompanyBadge pre={entry.pre_company_expense} />
+        </span>
+
+
         <span className="tabular text-right font-medium">{formatNOK(entry.amount_gross)} kr</span>
         <span>
           <StatusBadge kind="payment" value={entry.payment_status} />
@@ -448,6 +560,8 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
           value={entry.voucher_number}
           help="Internt bilagsnummer i regnskapsboken"
         />
+        <Field label="Stiftelse" value={preCompanyLabel(entry.pre_company_expense)} />
+
 
         {isInvoice ? (
           <>
@@ -714,3 +828,56 @@ function NewEntryDialog({
     </DialogContent>
   );
 }
+
+function PreCompanyBadge({ pre }: { pre: boolean }) {
+  if (!pre) return null;
+  return (
+    <Badge variant="outline" className="text-[10px] font-normal shrink-0">
+      Før stiftelse
+    </Badge>
+  );
+}
+
+function PreCompanyTotals({
+  entries,
+  activeFilter,
+}: {
+  entries: Entry[];
+  activeFilter: PreFilter;
+}) {
+  const pre = sumByPreAndType(entries, true);
+  const ord = sumByPreAndType(entries, false);
+
+  const rows =
+    activeFilter === "pre"
+      ? [{ label: "Før stiftelse", ...pre }]
+      : activeFilter === "ordinary"
+        ? [{ label: "Ordinære poster", ...ord }]
+        : [
+            { label: "Før stiftelse", ...pre },
+            { label: "Ordinære poster", ...ord },
+          ];
+
+  if (rows.every((r) => r.income === 0 && r.expense === 0)) return null;
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {rows.map((r) => (
+        <div key={r.label} className="rounded-lg border bg-card px-4 py-3">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5">
+            {r.label}
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Inntekt</span>
+            <span className="tabular">{formatNOK(r.income)} kr</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Utgift</span>
+            <span className="tabular">−{formatNOK(r.expense)} kr</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+

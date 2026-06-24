@@ -21,7 +21,7 @@ function ReportsPage() {
       const { data: entries, error } = await supabase
         .from("finance_entries")
         .select(
-          "voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, vat_rate, vat_amount, amount_net, payment_status",
+          "voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, vat_rate, vat_amount, amount_net, payment_status, pre_company_expense",
         )
         .eq("organization_id", orgId)
         .gte("entry_date", `${year}-01-01`)
@@ -63,20 +63,27 @@ function ReportsPage() {
   function exportCsv() {
     if (!data) return;
     const header = [
-      "voucher_number","entry_type","entry_date","description","counterparty","category","category_group","amount_gross","vat_rate","vat_amount","amount_net","payment_status",
+      "voucher_number","entry_type","entry_date","description","counterparty","category","category_group","amount_gross","vat_rate","vat_amount","amount_net","payment_status","pre_company_expense","pre_company_label",
     ];
     const rows = [header.join(",")];
     for (const e of data.entries) {
+      const pre = Boolean((e as any).pre_company_expense);
+      const row: Record<string, unknown> = {
+        ...e,
+        pre_company_expense: pre ? "true" : "false",
+        pre_company_label: pre ? "Før stiftelse" : "Ordinær",
+      };
       rows.push(
         header
           .map((k) => {
-            const v = (e as any)[k] ?? "";
+            const v = row[k] ?? "";
             const s = String(v).replace(/"/g, '""');
             return /[,"\n]/.test(s) ? `"${s}"` : s;
           })
           .join(","),
       );
     }
+
     const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
