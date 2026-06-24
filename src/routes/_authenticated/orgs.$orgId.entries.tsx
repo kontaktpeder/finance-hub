@@ -828,3 +828,56 @@ function NewEntryDialog({
     </DialogContent>
   );
 }
+
+function PreCompanyBadge({ pre }: { pre: boolean }) {
+  if (!pre) return null;
+  return (
+    <Badge variant="outline" className="text-[10px] font-normal shrink-0">
+      Før stiftelse
+    </Badge>
+  );
+}
+
+function PreCompanyTotals({
+  entries,
+  activeFilter,
+}: {
+  entries: Entry[];
+  activeFilter: PreFilter;
+}) {
+  const pre = sumByPreAndType(entries, true);
+  const ord = sumByPreAndType(entries, false);
+
+  const rows =
+    activeFilter === "pre"
+      ? [{ label: "Før stiftelse", ...pre }]
+      : activeFilter === "ordinary"
+        ? [{ label: "Ordinære poster", ...ord }]
+        : [
+            { label: "Før stiftelse", ...pre },
+            { label: "Ordinære poster", ...ord },
+          ];
+
+  if (rows.every((r) => r.income === 0 && r.expense === 0)) return null;
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {rows.map((r) => (
+        <div key={r.label} className="rounded-lg border bg-card px-4 py-3">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5">
+            {r.label}
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Inntekt</span>
+            <span className="tabular">{formatNOK(r.income)} kr</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Utgift</span>
+            <span className="tabular">−{formatNOK(r.expense)} kr</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
