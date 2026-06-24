@@ -393,18 +393,20 @@ function InvoiceDetailPage() {
             {!readOnly && (
               <div className="space-y-1.5">
                 <Label>Søk firmanavn eller org.nr.</Label>
-                <CompanySearchCombobox
-                  disabled={readOnly}
-                  onSelect={(c) => {
-                    setCustomerName(c.name);
-                    setCustomerOrgNumber(c.orgNumber);
-                    setCustomerStreet(c.address ?? "");
-                    setCustomerPostalCode(c.postalCode ?? "");
-                    setCustomerCity(c.city ?? "");
-                    if (c.email && !customer_email) setCustomerEmail(c.email);
-                    setCustomerVatRegistered(c.vatRegistered);
-                  }}
-                />
+                <Suspense fallback={null}>
+                  <CompanySearchCombobox
+                    disabled={readOnly}
+                    onSelect={(c) => {
+                      setCustomerName(c.name);
+                      setCustomerOrgNumber(c.orgNumber);
+                      setCustomerStreet(c.address ?? "");
+                      setCustomerPostalCode(c.postalCode ?? "");
+                      setCustomerCity(c.city ?? "");
+                      if (c.email && !customer_email) setCustomerEmail(c.email);
+                      setCustomerVatRegistered(c.vatRegistered);
+                    }}
+                  />
+                </Suspense>
               </div>
             )}
             <div className="space-y-1.5">
