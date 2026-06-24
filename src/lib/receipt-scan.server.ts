@@ -5,6 +5,14 @@ import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 export const RECEIPT_SCAN_MODEL = "google/gemini-3-flash-preview";
 
 const MAX_SCAN_BYTES = 25 * 1024 * 1024;
+export const MAX_SCAN_FILES = 10;
+export const MAX_SCAN_TOTAL_BYTES = MAX_SCAN_BYTES;
+
+export type ReceiptScanFilePart = {
+  bytes: Uint8Array;
+  mimeType: string;
+  fileName: string;
+};
 
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -199,26 +207,71 @@ export function toPublicReceiptScan(
   };
 }
 
-export async function scanReceiptContent(
-  input: ReceiptScanContentInput,
+export function assertScannableFiles(
+  files: Array<{ size: number; type: string; name: string }>,
+): Array<{ mimeType: string }> {
+  if (files.length === 0) throw new ScanValidationError("Ingen filer valgt");
+  if (files.length > MAX_SCAN_FILES) {
+    throw new ScanValidationError(`Maks ${MAX_SCAN_FILES} filer per utkast`);
+  }
+  let total = 0;
+  const out: Array<{ mimeType: string }> = [];
+  for (const f of files) {
+    total += f.size;
+    if (total > MAX_SCAN_TOTAL_BYTES) {
+      throw new ScanValidationError("Total filstørrelse overstiger 25 MB");
+    }
+    out.push(assertScannableFile(f as File));
+  }
+  return out;
+}
+
+export async function scanReceiptContentFromParts(
+  parts: ReceiptScanFilePart[],
 ): Promise<ReceiptSuggestion> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) {
     throw new ScanFailedError("Missing LOVABLE_API_KEY");
   }
-
-  const mimeType = normalizeMimeType(input.mimeType, input.fileName);
-  if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-    throw new ScanValidationError(`Unsupported file type: ${mimeType}`);
-  }
-  if (input.bytes.length > MAX_SCAN_BYTES) {
-    throw new ScanValidationError("File too large (max 25MB)");
+  if (parts.length === 0) {
+    throw new ScanValidationError("Ingen filer å skanne");
   }
 
-  const base64 = bytesToBase64(input.bytes);
-  const isPdf = mimeType === "application/pdf";
+  let total = 0;
+  const normalized = parts.map((p) => {
+    total += p.bytes.length;
+    const mimeType = normalizeMimeType(p.mimeType, p.fileName);
+    if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+      throw new ScanValidationError(`Unsupported file type: ${mimeType}`);
+    }
+    return { ...p, mimeType };
+  });
+  if (total > MAX_SCAN_TOTAL_BYTES) {
+    throw new ScanValidationError("Total filstørrelse overstiger 25 MB");
+  }
+
   const gateway = createLovableAiGatewayProvider(apiKey);
-  const userPrompt = `Analyser vedlagt ${isPdf ? "PDF" : "bilde"} (filnavn: ${input.fileName}) og returner JSON-objektet.`;
+  const intro =
+    parts.length === 1
+      ? `Analyser vedlagt ${normalized[0].mimeType === "application/pdf" ? "PDF" : "bilde"} (filnavn: ${normalized[0].fileName}) og returner JSON-objektet.`
+      : `Dette er én kvittering/faktura som består av ${parts.length} filer/sider. Les alle samlet og returner ETT bokføringsforslag som JSON. Filnavn i rekkefølge: ${normalized.map((p) => p.fileName).join(", ")}.`;
+
+  const content: any[] = [{ type: "text", text: intro }];
+  for (const p of normalized) {
+    const base64 = bytesToBase64(p.bytes);
+    if (p.mimeType === "application/pdf") {
+      content.push({
+        type: "file",
+        data: `data:${p.mimeType};base64,${base64}`,
+        mediaType: p.mimeType,
+      });
+    } else {
+      content.push({
+        type: "image",
+        image: `data:${p.mimeType};base64,${base64}`,
+      });
+    }
+  }
 
   let text: string;
   try {
@@ -226,22 +279,7 @@ export async function scanReceiptContent(
       model: gateway(RECEIPT_SCAN_MODEL),
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: userPrompt },
-            isPdf
-              ? {
-                  type: "file",
-                  data: `data:${mimeType};base64,${base64}`,
-                  mediaType: mimeType,
-                }
-              : {
-                  type: "image",
-                  image: `data:${mimeType};base64,${base64}`,
-                },
-          ] as any,
-        },
+        { role: "user", content: content as any },
       ],
     });
     text = result.text;
@@ -265,6 +303,14 @@ export async function scanReceiptContent(
   }
 
   return validated.data;
+}
+
+export async function scanReceiptContent(
+  input: ReceiptScanContentInput,
+): Promise<ReceiptSuggestion> {
+  return scanReceiptContentFromParts([
+    { bytes: input.bytes, mimeType: input.mimeType, fileName: input.fileName },
+  ]);
 }
 
 export async function scanReceiptFile(file: File): Promise<NormalizedReceiptScan> {

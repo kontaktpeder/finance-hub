@@ -3,20 +3,34 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   RECEIPT_SCAN_MODEL,
-  scanReceiptContent,
+  scanReceiptContentFromParts,
+  type ReceiptScanFilePart,
   type ReceiptSuggestion,
 } from "@/lib/receipt-scan.server";
 
 export type { ReceiptSuggestion };
 
-const ScanInput = z.object({
-  organizationId: z.string().uuid(),
-  bookId: z.string().uuid(),
+const ScanFileMeta = z.object({
   storagePath: z.string().min(1),
   fileName: z.string().min(1),
   mimeType: z.string().min(1),
   sizeBytes: z.number().int().nonnegative(),
 });
+
+const ScanInput = z
+  .object({
+    organizationId: z.string().uuid(),
+    bookId: z.string().uuid(),
+    storagePath: z.string().min(1).optional(),
+    fileName: z.string().min(1).optional(),
+    mimeType: z.string().min(1).optional(),
+    sizeBytes: z.number().int().nonnegative().optional(),
+    files: z.array(ScanFileMeta).optional(),
+  })
+  .refine(
+    (d) => (d.files && d.files.length > 0) || !!d.storagePath,
+    { message: "Mangler filer" },
+  );
 
 export const scanReceiptDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -24,7 +38,22 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // Verify membership / role via RLS-respecting client
+    const fileMetas = data.files?.length
+      ? data.files
+      : data.storagePath
+        ? [
+            {
+              storagePath: data.storagePath,
+              fileName: data.fileName ?? "kvittering",
+              mimeType: data.mimeType ?? "application/octet-stream",
+              sizeBytes: data.sizeBytes ?? 0,
+            },
+          ]
+        : [];
+
+    if (fileMetas.length === 0) throw new Error("Ingen filer å skanne.");
+
+    // Verify membership / role
     const { data: membership } = await supabase
       .from("organization_members")
       .select("role")
@@ -35,38 +64,13 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
       throw new Error("Du har ikke tilgang til å skanne kvitteringer for denne organisasjonen.");
     }
 
-    // Download file from storage
-    const { data: blob, error: dlErr } = await supabase.storage
-      .from("finance-attachments")
-      .download(data.storagePath);
-    if (dlErr || !blob) throw new Error(dlErr?.message ?? "Kunne ikke laste ned filen.");
-
-    const arrayBuf = await blob.arrayBuffer();
-
-    // Create attachment row (entry_id null until converted)
-    const { data: attachment, error: aErr } = await supabase
-      .from("finance_attachments")
-      .insert({
-        organization_id: data.organizationId,
-        entry_id: null,
-        storage_path: data.storagePath,
-        file_name: data.fileName,
-        mime_type: data.mimeType,
-        size_bytes: data.sizeBytes,
-        uploaded_by: userId,
-      })
-      .select("id")
-      .single();
-    if (aErr) throw new Error(aErr.message);
-
-    // Create draft row up front so we always have a record
+    // Create draft up front
     const { data: draft, error: dErr } = await supabase
       .from("finance_receipt_drafts")
       .insert({
         organization_id: data.organizationId,
         book_id: data.bookId,
         uploaded_by: userId,
-        attachment_id: attachment.id,
         status: "draft",
         ai_model: RECEIPT_SCAN_MODEL,
       })
@@ -74,13 +78,61 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
       .single();
     if (dErr) throw new Error(dErr.message);
 
+    const createdAttachmentIds: string[] = [];
+    const scanParts: ReceiptScanFilePart[] = [];
+
     try {
-      const bytes = new Uint8Array(arrayBuf);
-      const output = await scanReceiptContent({
-        bytes,
-        mimeType: data.mimeType,
-        fileName: data.fileName,
-      });
+      for (let i = 0; i < fileMetas.length; i++) {
+        const meta = fileMetas[i];
+        const { data: blob, error: dlErr } = await supabase.storage
+          .from("finance-attachments")
+          .download(meta.storagePath);
+        if (dlErr || !blob) throw new Error(dlErr?.message ?? `Kunne ikke laste ned ${meta.fileName}`);
+
+        const arrayBuf = await blob.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuf);
+
+        const { data: attachment, error: aErr } = await supabase
+          .from("finance_attachments")
+          .insert({
+            organization_id: data.organizationId,
+            entry_id: null,
+            receipt_draft_id: draft.id,
+            page_index: i,
+            storage_path: meta.storagePath,
+            file_name: meta.fileName,
+            mime_type: meta.mimeType,
+            size_bytes: meta.sizeBytes,
+            uploaded_by: userId,
+          } as any)
+          .select("id")
+          .single();
+        if (aErr) throw new Error(aErr.message);
+
+        createdAttachmentIds.push(attachment.id);
+        scanParts.push({ bytes, mimeType: meta.mimeType, fileName: meta.fileName });
+      }
+
+      // Backwards-compat: set attachment_id to first one
+      await supabase
+        .from("finance_receipt_drafts")
+        .update({ attachment_id: createdAttachmentIds[0] })
+        .eq("id", draft.id);
+    } catch (err: any) {
+      // Rollback: delete created attachments + storage files + draft
+      if (createdAttachmentIds.length > 0) {
+        await supabase.from("finance_attachments").delete().in("id", createdAttachmentIds);
+      }
+      const paths = fileMetas.map((m) => m.storagePath);
+      if (paths.length > 0) {
+        await supabase.storage.from("finance-attachments").remove(paths);
+      }
+      await supabase.from("finance_receipt_drafts").delete().eq("id", draft.id);
+      throw new Error(err?.message ?? "Klarte ikke forberede utkast");
+    }
+
+    try {
+      const output = await scanReceiptContentFromParts(scanParts);
 
       await supabase
         .from("finance_receipt_drafts")
@@ -91,7 +143,12 @@ export const scanReceiptDraft = createServerFn({ method: "POST" })
         })
         .eq("id", draft.id);
 
-      return { draftId: draft.id, attachmentId: attachment.id, suggestion: output };
+      return {
+        draftId: draft.id,
+        attachmentIds: createdAttachmentIds,
+        attachmentCount: createdAttachmentIds.length,
+        suggestion: output,
+      };
     } catch (err: any) {
       const msg = err?.message ?? "AI-skanning feilet";
       await supabase
@@ -166,7 +223,15 @@ export const convertDraftToEntry = createServerFn({ method: "POST" })
       .single();
     if (eErr) throw new Error(eErr.message);
 
-    if (draft.attachment_id) {
+    // Primary: link all draft attachments via receipt_draft_id
+    const { data: linked } = await supabase
+      .from("finance_attachments")
+      .update({ entry_id: entry.id })
+      .eq("receipt_draft_id", draft.id)
+      .select("id");
+
+    // Fallback for legacy drafts without receipt_draft_id
+    if ((!linked || linked.length === 0) && draft.attachment_id) {
       await supabase
         .from("finance_attachments")
         .update({ entry_id: entry.id })
@@ -178,5 +243,5 @@ export const convertDraftToEntry = createServerFn({ method: "POST" })
       .update({ status: "converted", converted_entry_id: entry.id })
       .eq("id", draft.id);
 
-    return { entryId: entry.id };
+    return { entryId: entry.id, attachmentCount: linked?.length ?? (draft.attachment_id ? 1 : 0) };
   });

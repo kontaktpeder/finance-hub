@@ -33,7 +33,7 @@ function ScanPage() {
   const qc = useQueryClient();
   const scanFn = useServerFn(scanReceiptDraft);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [bookId, setBookId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
 
@@ -68,28 +68,48 @@ function ScanPage() {
     },
   });
 
+  const MAX_FILES = 10;
+  const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
+
   async function handleScan() {
-    if (!file) { toast.error("Velg en fil"); return; }
+    if (files.length === 0) { toast.error("Velg minst én fil"); return; }
+    if (files.length > MAX_FILES) { toast.error(`Maks ${MAX_FILES} filer`); return; }
+    const total = files.reduce((s, f) => s + f.size, 0);
+    if (total > MAX_TOTAL_BYTES) { toast.error("Total størrelse overstiger 25 MB"); return; }
     if (!bookId) { toast.error("Velg regnskapsbok"); return; }
     setScanning(true);
+    const uploaded: { path: string; file: File }[] = [];
     try {
-      const path = `${orgId}/drafts/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage
-        .from("finance-attachments")
-        .upload(path, file, { contentType: file.type });
-      if (upErr) throw upErr;
+      const ts = Date.now();
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const path = `${orgId}/drafts/${ts}-${i}-${f.name}`;
+        const { error: upErr } = await supabase.storage
+          .from("finance-attachments")
+          .upload(path, f, { contentType: f.type });
+        if (upErr) {
+          // cleanup already-uploaded paths
+          if (uploaded.length > 0) {
+            await supabase.storage.from("finance-attachments").remove(uploaded.map((u) => u.path));
+          }
+          throw upErr;
+        }
+        uploaded.push({ path, file: f });
+      }
       const res = await scanFn({
         data: {
           organizationId: orgId,
           bookId,
-          storagePath: path,
-          fileName: file.name,
-          mimeType: file.type,
-          sizeBytes: file.size,
+          files: uploaded.map((u) => ({
+            storagePath: u.path,
+            fileName: u.file.name,
+            mimeType: u.file.type || "application/octet-stream",
+            sizeBytes: u.file.size,
+          })),
         },
       });
       toast.success("AI-forslag klart");
-      setFile(null);
+      setFiles([]);
       setActiveDraftId(res.draftId);
       qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
     } catch (err: any) {
@@ -138,15 +158,26 @@ function ScanPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Fil (bilde eller PDF)</Label>
+              <Label>Filer (bilder eller PDF)</Label>
               <Input
                 type="file"
                 accept="image/*,application/pdf"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                multiple
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
                 className="max-w-full"
               />
+              <p className="text-[11px] text-muted-foreground">
+                Du kan laste opp flere bilder av samme kvittering/faktura, eller én PDF. Maks 10 filer / 25 MB totalt.
+              </p>
+              {files.length > 0 && (
+                <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                  {files.map((f, i) => (
+                    <li key={i} className="truncate">{i + 1}. {f.name} ({Math.round(f.size / 1024)} KB)</li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <Button onClick={handleScan} disabled={scanning || !file} className="w-full">
+            <Button onClick={handleScan} disabled={scanning || files.length === 0} className="w-full">
               {scanning ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Skanner…</> : <><Upload className="h-4 w-4 mr-2" /> Skann med AI</>}
             </Button>
           </div>
@@ -237,28 +268,47 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
     pre_company_expense: s?.pre_company_expense ?? false,
     notes: s?.notes ?? "",
   }));
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
-  const [mimeType, setMimeType] = useState<string>("");
+  const [activeAttachmentId, setActiveAttachmentId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useQuery({
-    queryKey: ["attachment-url", draft.attachment_id],
-    enabled: !!draft.attachment_id,
+  const { data: attachments } = useQuery({
+    queryKey: ["draft-attachments", draft.id],
     queryFn: async () => {
-      const { data: att } = await supabase
+      const { data, error } = await supabase
         .from("finance_attachments")
-        .select("storage_path, mime_type")
-        .eq("id", draft.attachment_id!)
-        .single();
-      if (!att) return null;
-      setMimeType(att.mime_type ?? "");
+        .select("id, file_name, mime_type, storage_path, page_index")
+        .eq("receipt_draft_id", draft.id)
+        .order("page_index", { ascending: true });
+      if (error) throw error;
+      let list = data ?? [];
+      if (list.length === 0 && draft.attachment_id) {
+        const { data: fallback } = await supabase
+          .from("finance_attachments")
+          .select("id, file_name, mime_type, storage_path, page_index")
+          .eq("id", draft.attachment_id);
+        list = fallback ?? [];
+      }
+      return list as Array<{ id: string; file_name: string; mime_type: string | null; storage_path: string; page_index: number | null }>;
+    },
+  });
+
+  const activeAttachment = useMemo(() => {
+    if (!attachments?.length) return null;
+    return attachments.find((a) => a.id === activeAttachmentId) ?? attachments[0];
+  }, [attachments, activeAttachmentId]);
+
+  const { data: signedUrl } = useQuery({
+    queryKey: ["attachment-url", activeAttachment?.id],
+    enabled: !!activeAttachment,
+    queryFn: async () => {
       const { data: url } = await supabase.storage
         .from("finance-attachments")
-        .createSignedUrl(att.storage_path, 600);
-      setSignedUrl(url?.signedUrl ?? null);
+        .createSignedUrl(activeAttachment!.storage_path, 600);
       return url?.signedUrl ?? null;
     },
   });
+
+  const mimeType = activeAttachment?.mime_type ?? "";
 
   const conf: Record<string, number> = {};
   const notes: Record<string, string> = {};
@@ -315,16 +365,32 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden min-w-0">
-        {signedUrl ? (
-          mimeType === "application/pdf" ? (
-            <iframe src={signedUrl} className="w-full h-[60vh] sm:h-[700px]" title="Dokument" />
-          ) : (
-            <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[60vh] sm:max-h-[700px] object-contain" />
-          )
-        ) : (
-          <div className="text-sm text-muted-foreground">Laster dokument…</div>
+      <div className="space-y-2 min-w-0">
+        {attachments && attachments.length > 1 && (
+          <div className="flex flex-wrap gap-1.5">
+            {attachments.map((a, i) => (
+              <button
+                key={a.id}
+                onClick={() => setActiveAttachmentId(a.id)}
+                className={`text-xs px-2 py-1 rounded border truncate max-w-[160px] ${activeAttachment?.id === a.id ? "bg-accent border-primary" : "bg-card hover:bg-accent/40"}`}
+                title={a.file_name}
+              >
+                {i + 1}. {a.file_name}
+              </button>
+            ))}
+          </div>
         )}
+        <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden min-w-0">
+          {signedUrl ? (
+            mimeType === "application/pdf" ? (
+              <iframe src={signedUrl} className="w-full h-[60vh] sm:h-[700px]" title="Dokument" />
+            ) : (
+              <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[60vh] sm:max-h-[700px] object-contain" />
+            )
+          ) : (
+            <div className="text-sm text-muted-foreground">Laster dokument…</div>
+          )}
+        </div>
       </div>
 
       <div className="rounded-md border bg-card p-4 space-y-3 min-w-0">
