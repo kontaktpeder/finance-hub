@@ -21,7 +21,7 @@ function ReportsPage() {
       const { data: entries, error } = await supabase
         .from("finance_entries")
         .select(
-          "voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, vat_rate, vat_amount, amount_net, payment_status",
+          "voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, vat_rate, vat_amount, amount_net, payment_status, pre_company_expense",
         )
         .eq("organization_id", orgId)
         .gte("entry_date", `${year}-01-01`)
