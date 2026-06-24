@@ -162,10 +162,12 @@ function ScanPage() {
               <Input
                 type="file"
                 accept="image/*,application/pdf"
+                capture="environment"
                 multiple
                 onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
                 className="max-w-full"
               />
+
               <p className="text-[11px] text-muted-foreground">
                 Du kan laste opp flere bilder av samme kvittering/faktura, eller én PDF. Maks 10 filer / 25 MB totalt.
               </p>
