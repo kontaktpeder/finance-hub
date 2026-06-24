@@ -151,34 +151,6 @@ function ScanPage() {
             </Button>
           </div>
 
-          <div className="rounded-md border bg-card">
-            <div className="p-3 border-b text-sm font-medium">Utkast</div>
-            <ul className="divide-y">
-              {drafts?.length === 0 && (
-                <li className="p-4 text-sm text-muted-foreground">Ingen utkast ennå.</li>
-              )}
-              {drafts?.map((d) => (
-                <li key={d.id}>
-                  <button
-                    onClick={() => setActiveDraftId(d.id)}
-                    className={`w-full text-left p-3 hover:bg-accent/40 transition ${activeDraftId === d.id ? "bg-accent/60" : ""}`}
-                  >
-                    <div className="flex items-center justify-between gap-2 min-w-0">
-                      <div className="text-sm font-medium truncate min-w-0 flex-1">
-                        {d.ai_suggestion?.description ?? "Uten beskrivelse"}
-                      </div>
-                      <StatusBadge status={d.status} />
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5 tabular truncate">
-                      {d.ai_suggestion?.amount_gross != null
-                        ? `${d.ai_suggestion.amount_gross} ${d.ai_suggestion?.entry_date ?? ""}`
-                        : new Date(d.created_at).toLocaleString("nb-NO")}
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
 
         <div className="min-w-0">
@@ -198,7 +170,40 @@ function ScanPage() {
           )}
         </div>
       </div>
+
+      <details className="mt-6 rounded-md border bg-card group" open={!activeDraft}>
+        <summary className="p-3 border-b text-sm font-medium cursor-pointer flex items-center justify-between list-none [&::-webkit-details-marker]:hidden">
+          <span>Utkast {drafts?.length ? `(${drafts.length})` : ""}</span>
+          <span className="text-xs text-muted-foreground transition-transform group-open:rotate-180">▾</span>
+        </summary>
+        <ul className="divide-y">
+          {drafts?.length === 0 && (
+            <li className="p-4 text-sm text-muted-foreground">Ingen utkast ennå.</li>
+          )}
+          {drafts?.map((d) => (
+            <li key={d.id}>
+              <button
+                onClick={() => setActiveDraftId(d.id)}
+                className={`w-full text-left p-3 hover:bg-accent/40 transition ${activeDraftId === d.id ? "bg-accent/60" : ""}`}
+              >
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <div className="text-sm font-medium truncate min-w-0 flex-1">
+                    {d.ai_suggestion?.description ?? "Uten beskrivelse"}
+                  </div>
+                  <StatusBadge status={d.status} />
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5 tabular truncate">
+                  {d.ai_suggestion?.amount_gross != null
+                    ? `${d.ai_suggestion.amount_gross} ${d.ai_suggestion?.entry_date ?? ""}`
+                    : new Date(d.created_at).toLocaleString("nb-NO")}
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
+
   );
 }
 
