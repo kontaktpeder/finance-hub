@@ -268,28 +268,47 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
     pre_company_expense: s?.pre_company_expense ?? false,
     notes: s?.notes ?? "",
   }));
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
-  const [mimeType, setMimeType] = useState<string>("");
+  const [activeAttachmentId, setActiveAttachmentId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useQuery({
-    queryKey: ["attachment-url", draft.attachment_id],
-    enabled: !!draft.attachment_id,
+  const { data: attachments } = useQuery({
+    queryKey: ["draft-attachments", draft.id],
     queryFn: async () => {
-      const { data: att } = await supabase
+      const { data, error } = await supabase
         .from("finance_attachments")
-        .select("storage_path, mime_type")
-        .eq("id", draft.attachment_id!)
-        .single();
-      if (!att) return null;
-      setMimeType(att.mime_type ?? "");
+        .select("id, file_name, mime_type, storage_path, page_index")
+        .eq("receipt_draft_id", draft.id)
+        .order("page_index", { ascending: true });
+      if (error) throw error;
+      let list = data ?? [];
+      if (list.length === 0 && draft.attachment_id) {
+        const { data: fallback } = await supabase
+          .from("finance_attachments")
+          .select("id, file_name, mime_type, storage_path, page_index")
+          .eq("id", draft.attachment_id);
+        list = fallback ?? [];
+      }
+      return list as Array<{ id: string; file_name: string; mime_type: string | null; storage_path: string; page_index: number | null }>;
+    },
+  });
+
+  const activeAttachment = useMemo(() => {
+    if (!attachments?.length) return null;
+    return attachments.find((a) => a.id === activeAttachmentId) ?? attachments[0];
+  }, [attachments, activeAttachmentId]);
+
+  const { data: signedUrl } = useQuery({
+    queryKey: ["attachment-url", activeAttachment?.id],
+    enabled: !!activeAttachment,
+    queryFn: async () => {
       const { data: url } = await supabase.storage
         .from("finance-attachments")
-        .createSignedUrl(att.storage_path, 600);
-      setSignedUrl(url?.signedUrl ?? null);
+        .createSignedUrl(activeAttachment!.storage_path, 600);
       return url?.signedUrl ?? null;
     },
   });
+
+  const mimeType = activeAttachment?.mime_type ?? "";
 
   const conf: Record<string, number> = {};
   const notes: Record<string, string> = {};
