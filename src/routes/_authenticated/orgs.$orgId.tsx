@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId")({
 });
 
 type NavItem = {
-  to: "/orgs/$orgId" | "/orgs/$orgId/entries" | "/orgs/$orgId/scan" | "/orgs/$orgId/invoices" | "/orgs/$orgId/bank" | "/orgs/$orgId/attachments" | "/orgs/$orgId/reports" | "/orgs/$orgId/settings" | "/orgs/$orgId/members" | "/orgs/$orgId/api-keys";
+  to: "/orgs/$orgId/dashboard" | "/orgs/$orgId/entries" | "/orgs/$orgId/scan" | "/orgs/$orgId/invoices" | "/orgs/$orgId/bank" | "/orgs/$orgId/attachments" | "/orgs/$orgId/reports" | "/orgs/$orgId/settings" | "/orgs/$orgId/members" | "/orgs/$orgId/api-keys";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
@@ -33,17 +33,18 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { to: "/orgs/$orgId", label: "Dashbord", icon: LayoutDashboard, exact: true, primary: true },
-  { to: "/orgs/$orgId/entries", label: "Poster", icon: Receipt, primary: true },
   { to: "/orgs/$orgId/scan", label: "Skann", icon: ScanLine, primary: true },
-  { to: "/orgs/$orgId/invoices", label: "Faktura", icon: FileSpreadsheet, primary: true },
-  { to: "/orgs/$orgId/bank", label: "Bank", icon: Landmark, primary: true },
-  { to: "/orgs/$orgId/attachments", label: "Bilag", icon: Paperclip },
-  { to: "/orgs/$orgId/reports", label: "Rapporter", icon: FileText },
+  { to: "/orgs/$orgId/dashboard", label: "Dashbord", icon: LayoutDashboard, primary: true },
+  { to: "/orgs/$orgId/entries", label: "Poster", icon: Receipt, primary: true },
+  { to: "/orgs/$orgId/reports", label: "Rapporter", icon: FileText, primary: true },
+  { to: "/orgs/$orgId/attachments", label: "Bilag", icon: Paperclip, primary: true },
+  { to: "/orgs/$orgId/invoices", label: "Faktura", icon: FileSpreadsheet },
+  { to: "/orgs/$orgId/bank", label: "Bank", icon: Landmark },
   { to: "/orgs/$orgId/settings", label: "Innstillinger", icon: Settings },
   { to: "/orgs/$orgId/members", label: "Medlemmer", icon: Users },
   { to: "/orgs/$orgId/api-keys", label: "API-nøkler", icon: KeyRound },
 ];
+
 
 function OrgLayout() {
   const { orgId } = Route.useParams();
