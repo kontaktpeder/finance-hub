@@ -165,13 +165,33 @@ function OrgLayout() {
 
       {/* Mobile bottom tab bar */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur grid grid-cols-5 h-16"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur grid grid-cols-5 h-16 items-stretch"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {primaryTabs.map((tab) => {
           const targetPath = tab.to.replace("$orgId", orgId);
           const isActive =
             "exact" in tab && tab.exact ? pathname === targetPath : pathname.startsWith(targetPath);
+          const isScan = tab.to === "/orgs/$orgId/scan";
+          if (isScan) {
+            return (
+              <Link
+                key={tab.to}
+                to={tab.to}
+                params={{ orgId }}
+                className="flex items-center justify-center -mt-4"
+                aria-label="Skann bilag"
+              >
+                <span
+                  className={`grid place-items-center h-14 w-14 rounded-full shadow-lg ring-4 ring-background transition-colors ${
+                    isActive ? "bg-primary text-primary-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                >
+                  <tab.icon className="h-6 w-6" />
+                </span>
+              </Link>
+            );
+          }
           return (
             <Link
               key={tab.to}
@@ -188,6 +208,7 @@ function OrgLayout() {
           );
         })}
       </nav>
+
     </div>
   );
 }
