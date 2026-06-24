@@ -194,17 +194,64 @@ function ScanPage() {
         </div>
 
         <div className="min-w-0">
-          {activeDraft ? (
+          {convertedEntryId ? (
+            <div className="rounded-md border bg-card p-6 sm:p-8 text-center space-y-5">
+              <div className="mx-auto h-14 w-14 rounded-full bg-emerald-500/10 grid place-items-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Bilag opprettet</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Posten er bokført. Hva vil du gjøre nå?
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setConvertedEntryId(null);
+                    setActiveDraftId(null);
+                    setFiles([]);
+                    if (typeof window !== "undefined") {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                >
+                  <Camera className="h-4 w-4 mr-2" /> Skann neste
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() =>
+                    navigate({ to: "/orgs/$orgId/entries", params: { orgId } })
+                  }
+                >
+                  Se post <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  onClick={() =>
+                    navigate({ to: "/orgs/$orgId/entries", params: { orgId } })
+                  }
+                >
+                  Gå til poster
+                </Button>
+              </div>
+            </div>
+          ) : activeDraft ? (
             <ReviewPanel
               orgId={orgId}
               draft={activeDraft}
-              onConverted={() => {
+              onConverted={(entryId) => {
+                setConvertedEntryId(entryId);
                 qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
                 qc.invalidateQueries({ queryKey: ["entries", orgId] });
               }}
             />
           ) : (
             <div className="rounded-md border bg-card p-12 text-center text-muted-foreground">
+
               Velg eller skann et utkast for å se AI-forslaget her.
             </div>
           )}
