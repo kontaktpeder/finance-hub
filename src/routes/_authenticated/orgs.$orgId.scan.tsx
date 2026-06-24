@@ -32,11 +32,14 @@ type DraftRow = {
 function ScanPage() {
   const { orgId } = Route.useParams();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const scanFn = useServerFn(scanReceiptDraft);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [convertedEntryId, setConvertedEntryId] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [bookId, setBookId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
+
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
