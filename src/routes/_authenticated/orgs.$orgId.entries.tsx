@@ -124,6 +124,7 @@ function EntriesPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [preFilter, setPreFilter] = useState<PreFilter>("all");
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
@@ -144,7 +145,7 @@ function EntriesPage() {
       const { data, error } = await supabase
         .from("finance_entries")
         .select(
-          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes",
+          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes, pre_company_expense",
         )
         .eq("organization_id", orgId)
         .order("entry_date", { ascending: false })
@@ -154,42 +155,84 @@ function EntriesPage() {
     },
   });
 
+  const filteredEntries = useMemo(
+    () => (entries ?? []).filter((e) => matchesPreFilter(e, preFilter)),
+    [entries, preFilter],
+  );
+
   const { income, expense } = useMemo(() => {
     const inc: Entry[] = [];
     const exp: Entry[] = [];
-    for (const e of entries ?? []) {
+    for (const e of filteredEntries) {
       if (e.entry_type === "income") inc.push(e);
       else exp.push(e);
     }
     return { income: inc, expense: exp };
-  }, [entries]);
+  }, [filteredEntries]);
+
+  const hasAnyPre = useMemo(
+    () => (entries ?? []).some((e) => e.pre_company_expense),
+    [entries],
+  );
 
   return (
     <div className="p-3 sm:p-6 md:p-8 max-w-6xl">
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Poster</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gruppert på kategori. Klikk en post for detaljer.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="shrink-0">
-              <Plus className="h-4 w-4 mr-2" /> Ny post
-            </Button>
-          </DialogTrigger>
-          <NewEntryDialog
-            orgId={orgId}
-            books={books ?? []}
-            onCreated={() => {
-              qc.invalidateQueries({ queryKey: ["entries", orgId] });
-              qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
-              setOpen(false);
-            }}
-          />
-        </Dialog>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportEntriesCsv(filteredEntries, orgId)}
+            disabled={filteredEntries.length === 0}
+          >
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">CSV</span>
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Ny post</span>
+              </Button>
+            </DialogTrigger>
+            <NewEntryDialog
+              orgId={orgId}
+              books={books ?? []}
+              onCreated={() => {
+                qc.invalidateQueries({ queryKey: ["entries", orgId] });
+                qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
+                setOpen(false);
+              }}
+            />
+          </Dialog>
+        </div>
       </header>
+
+      {hasAnyPre && (
+        <div className="mb-4 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground">Vis:</span>
+            <ToggleGroup
+              type="single"
+              value={preFilter}
+              onValueChange={(v) => v && setPreFilter(v as PreFilter)}
+              variant="outline"
+              size="sm"
+            >
+              <ToggleGroupItem value="all">Alle</ToggleGroupItem>
+              <ToggleGroupItem value="pre">Før stiftelse</ToggleGroupItem>
+              <ToggleGroupItem value="ordinary">Ordinære</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+          <PreCompanyTotals entries={entries ?? []} activeFilter={preFilter} />
+        </div>
+      )}
 
       {isLoading && (
         <div className="text-sm text-muted-foreground py-8 text-center">Laster…</div>
@@ -218,6 +261,7 @@ function EntriesPage() {
         </div>
       )}
     </div>
+
   );
 }
 
