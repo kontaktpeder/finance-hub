@@ -469,6 +469,7 @@ export type Database = {
           invoice_status: Database["public"]["Enums"]["invoice_status"]
           notes: string | null
           organization_id: string
+          original_voucher_number: string | null
           paid_at: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           pre_company_expense: boolean
@@ -501,6 +502,7 @@ export type Database = {
           invoice_status?: Database["public"]["Enums"]["invoice_status"]
           notes?: string | null
           organization_id: string
+          original_voucher_number?: string | null
           paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pre_company_expense?: boolean
@@ -533,6 +535,7 @@ export type Database = {
           invoice_status?: Database["public"]["Enums"]["invoice_status"]
           notes?: string | null
           organization_id?: string
+          original_voucher_number?: string | null
           paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pre_company_expense?: boolean
