@@ -560,6 +560,8 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
           value={entry.voucher_number}
           help="Internt bilagsnummer i regnskapsboken"
         />
+        <Field label="Stiftelse" value={preCompanyLabel(entry.pre_company_expense)} />
+
 
         {isInvoice ? (
           <>
