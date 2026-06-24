@@ -305,7 +305,7 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant={m.variant} className="text-[10px]">{m.label}</Badge>;
 }
 
-function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: () => void }) {
+function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: DraftRow; onConverted: (entryId: string) => void }) {
   const convertFn = useServerFn(convertDraftToEntry);
   const s = draft.ai_suggestion;
   const [form, setForm] = useState(() => ({
