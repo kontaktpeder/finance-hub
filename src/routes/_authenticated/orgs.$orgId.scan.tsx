@@ -20,13 +20,16 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId/scan")({
   component: ScanPage,
 });
 
-type DraftRow = {
+type DraftListRow = {
   id: string;
   status: string;
-  ai_suggestion: ReceiptSuggestion | null;
   attachment_id: string | null;
   book_id: string;
   created_at: string;
+};
+
+type DraftRow = DraftListRow & {
+  ai_suggestion: ReceiptSuggestion | null;
 };
 
 function ScanPage() {
