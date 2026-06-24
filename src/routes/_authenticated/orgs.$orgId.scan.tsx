@@ -180,9 +180,10 @@ function ScanPage() {
                 </ul>
               )}
             </div>
-            <Button onClick={handleScan} disabled={scanning || files.length === 0} className="w-full">
-              {scanning ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Skanner…</> : <><Upload className="h-4 w-4 mr-2" /> Skann med AI</>}
+            <Button onClick={handleScan} disabled={scanning || files.length === 0} size="lg" className="w-full text-base">
+              {scanning ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Skanner…</> : <><Camera className="h-5 w-5 mr-2" /> Skann bilag med AI</>}
             </Button>
+
           </div>
 
         </div>
