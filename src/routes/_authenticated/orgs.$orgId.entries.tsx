@@ -258,29 +258,28 @@ function CategoryGroup({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-5 py-3 hover:bg-muted/40 transition-colors text-left"
+        className="w-full flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-3 hover:bg-muted/40 transition-colors text-left"
       >
         {open ? (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         )}
-        <Folder className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium">{group.name}</span>
-        <span className="text-xs text-muted-foreground">{group.items.length} linjer</span>
-        <span className="ml-auto flex items-center gap-3">
+        <Folder className="hidden sm:block h-4 w-4 shrink-0 text-muted-foreground" />
+        <span className="font-medium truncate min-w-0">{group.name}</span>
+        <span className="text-xs text-muted-foreground shrink-0">{group.items.length}</span>
+        <span className="ml-auto flex items-center gap-2 sm:gap-3 shrink-0">
           {group.unpaid > 0 && (
-            <span className="text-xs text-muted-foreground">
+            <span className="hidden sm:inline text-xs text-muted-foreground">
               ({formatNOK(group.unpaid)} kr ubetalt)
             </span>
           )}
-          <span className="tabular font-semibold">{formatNOK(group.total)} kr</span>
+          <span className="tabular text-sm sm:text-base font-semibold">{formatNOK(group.total)} kr</span>
         </span>
       </button>
       {open && (
-        <div className="bg-muted/20 overflow-x-auto">
-          <div className="min-w-[900px]">
-          <div className="grid grid-cols-[90px_90px_1fr_1fr_110px_90px_110px_24px] gap-4 px-5 py-2 text-[11px] uppercase tracking-wider text-muted-foreground border-y">
+        <div className="bg-muted/20 sm:overflow-x-auto">
+          <div className="hidden sm:grid sm:min-w-[900px] grid-cols-[90px_90px_1fr_1fr_110px_90px_110px_24px] gap-4 px-5 py-2 text-[11px] uppercase tracking-wider text-muted-foreground border-y">
             <span>Bilag</span>
             <span>Dato</span>
             <span>Motpart</span>
@@ -290,15 +289,16 @@ function CategoryGroup({
             <span>Faktura</span>
             <span></span>
           </div>
-          {group.items.map((e) => (
-            <EntryRow
-              key={e.id}
-              entry={e}
-              orgId={orgId}
-              expanded={expandedId === e.id}
-              onToggle={() => setExpandedId(expandedId === e.id ? null : e.id)}
-            />
-          ))}
+          <div className="sm:min-w-[900px]">
+            {group.items.map((e) => (
+              <EntryRow
+                key={e.id}
+                entry={e}
+                orgId={orgId}
+                expanded={expandedId === e.id}
+                onToggle={() => setExpandedId(expandedId === e.id ? null : e.id)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -320,10 +320,33 @@ function EntryRow({
   const isInvoice = entry.source_type === "invoice" && entry.source_ref;
   return (
     <>
+      {/* Mobile card */}
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full grid grid-cols-[90px_90px_1fr_1fr_110px_90px_110px_24px] gap-4 px-5 py-2.5 items-center text-sm text-left hover:bg-muted/40 transition-colors ${
+        className={`sm:hidden w-full flex items-center justify-between gap-3 px-4 py-3 text-left border-t hover:bg-muted/40 transition-colors ${
+          expanded ? "bg-muted/40" : ""
+        }`}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">
+            {entry.counterparty ?? entry.description}
+          </div>
+          <div className="truncate text-xs text-muted-foreground mt-0.5">
+            {formatDate(entry.entry_date)}
+            {entry.payment_status === "unpaid" && " · Ubetalt"}
+          </div>
+        </div>
+        <div className="tabular text-sm font-semibold shrink-0">
+          {formatNOK(entry.amount_gross)}
+        </div>
+      </button>
+
+      {/* Desktop row */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`hidden sm:grid w-full grid-cols-[90px_90px_1fr_1fr_110px_90px_110px_24px] gap-4 px-5 py-2.5 items-center text-sm text-left hover:bg-muted/40 transition-colors ${
           expanded ? "bg-muted/40" : ""
         }`}
       >
@@ -358,6 +381,7 @@ function EntryRow({
     </>
   );
 }
+
 
 function StatusBadge({ kind, value }: { kind: "payment" | "invoice"; value: string }) {
   const map: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
