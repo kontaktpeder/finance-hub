@@ -41,6 +41,8 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId/entries")({
   component: EntriesPage,
 });
 
+type PreFilter = "all" | "pre" | "ordinary";
+
 type Entry = {
   id: string;
   voucher_number: string | null;
@@ -61,7 +63,61 @@ type Entry = {
   source_ref: string | null;
   external_url: string | null;
   notes: string | null;
+  pre_company_expense: boolean;
 };
+
+function preCompanyLabel(pre: boolean): string {
+  return pre ? "Før stiftelse" : "Ordinær";
+}
+
+function matchesPreFilter(entry: Entry, filter: PreFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "pre") return entry.pre_company_expense;
+  return !entry.pre_company_expense;
+}
+
+function sumByPreAndType(entries: Entry[], pre: boolean) {
+  let income = 0;
+  let expense = 0;
+  for (const e of entries) {
+    if (e.pre_company_expense !== pre) continue;
+    const amt = Number(e.amount_gross);
+    if (e.entry_type === "income") income += amt;
+    else expense += amt;
+  }
+  return { income, expense };
+}
+
+function exportEntriesCsv(entries: Entry[], orgId: string) {
+  const header = [
+    "voucher_number", "entry_type", "entry_date", "description", "counterparty",
+    "category", "category_group", "amount_gross", "amount_net", "vat_rate", "vat_amount",
+    "payment_status", "invoice_status", "pre_company_expense", "pre_company_label",
+  ];
+  const rows = [header.join(",")];
+  for (const e of entries) {
+    const row: Record<string, unknown> = {
+      ...e,
+      pre_company_expense: e.pre_company_expense ? "true" : "false",
+      pre_company_label: preCompanyLabel(e.pre_company_expense),
+    };
+    rows.push(
+      header.map((k) => {
+        const v = row[k] ?? "";
+        const s = String(v).replace(/"/g, '""');
+        return /[,"\n]/.test(s) ? `"${s}"` : s;
+      }).join(","),
+    );
+  }
+  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `poster-${orgId.slice(0, 8)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
 function EntriesPage() {
   const { orgId } = Route.useParams();
