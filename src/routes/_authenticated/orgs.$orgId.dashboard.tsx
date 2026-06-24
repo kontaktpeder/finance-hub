@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNOK } from "@/lib/format";
 import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/orgs/$orgId/")({
+export const Route = createFileRoute("/_authenticated/orgs/$orgId/dashboard")({
   component: Dashboard,
 });
 
