@@ -71,10 +71,11 @@ function OrgList() {
             {orgs.map((o) => (
               <Link
                 key={o.id}
-                to="/orgs/$orgId"
+                to="/orgs/$orgId/scan"
                 params={{ orgId: o.id }}
                 className="block"
               >
+
                 <Card className="hover:border-primary/50 transition-colors h-full">
                   <CardHeader>
                     <CardTitle className="text-base">{o.name}</CardTitle>
