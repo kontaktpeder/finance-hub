@@ -365,16 +365,32 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden min-w-0">
-        {signedUrl ? (
-          mimeType === "application/pdf" ? (
-            <iframe src={signedUrl} className="w-full h-[60vh] sm:h-[700px]" title="Dokument" />
-          ) : (
-            <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[60vh] sm:max-h-[700px] object-contain" />
-          )
-        ) : (
-          <div className="text-sm text-muted-foreground">Laster dokument…</div>
+      <div className="space-y-2 min-w-0">
+        {attachments && attachments.length > 1 && (
+          <div className="flex flex-wrap gap-1.5">
+            {attachments.map((a, i) => (
+              <button
+                key={a.id}
+                onClick={() => setActiveAttachmentId(a.id)}
+                className={`text-xs px-2 py-1 rounded border truncate max-w-[160px] ${activeAttachment?.id === a.id ? "bg-accent border-primary" : "bg-card hover:bg-accent/40"}`}
+                title={a.file_name}
+              >
+                {i + 1}. {a.file_name}
+              </button>
+            ))}
+          </div>
         )}
+        <div className="rounded-md border bg-muted/30 min-h-[320px] sm:min-h-[600px] flex items-center justify-center overflow-hidden min-w-0">
+          {signedUrl ? (
+            mimeType === "application/pdf" ? (
+              <iframe src={signedUrl} className="w-full h-[60vh] sm:h-[700px]" title="Dokument" />
+            ) : (
+              <img src={signedUrl} alt="Dokument" className="max-w-full max-h-[60vh] sm:max-h-[700px] object-contain" />
+            )
+          ) : (
+            <div className="text-sm text-muted-foreground">Laster dokument…</div>
+          )}
+        </div>
       </div>
 
       <div className="rounded-md border bg-card p-4 space-y-3 min-w-0">
