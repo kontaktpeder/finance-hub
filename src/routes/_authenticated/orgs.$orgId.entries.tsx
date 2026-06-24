@@ -432,8 +432,11 @@ function EntryRow({
         }`}
       >
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">
-            {entry.counterparty ?? entry.description}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="truncate text-sm font-medium">
+              {entry.counterparty ?? entry.description}
+            </span>
+            <PreCompanyBadge pre={entry.pre_company_expense} />
           </div>
           <div className="truncate text-xs text-muted-foreground mt-0.5">
             {formatDate(entry.entry_date)}
@@ -444,6 +447,7 @@ function EntryRow({
           {formatNOK(entry.amount_gross)}
         </div>
       </button>
+
 
       {/* Desktop row */}
       <button
