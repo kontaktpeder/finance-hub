@@ -50,7 +50,8 @@ function InvoicesPage() {
         .from("invoices")
         .select("id, invoice_number, customer_name, issue_date, due_date, total, status")
         .eq("organization_id", orgId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
       return data;
     },
