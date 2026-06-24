@@ -106,7 +106,7 @@ function EntriesPage() {
   }, [entries]);
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
+    <div className="p-3 sm:p-6 md:p-8 max-w-6xl">
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Poster</h1>
