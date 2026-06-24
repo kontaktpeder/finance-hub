@@ -158,15 +158,26 @@ function ScanPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Fil (bilde eller PDF)</Label>
+              <Label>Filer (bilder eller PDF)</Label>
               <Input
                 type="file"
                 accept="image/*,application/pdf"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                multiple
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
                 className="max-w-full"
               />
+              <p className="text-[11px] text-muted-foreground">
+                Du kan laste opp flere bilder av samme kvittering/faktura, eller én PDF. Maks 10 filer / 25 MB totalt.
+              </p>
+              {files.length > 0 && (
+                <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                  {files.map((f, i) => (
+                    <li key={i} className="truncate">{i + 1}. {f.name} ({Math.round(f.size / 1024)} KB)</li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <Button onClick={handleScan} disabled={scanning || !file} className="w-full">
+            <Button onClick={handleScan} disabled={scanning || files.length === 0} className="w-full">
               {scanning ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Skanner…</> : <><Upload className="h-4 w-4 mr-2" /> Skann med AI</>}
             </Button>
           </div>
