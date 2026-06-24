@@ -115,7 +115,9 @@ function ScanPage() {
       toast.success("AI-forslag klart");
       setFiles([]);
       setActiveDraftId(res.draftId);
+      setConvertedEntryId(null);
       qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
+
     } catch (err: any) {
       toast.error(err.message ?? "Skanning feilet");
     } finally {
