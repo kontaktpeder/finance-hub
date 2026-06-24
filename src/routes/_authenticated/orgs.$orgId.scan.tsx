@@ -257,7 +257,7 @@ function ScanPage() {
         </div>
       </div>
 
-      <details className="mt-6 rounded-md border bg-card group" open={!activeDraft}>
+      <details className="mt-6 rounded-md border bg-card group" open={!activeDraftId}>
         <summary className="p-3 border-b text-sm font-medium cursor-pointer flex items-center justify-between list-none [&::-webkit-details-marker]:hidden">
           <span>Utkast {drafts?.length ? `(${drafts.length})` : ""}</span>
           <span className="text-xs text-muted-foreground transition-transform group-open:rotate-180">▾</span>
