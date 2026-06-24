@@ -355,7 +355,7 @@ function CategoryGroup({
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div className="border-b last:border-b-0">
       <button
