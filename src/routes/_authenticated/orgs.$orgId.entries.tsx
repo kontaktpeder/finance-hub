@@ -202,22 +202,23 @@ function Section({
 
   return (
     <section className="rounded-lg border bg-card">
-      <header className="flex items-end justify-between p-5 border-b">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+      <header className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b">
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-semibold tracking-tight">{title}</h2>
+          <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">{subtitle}</p>
         </div>
-        <div className="text-right">
+        <div className="text-right shrink-0">
           {sectionUnpaid > 0 && (
-            <div className="text-xs text-muted-foreground">
-              ({formatNOK(sectionUnpaid)} kr ubetalt)
+            <div className="text-[10px] sm:text-xs text-muted-foreground">
+              {formatNOK(sectionUnpaid)} ubetalt
             </div>
           )}
-          <div className="tabular text-xl font-semibold">
+          <div className="tabular text-lg sm:text-xl font-semibold">
             {formatNOK(sectionTotal)} <span className="text-xs text-muted-foreground font-normal">kr</span>
           </div>
         </div>
       </header>
+
 
       {groups.length === 0 ? (
         <div className="p-8 text-center text-sm text-muted-foreground">
