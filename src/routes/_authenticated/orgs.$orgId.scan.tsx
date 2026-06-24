@@ -242,10 +242,10 @@ function ScanPage() {
                 </Button>
               </div>
             </div>
-          ) : activeDraft ? (
+          ) : activeDraftId ? (
             <ReviewPanel
               orgId={orgId}
-              draft={activeDraft}
+              draftId={activeDraftId}
               onConverted={(entryId) => {
                 setConvertedEntryId(entryId);
                 qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
