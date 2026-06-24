@@ -278,14 +278,9 @@ function ScanPage() {
               >
                 <div className="flex items-center justify-between gap-2 min-w-0">
                   <div className="text-sm font-medium truncate min-w-0 flex-1">
-                    {d.ai_suggestion?.description ?? "Uten beskrivelse"}
+                    {new Date(d.created_at).toLocaleString("nb-NO")}
                   </div>
                   <StatusBadge status={d.status} />
-                </div>
-                <div className="text-xs text-muted-foreground mt-0.5 tabular truncate">
-                  {d.ai_suggestion?.amount_gross != null
-                    ? `${d.ai_suggestion.amount_gross} ${d.ai_suggestion?.entry_date ?? ""}`
-                    : new Date(d.created_at).toLocaleString("nb-NO")}
                 </div>
               </button>
             </li>
