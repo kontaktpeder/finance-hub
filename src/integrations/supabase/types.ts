@@ -346,6 +346,8 @@ export type Database = {
           id: string
           mime_type: string | null
           organization_id: string
+          page_index: number | null
+          receipt_draft_id: string | null
           size_bytes: number | null
           storage_path: string
           uploaded_at: string
@@ -357,6 +359,8 @@ export type Database = {
           id?: string
           mime_type?: string | null
           organization_id: string
+          page_index?: number | null
+          receipt_draft_id?: string | null
           size_bytes?: number | null
           storage_path: string
           uploaded_at?: string
@@ -368,6 +372,8 @@ export type Database = {
           id?: string
           mime_type?: string | null
           organization_id?: string
+          page_index?: number | null
+          receipt_draft_id?: string | null
           size_bytes?: number | null
           storage_path?: string
           uploaded_at?: string
@@ -386,6 +392,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_attachments_receipt_draft_id_fkey"
+            columns: ["receipt_draft_id"]
+            isOneToOne: false
+            referencedRelation: "finance_receipt_drafts"
             referencedColumns: ["id"]
           },
         ]
