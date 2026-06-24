@@ -33,7 +33,7 @@ function ScanPage() {
   const qc = useQueryClient();
   const scanFn = useServerFn(scanReceiptDraft);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [bookId, setBookId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
 
@@ -68,28 +68,48 @@ function ScanPage() {
     },
   });
 
+  const MAX_FILES = 10;
+  const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
+
   async function handleScan() {
-    if (!file) { toast.error("Velg en fil"); return; }
+    if (files.length === 0) { toast.error("Velg minst én fil"); return; }
+    if (files.length > MAX_FILES) { toast.error(`Maks ${MAX_FILES} filer`); return; }
+    const total = files.reduce((s, f) => s + f.size, 0);
+    if (total > MAX_TOTAL_BYTES) { toast.error("Total størrelse overstiger 25 MB"); return; }
     if (!bookId) { toast.error("Velg regnskapsbok"); return; }
     setScanning(true);
+    const uploaded: { path: string; file: File }[] = [];
     try {
-      const path = `${orgId}/drafts/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage
-        .from("finance-attachments")
-        .upload(path, file, { contentType: file.type });
-      if (upErr) throw upErr;
+      const ts = Date.now();
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const path = `${orgId}/drafts/${ts}-${i}-${f.name}`;
+        const { error: upErr } = await supabase.storage
+          .from("finance-attachments")
+          .upload(path, f, { contentType: f.type });
+        if (upErr) {
+          // cleanup already-uploaded paths
+          if (uploaded.length > 0) {
+            await supabase.storage.from("finance-attachments").remove(uploaded.map((u) => u.path));
+          }
+          throw upErr;
+        }
+        uploaded.push({ path, file: f });
+      }
       const res = await scanFn({
         data: {
           organizationId: orgId,
           bookId,
-          storagePath: path,
-          fileName: file.name,
-          mimeType: file.type,
-          sizeBytes: file.size,
+          files: uploaded.map((u) => ({
+            storagePath: u.path,
+            fileName: u.file.name,
+            mimeType: u.file.type || "application/octet-stream",
+            sizeBytes: u.file.size,
+          })),
         },
       });
       toast.success("AI-forslag klart");
-      setFile(null);
+      setFiles([]);
       setActiveDraftId(res.draftId);
       qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
     } catch (err: any) {
