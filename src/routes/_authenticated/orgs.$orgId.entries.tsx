@@ -149,7 +149,7 @@ function EntriesPage() {
         )
         .eq("organization_id", orgId)
         .order("entry_date", { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return data as Entry[];
     },
