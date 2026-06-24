@@ -30,9 +30,12 @@ import {
   Folder,
   ExternalLink,
   FileText,
+  Download,
 } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
+
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/entries")({
   component: EntriesPage,
