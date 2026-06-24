@@ -387,7 +387,7 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
     if (draft.status === "converted") { toast.error("Allerede bokført"); return; }
     setBusy(true);
     try {
-      await convertFn({
+      const res = await convertFn({
         data: {
           organizationId: orgId,
           draftId: draft.id,
@@ -411,7 +411,8 @@ function ReviewPanel({ orgId, draft, onConverted }: { orgId: string; draft: Draf
         },
       });
       toast.success("Post opprettet");
-      onConverted();
+      onConverted(res.entryId);
+
     } catch (err: any) {
       toast.error(err.message ?? "Klarte ikke opprette post");
     } finally {
