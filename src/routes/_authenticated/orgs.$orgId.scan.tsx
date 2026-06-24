@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Upload, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera } from "lucide-react";
+import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { scanReceiptDraft, convertDraftToEntry, type ReceiptSuggestion } from "@/lib/receipt-drafts.functions";
 
