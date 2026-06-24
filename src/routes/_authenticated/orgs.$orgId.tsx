@@ -79,22 +79,30 @@ function OrgLayout() {
   function NavList({ onNavigate }: { onNavigate?: () => void }) {
     return (
       <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            params={{ orgId }}
-            activeOptions={"exact" in item && item.exact ? { exact: true } : undefined}
-            className={baseLink}
-            activeProps={activeProps}
-            onClick={onNavigate}
-          >
-            <item.icon className="h-4 w-4" /> {item.label}
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const isScan = item.to === "/orgs/$orgId/scan";
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              params={{ orgId }}
+              activeOptions={"exact" in item && item.exact ? { exact: true } : undefined}
+              className={
+                isScan
+                  ? "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors mb-1"
+                  : baseLink
+              }
+              activeProps={isScan ? undefined : activeProps}
+              onClick={onNavigate}
+            >
+              <item.icon className="h-4 w-4" /> {item.label}
+            </Link>
+          );
+        })}
       </nav>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-background md:grid md:grid-cols-[240px_1fr]">
