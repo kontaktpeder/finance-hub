@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera } from "lucide-react";
+import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { scanReceiptDraft, convertDraftToEntry, type ReceiptSuggestion } from "@/lib/receipt-drafts.functions";
+import { CameraCapture } from "@/components/scan/CameraCapture";
+
 
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/scan")({
