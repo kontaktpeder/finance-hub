@@ -186,6 +186,12 @@ export async function createFinanceEntryForInvoice(params: {
       if (race) {
         const raceId = (race as any).id as string;
         await supabase.from("invoices").update({ finance_entry_id: raceId }).eq("id", invoiceId);
+        await linkInvoicePdfToEntry(supabase, {
+          organizationId,
+          invoiceId,
+          entryId: raceId,
+          pdfAttachmentId: inv.pdf_attachment_id,
+        });
         return raceId;
       }
     }
@@ -198,6 +204,12 @@ export async function createFinanceEntryForInvoice(params: {
     .update({ finance_entry_id: entryId })
     .eq("id", invoiceId);
   if (linkErr) throw new Error(linkErr.message);
+  await linkInvoicePdfToEntry(supabase, {
+    organizationId,
+    invoiceId,
+    entryId,
+    pdfAttachmentId: inv.pdf_attachment_id,
+  });
   return entryId;
 }
 
