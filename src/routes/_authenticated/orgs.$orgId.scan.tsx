@@ -83,24 +83,23 @@ function ScanPage() {
   const MAX_FILES = 10;
   const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
 
-  async function handleScan() {
-    if (files.length === 0) { toast.error("Velg minst én fil"); return; }
-    if (files.length > MAX_FILES) { toast.error(`Maks ${MAX_FILES} filer`); return; }
-    const total = files.reduce((s, f) => s + f.size, 0);
+  async function runScan(filesToScan: File[]) {
+    if (filesToScan.length === 0) { toast.error("Velg minst én fil"); return; }
+    if (filesToScan.length > MAX_FILES) { toast.error(`Maks ${MAX_FILES} filer`); return; }
+    const total = filesToScan.reduce((s, f) => s + f.size, 0);
     if (total > MAX_TOTAL_BYTES) { toast.error("Total størrelse overstiger 25 MB"); return; }
     if (!bookId) { toast.error("Velg regnskapsbok"); return; }
     setScanning(true);
     const uploaded: { path: string; file: File }[] = [];
     try {
       const ts = Date.now();
-      for (let i = 0; i < files.length; i++) {
-        const f = files[i];
+      for (let i = 0; i < filesToScan.length; i++) {
+        const f = filesToScan[i];
         const path = `${orgId}/drafts/${ts}-${i}-${f.name}`;
         const { error: upErr } = await supabase.storage
           .from("finance-attachments")
           .upload(path, f, { contentType: f.type });
         if (upErr) {
-          // cleanup already-uploaded paths
           if (uploaded.length > 0) {
             await supabase.storage.from("finance-attachments").remove(uploaded.map((u) => u.path));
           }
@@ -125,13 +124,24 @@ function ScanPage() {
       setActiveDraftId(res.draftId);
       setConvertedEntryId(null);
       qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
-
     } catch (err: any) {
       toast.error(err.message ?? "Skanning feilet");
     } finally {
       setScanning(false);
     }
   }
+
+  function openGallery() {
+    setCameraOpen(false);
+    galleryInputRef.current?.click();
+  }
+
+  function handleCameraImage(file: File) {
+    setCameraOpen(false);
+    setFiles([file]);
+    void runScan([file]);
+  }
+
 
 
   return (
