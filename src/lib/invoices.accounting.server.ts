@@ -30,6 +30,30 @@ async function getDefaultBookId(supabase: any, organizationId: string): Promise<
   return (book as any).id as string;
 }
 
+async function linkInvoicePdfToEntry(
+  supabase: any,
+  params: { organizationId: string; invoiceId: string; entryId: string; pdfAttachmentId?: string | null },
+): Promise<void> {
+  let attachmentId = params.pdfAttachmentId ?? null;
+  if (!attachmentId) {
+    const { data: inv, error } = await supabase
+      .from("invoices")
+      .select("pdf_attachment_id")
+      .eq("id", params.invoiceId)
+      .eq("organization_id", params.organizationId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    attachmentId = (inv as any)?.pdf_attachment_id ?? null;
+  }
+  if (!attachmentId) return;
+  const { error: attachmentErr } = await supabase
+    .from("finance_attachments")
+    .update({ entry_id: params.entryId })
+    .eq("id", attachmentId)
+    .eq("organization_id", params.organizationId);
+  if (attachmentErr) throw new Error(attachmentErr.message);
+}
+
 export async function createFinanceEntryForInvoice(params: {
   supabase: any;
   invoiceId: string;
@@ -44,7 +68,7 @@ export async function createFinanceEntryForInvoice(params: {
   const { data: invoice, error: invErr } = await supabase
     .from("invoices")
     .select(
-      "id, organization_id, status, invoice_number, issue_date, due_date, total, subtotal, vat_amount, customer_name, finance_entry_id, paid_at",
+      "id, organization_id, status, invoice_number, issue_date, due_date, total, subtotal, vat_amount, customer_name, finance_entry_id, paid_at, pdf_attachment_id",
     )
     .eq("id", invoiceId)
     .eq("organization_id", organizationId)
@@ -53,7 +77,15 @@ export async function createFinanceEntryForInvoice(params: {
   if (!invoice) throw new Error("Faktura ikke funnet");
 
   const inv = invoice as any;
-  if (inv.finance_entry_id) return inv.finance_entry_id as string;
+  if (inv.finance_entry_id) {
+    await linkInvoicePdfToEntry(supabase, {
+      organizationId,
+      invoiceId,
+      entryId: inv.finance_entry_id as string,
+      pdfAttachmentId: inv.pdf_attachment_id,
+    });
+    return inv.finance_entry_id as string;
+  }
   if (inv.status !== "sent" && inv.status !== "paid") {
     throw new Error("Regnskapspost kan kun opprettes for sendt eller betalt faktura");
   }
@@ -73,6 +105,12 @@ export async function createFinanceEntryForInvoice(params: {
   if (existing) {
     const existingId = (existing as any).id as string;
     await supabase.from("invoices").update({ finance_entry_id: existingId }).eq("id", invoiceId);
+    await linkInvoicePdfToEntry(supabase, {
+      organizationId,
+      invoiceId,
+      entryId: existingId,
+      pdfAttachmentId: inv.pdf_attachment_id,
+    });
     return existingId;
   }
 
@@ -148,6 +186,12 @@ export async function createFinanceEntryForInvoice(params: {
       if (race) {
         const raceId = (race as any).id as string;
         await supabase.from("invoices").update({ finance_entry_id: raceId }).eq("id", invoiceId);
+        await linkInvoicePdfToEntry(supabase, {
+          organizationId,
+          invoiceId,
+          entryId: raceId,
+          pdfAttachmentId: inv.pdf_attachment_id,
+        });
         return raceId;
       }
     }
@@ -160,6 +204,12 @@ export async function createFinanceEntryForInvoice(params: {
     .update({ finance_entry_id: entryId })
     .eq("id", invoiceId);
   if (linkErr) throw new Error(linkErr.message);
+  await linkInvoicePdfToEntry(supabase, {
+    organizationId,
+    invoiceId,
+    entryId,
+    pdfAttachmentId: inv.pdf_attachment_id,
+  });
   return entryId;
 }
 
