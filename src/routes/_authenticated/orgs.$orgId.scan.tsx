@@ -44,6 +44,9 @@ function ScanPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [bookId, setBookId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
 
 
   const { data: books } = useQuery({
