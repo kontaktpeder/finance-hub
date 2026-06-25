@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera } from "lucide-react";
+import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { scanReceiptDraft, convertDraftToEntry, type ReceiptSuggestion } from "@/lib/receipt-drafts.functions";
+import { CameraCapture } from "@/components/scan/CameraCapture";
+
 
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/scan")({
@@ -42,6 +44,9 @@ function ScanPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [bookId, setBookId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
 
 
   const { data: books } = useQuery({
@@ -78,24 +83,23 @@ function ScanPage() {
   const MAX_FILES = 10;
   const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
 
-  async function handleScan() {
-    if (files.length === 0) { toast.error("Velg minst én fil"); return; }
-    if (files.length > MAX_FILES) { toast.error(`Maks ${MAX_FILES} filer`); return; }
-    const total = files.reduce((s, f) => s + f.size, 0);
+  async function runScan(filesToScan: File[]) {
+    if (filesToScan.length === 0) { toast.error("Velg minst én fil"); return; }
+    if (filesToScan.length > MAX_FILES) { toast.error(`Maks ${MAX_FILES} filer`); return; }
+    const total = filesToScan.reduce((s, f) => s + f.size, 0);
     if (total > MAX_TOTAL_BYTES) { toast.error("Total størrelse overstiger 25 MB"); return; }
     if (!bookId) { toast.error("Velg regnskapsbok"); return; }
     setScanning(true);
     const uploaded: { path: string; file: File }[] = [];
     try {
       const ts = Date.now();
-      for (let i = 0; i < files.length; i++) {
-        const f = files[i];
+      for (let i = 0; i < filesToScan.length; i++) {
+        const f = filesToScan[i];
         const path = `${orgId}/drafts/${ts}-${i}-${f.name}`;
         const { error: upErr } = await supabase.storage
           .from("finance-attachments")
           .upload(path, f, { contentType: f.type });
         if (upErr) {
-          // cleanup already-uploaded paths
           if (uploaded.length > 0) {
             await supabase.storage.from("finance-attachments").remove(uploaded.map((u) => u.path));
           }
@@ -120,13 +124,24 @@ function ScanPage() {
       setActiveDraftId(res.draftId);
       setConvertedEntryId(null);
       qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
-
     } catch (err: any) {
       toast.error(err.message ?? "Skanning feilet");
     } finally {
       setScanning(false);
     }
   }
+
+  function openGallery() {
+    setCameraOpen(false);
+    galleryInputRef.current?.click();
+  }
+
+  function handleCameraImage(file: File) {
+    setCameraOpen(false);
+    setFiles([file]);
+    void runScan([file]);
+  }
+
 
 
   return (
@@ -162,35 +177,67 @@ function ScanPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Filer (bilder eller PDF)</Label>
-              <Input
-                type="file"
-                accept="image/*,application/pdf"
-                capture="environment"
-                multiple
-                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                className="max-w-full"
-              />
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*,application/pdf"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const picked = Array.from(e.target.files ?? []);
+                setFiles(picked);
+                e.target.value = "";
+              }}
+            />
 
-              <p className="text-[11px] text-muted-foreground">
-                Du kan laste opp flere bilder av samme kvittering/faktura, eller én PDF. Maks 10 filer / 25 MB totalt.
-              </p>
-              {files.length > 0 && (
-                <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+            <Button
+              onClick={() => setCameraOpen(true)}
+              disabled={scanning}
+              size="lg"
+              className="w-full text-base"
+            >
+              {scanning ? (
+                <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Skanner…</>
+              ) : (
+                <><Camera className="h-5 w-5 mr-2" /> Skann bilag med AI</>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={openGallery}
+              disabled={scanning}
+              className="w-full"
+            >
+              <ImageIcon className="h-4 w-4 mr-2" /> Velg fra bildegalleri
+            </Button>
+
+            <p className="text-[11px] text-muted-foreground">
+              Du kan ta bilde med kameraet, eller velge flere bilder/PDF fra galleriet. Maks 10 filer / 25 MB totalt.
+            </p>
+
+            {files.length > 0 && (
+              <div className="space-y-2">
+                <ul className="text-xs text-muted-foreground space-y-0.5">
                   {files.map((f, i) => (
                     <li key={i} className="truncate">{i + 1}. {f.name} ({Math.round(f.size / 1024)} KB)</li>
                   ))}
                 </ul>
-              )}
-            </div>
-            <Button onClick={handleScan} disabled={scanning || files.length === 0} size="lg" className="w-full text-base">
-              {scanning ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Skanner…</> : <><Camera className="h-5 w-5 mr-2" /> Skann bilag med AI</>}
-            </Button>
-
+                <Button
+                  onClick={() => void runScan(files)}
+                  disabled={scanning}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  Start AI-skann ({files.length} {files.length === 1 ? "fil" : "filer"})
+                </Button>
+              </div>
+            )}
           </div>
 
         </div>
+
 
         <div className="min-w-0">
           {convertedEntryId ? (
@@ -211,10 +258,12 @@ function ScanPage() {
                     setConvertedEntryId(null);
                     setActiveDraftId(null);
                     setFiles([]);
+                    setCameraOpen(true);
                     if (typeof window !== "undefined") {
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }
                   }}
+
                 >
                   <Camera className="h-4 w-4 mr-2" /> Skann neste
                 </Button>
@@ -283,10 +332,19 @@ function ScanPage() {
           ))}
         </ul>
       </details>
+
+      {cameraOpen && (
+        <CameraCapture
+          onClose={() => setCameraOpen(false)}
+          onUseImage={handleCameraImage}
+          onGalleryRequest={openGallery}
+        />
+      )}
     </div>
 
   );
 }
+
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: any }> = {
