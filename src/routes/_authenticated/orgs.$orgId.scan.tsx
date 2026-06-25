@@ -258,10 +258,12 @@ function ScanPage() {
                     setConvertedEntryId(null);
                     setActiveDraftId(null);
                     setFiles([]);
+                    setCameraOpen(true);
                     if (typeof window !== "undefined") {
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }
                   }}
+
                 >
                   <Camera className="h-4 w-4 mr-2" /> Skann neste
                 </Button>
