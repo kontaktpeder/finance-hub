@@ -177,35 +177,67 @@ function ScanPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Filer (bilder eller PDF)</Label>
-              <Input
-                type="file"
-                accept="image/*,application/pdf"
-                capture="environment"
-                multiple
-                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                className="max-w-full"
-              />
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*,application/pdf"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const picked = Array.from(e.target.files ?? []);
+                setFiles(picked);
+                e.target.value = "";
+              }}
+            />
 
-              <p className="text-[11px] text-muted-foreground">
-                Du kan laste opp flere bilder av samme kvittering/faktura, eller én PDF. Maks 10 filer / 25 MB totalt.
-              </p>
-              {files.length > 0 && (
-                <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+            <Button
+              onClick={() => setCameraOpen(true)}
+              disabled={scanning}
+              size="lg"
+              className="w-full text-base"
+            >
+              {scanning ? (
+                <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Skanner…</>
+              ) : (
+                <><Camera className="h-5 w-5 mr-2" /> Skann bilag med AI</>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={openGallery}
+              disabled={scanning}
+              className="w-full"
+            >
+              <ImageIcon className="h-4 w-4 mr-2" /> Velg fra bildegalleri
+            </Button>
+
+            <p className="text-[11px] text-muted-foreground">
+              Du kan ta bilde med kameraet, eller velge flere bilder/PDF fra galleriet. Maks 10 filer / 25 MB totalt.
+            </p>
+
+            {files.length > 0 && (
+              <div className="space-y-2">
+                <ul className="text-xs text-muted-foreground space-y-0.5">
                   {files.map((f, i) => (
                     <li key={i} className="truncate">{i + 1}. {f.name} ({Math.round(f.size / 1024)} KB)</li>
                   ))}
                 </ul>
-              )}
-            </div>
-            <Button onClick={handleScan} disabled={scanning || files.length === 0} size="lg" className="w-full text-base">
-              {scanning ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Skanner…</> : <><Camera className="h-5 w-5 mr-2" /> Skann bilag med AI</>}
-            </Button>
-
+                <Button
+                  onClick={() => void runScan(files)}
+                  disabled={scanning}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  Start AI-skann ({files.length} {files.length === 1 ? "fil" : "filer"})
+                </Button>
+              </div>
+            )}
           </div>
 
         </div>
+
 
         <div className="min-w-0">
           {convertedEntryId ? (
