@@ -332,10 +332,19 @@ function ScanPage() {
           ))}
         </ul>
       </details>
+
+      {cameraOpen && (
+        <CameraCapture
+          onClose={() => setCameraOpen(false)}
+          onUseImage={handleCameraImage}
+          onGalleryRequest={openGallery}
+        />
+      )}
     </div>
 
   );
 }
+
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: any }> = {
