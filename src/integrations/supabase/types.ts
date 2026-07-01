@@ -863,6 +863,8 @@ export type Database = {
         | "reports:read"
         | "invoices:read"
         | "invoices:write"
+        | "platform:read"
+        | "platform:verify"
       entry_type: "income" | "expense"
       invoice_status: "none" | "draft" | "sent" | "overdue" | "paid"
       org_role: "owner" | "admin" | "editor" | "viewer"
@@ -1002,6 +1004,8 @@ export const Constants = {
         "reports:read",
         "invoices:read",
         "invoices:write",
+        "platform:read",
+        "platform:verify",
       ],
       entry_type: ["income", "expense"],
       invoice_status: ["none", "draft", "sent", "overdue", "paid"],

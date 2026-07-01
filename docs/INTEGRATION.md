@@ -30,6 +30,14 @@ Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**.
 | `attachments:write` | `POST /api/public/v1/attachments`, `DELETE /api/public/v1/attachments/{attachment_id}` |
 | `invoices:read` | `GET /invoices`, `GET /invoices/:id`, `GET /invoices/:id/pdf` |
 | `invoices:write` | `POST /invoices`, `PATCH /invoices/:id`, `POST /invoices/:id/send` |
+| `platform:read` | `GET /api/public/v1/module/organization` |
+| `platform:verify` | `GET /api/public/v1/module/organization/{org_id}` |
+
+## Module Contract v1
+
+Finance implementerer Platform Core Module Contract v1 under `/api/public/v1/module/*` (`health`, `info`, `organization`, `organization/{org_id}`). Alle responser inkluderer `contract_version: "1.0"`. Verify-endepunktet returnerer **404** (ikke 403) når `org_id` ikke matcher API-nøkkelen. Se `docs/MODULE_COMPLIANCE.md`. Spesifikasjon: Platform Core `MODULE_CONTRACT.v1.md`.
+
+
 
 ## Endpoints
 

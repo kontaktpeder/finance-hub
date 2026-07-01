@@ -12,6 +12,8 @@ const InputSchema = z.object({
     "reports:read",
     "invoices:read",
     "invoices:write",
+    "platform:read",
+    "platform:verify",
   ])).min(1),
 });
 
