@@ -31,6 +31,9 @@ import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
 import { Route as AuthenticatedOrgsOrgIdInvoicesIndexRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.index'
 import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
+import { Route as ApiPublicV1ModuleOrganizationRouteImport } from './routes/api/public/v1/module.organization'
+import { Route as ApiPublicV1ModuleInfoRouteImport } from './routes/api/public/v1/module.info'
+import { Route as ApiPublicV1ModuleHealthRouteImport } from './routes/api/public/v1/module.health'
 import { Route as ApiPublicV1InvoicesInvoiceIdRouteImport } from './routes/api/public/v1/invoices.$invoiceId'
 import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
 import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
@@ -38,6 +41,7 @@ import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/publi
 import { Route as AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.$invoiceId'
 import { Route as AuthenticatedOrgsOrgIdBankDiagnosticsRouteImport } from './routes/_authenticated/orgs.$orgId.bank_.diagnostics'
 import { Route as AuthenticatedOrgsOrgIdBankCallbackRouteImport } from './routes/_authenticated/orgs.$orgId.bank_.callback'
+import { Route as ApiPublicV1ModuleOrganizationOrgIdRouteImport } from './routes/api/public/v1/module.organization.$orgId'
 import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
 import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
 import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
@@ -164,6 +168,22 @@ const ApiPublicV1ReportsSummaryRoute =
     path: '/api/public/v1/reports/summary',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1ModuleOrganizationRoute =
+  ApiPublicV1ModuleOrganizationRouteImport.update({
+    id: '/api/public/v1/module/organization',
+    path: '/api/public/v1/module/organization',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1ModuleInfoRoute = ApiPublicV1ModuleInfoRouteImport.update({
+  id: '/api/public/v1/module/info',
+  path: '/api/public/v1/module/info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ModuleHealthRoute = ApiPublicV1ModuleHealthRouteImport.update({
+  id: '/api/public/v1/module/health',
+  path: '/api/public/v1/module/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1InvoicesInvoiceIdRoute =
   ApiPublicV1InvoicesInvoiceIdRouteImport.update({
     id: '/$invoiceId',
@@ -205,6 +225,12 @@ const AuthenticatedOrgsOrgIdBankCallbackRoute =
     id: '/bank_/callback',
     path: '/bank/callback',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const ApiPublicV1ModuleOrganizationOrgIdRoute =
+  ApiPublicV1ModuleOrganizationOrgIdRouteImport.update({
+    id: '/$orgId',
+    path: '/$orgId',
+    getParentRoute: () => ApiPublicV1ModuleOrganizationRoute,
   } as any)
 const ApiPublicV1InvoicesInvoiceIdSendRoute =
   ApiPublicV1InvoicesInvoiceIdSendRouteImport.update({
@@ -252,11 +278,15 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+  '/api/public/v1/module/health': typeof ApiPublicV1ModuleHealthRoute
+  '/api/public/v1/module/info': typeof ApiPublicV1ModuleInfoRoute
+  '/api/public/v1/module/organization': typeof ApiPublicV1ModuleOrganizationRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/orgs/$orgId/invoices/': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
+  '/api/public/v1/module/organization/$orgId': typeof ApiPublicV1ModuleOrganizationOrgIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -284,11 +314,15 @@ export interface FileRoutesByTo {
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+  '/api/public/v1/module/health': typeof ApiPublicV1ModuleHealthRoute
+  '/api/public/v1/module/info': typeof ApiPublicV1ModuleInfoRoute
+  '/api/public/v1/module/organization': typeof ApiPublicV1ModuleOrganizationRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/orgs/$orgId/invoices': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
+  '/api/public/v1/module/organization/$orgId': typeof ApiPublicV1ModuleOrganizationOrgIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -319,11 +353,15 @@ export interface FileRoutesById {
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+  '/api/public/v1/module/health': typeof ApiPublicV1ModuleHealthRoute
+  '/api/public/v1/module/info': typeof ApiPublicV1ModuleInfoRoute
+  '/api/public/v1/module/organization': typeof ApiPublicV1ModuleOrganizationRouteWithChildren
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/_authenticated/orgs/$orgId/invoices/': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
+  '/api/public/v1/module/organization/$orgId': typeof ApiPublicV1ModuleOrganizationOrgIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -354,11 +392,15 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/invoices/$invoiceId'
+    | '/api/public/v1/module/health'
+    | '/api/public/v1/module/info'
+    | '/api/public/v1/module/organization'
     | '/api/public/v1/reports/summary'
     | '/orgs/$orgId/invoices/'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
+    | '/api/public/v1/module/organization/$orgId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -386,11 +428,15 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/invoices/$invoiceId'
+    | '/api/public/v1/module/health'
+    | '/api/public/v1/module/info'
+    | '/api/public/v1/module/organization'
     | '/api/public/v1/reports/summary'
     | '/orgs/$orgId/invoices'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
+    | '/api/public/v1/module/organization/$orgId'
   id:
     | '__root__'
     | '/'
@@ -420,11 +466,15 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/invoices/$invoiceId'
+    | '/api/public/v1/module/health'
+    | '/api/public/v1/module/info'
+    | '/api/public/v1/module/organization'
     | '/api/public/v1/reports/summary'
     | '/_authenticated/orgs/$orgId/invoices/'
     | '/api/public/v1/entries/$entryId/attachments'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
+    | '/api/public/v1/module/organization/$orgId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -436,6 +486,9 @@ export interface RootRouteChildren {
   ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRouteWithChildren
   ApiPublicV1InvoicesRoute: typeof ApiPublicV1InvoicesRouteWithChildren
   ApiPublicV1AiScanReceiptRoute: typeof ApiPublicV1AiScanReceiptRoute
+  ApiPublicV1ModuleHealthRoute: typeof ApiPublicV1ModuleHealthRoute
+  ApiPublicV1ModuleInfoRoute: typeof ApiPublicV1ModuleInfoRoute
+  ApiPublicV1ModuleOrganizationRoute: typeof ApiPublicV1ModuleOrganizationRouteWithChildren
   ApiPublicV1ReportsSummaryRoute: typeof ApiPublicV1ReportsSummaryRoute
 }
 
@@ -595,6 +648,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/module/organization': {
+      id: '/api/public/v1/module/organization'
+      path: '/api/public/v1/module/organization'
+      fullPath: '/api/public/v1/module/organization'
+      preLoaderRoute: typeof ApiPublicV1ModuleOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/info': {
+      id: '/api/public/v1/module/info'
+      path: '/api/public/v1/module/info'
+      fullPath: '/api/public/v1/module/info'
+      preLoaderRoute: typeof ApiPublicV1ModuleInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/health': {
+      id: '/api/public/v1/module/health'
+      path: '/api/public/v1/module/health'
+      fullPath: '/api/public/v1/module/health'
+      preLoaderRoute: typeof ApiPublicV1ModuleHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/invoices/$invoiceId': {
       id: '/api/public/v1/invoices/$invoiceId'
       path: '/$invoiceId'
@@ -643,6 +717,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/orgs/$orgId/bank/callback'
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankCallbackRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/api/public/v1/module/organization/$orgId': {
+      id: '/api/public/v1/module/organization/$orgId'
+      path: '/$orgId'
+      fullPath: '/api/public/v1/module/organization/$orgId'
+      preLoaderRoute: typeof ApiPublicV1ModuleOrganizationOrgIdRouteImport
+      parentRoute: typeof ApiPublicV1ModuleOrganizationRoute
     }
     '/api/public/v1/invoices/$invoiceId/send': {
       id: '/api/public/v1/invoices/$invoiceId/send'
@@ -799,6 +880,21 @@ const ApiPublicV1InvoicesRouteChildren: ApiPublicV1InvoicesRouteChildren = {
 const ApiPublicV1InvoicesRouteWithChildren =
   ApiPublicV1InvoicesRoute._addFileChildren(ApiPublicV1InvoicesRouteChildren)
 
+interface ApiPublicV1ModuleOrganizationRouteChildren {
+  ApiPublicV1ModuleOrganizationOrgIdRoute: typeof ApiPublicV1ModuleOrganizationOrgIdRoute
+}
+
+const ApiPublicV1ModuleOrganizationRouteChildren: ApiPublicV1ModuleOrganizationRouteChildren =
+  {
+    ApiPublicV1ModuleOrganizationOrgIdRoute:
+      ApiPublicV1ModuleOrganizationOrgIdRoute,
+  }
+
+const ApiPublicV1ModuleOrganizationRouteWithChildren =
+  ApiPublicV1ModuleOrganizationRoute._addFileChildren(
+    ApiPublicV1ModuleOrganizationRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -808,6 +904,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1EntriesRoute: ApiPublicV1EntriesRouteWithChildren,
   ApiPublicV1InvoicesRoute: ApiPublicV1InvoicesRouteWithChildren,
   ApiPublicV1AiScanReceiptRoute: ApiPublicV1AiScanReceiptRoute,
+  ApiPublicV1ModuleHealthRoute: ApiPublicV1ModuleHealthRoute,
+  ApiPublicV1ModuleInfoRoute: ApiPublicV1ModuleInfoRoute,
+  ApiPublicV1ModuleOrganizationRoute:
+    ApiPublicV1ModuleOrganizationRouteWithChildren,
   ApiPublicV1ReportsSummaryRoute: ApiPublicV1ReportsSummaryRoute,
 }
 export const routeTree = rootRouteImport
