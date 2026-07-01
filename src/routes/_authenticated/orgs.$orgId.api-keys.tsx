@@ -25,6 +25,8 @@ const ALL_SCOPES = [
   "reports:read",
   "invoices:read",
   "invoices:write",
+  "platform:read",
+  "platform:verify",
 ] as const;
 
 const SCOPE_LABELS: Record<(typeof ALL_SCOPES)[number], string> = {
@@ -34,6 +36,8 @@ const SCOPE_LABELS: Record<(typeof ALL_SCOPES)[number], string> = {
   "reports:read": "Les rapporter",
   "invoices:read": "Les fakturaer",
   "invoices:write": "Opprett/send fakturaer",
+  "platform:read": "Platform — les org",
+  "platform:verify": "Platform — verifiser kobling",
 };
 
 function ApiKeysPage() {
