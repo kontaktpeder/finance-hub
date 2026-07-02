@@ -23,10 +23,11 @@ export const Route = createFileRoute("/api/public/v1/module/widgets")({
           .map((s) => s.trim())
           .filter(Boolean);
 
-        const knownIds = new Set(financeModuleWidgets.map((w) => w.id));
+        const knownIds = new Set<string>(financeModuleWidgets.map((w) => w.id));
         const ids = (requested.length ? requested : Array.from(knownIds)).filter((id) =>
           knownIds.has(id),
         );
+
 
         try {
           const results = await Promise.all(
