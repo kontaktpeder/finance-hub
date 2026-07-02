@@ -17,6 +17,24 @@ All endpoints live under `/api/public/v1/module/*` and return
 | `/module/info` | GET | — (public) |
 | `/module/organization` | GET | `platform:read` |
 | `/module/organization/{org_id}` | GET | `platform:verify` |
+| `/module/widgets?ids=...` | GET | `platform:read` |
+
+## Widgets endpoint
+
+`GET /api/public/v1/module/widgets?ids=unpaid_invoices,month_revenue`
+
+- Requires `platform:read`.
+- `ids` is a comma-separated list; unknown ids are silently dropped.
+  Omit `ids` to get every known widget.
+- Response: `{ contract_version: "1.0", widgets: [{ id, data }] }`.
+
+Widget payloads:
+
+- `unpaid_invoices` → `{ count: number }` (invoices with `status = 'sent'`).
+- `month_revenue` → `{ amount, currency: "NOK", period_start, period_end }`
+  summing `finance_entries.amount_gross` where `entry_type = 'income'`
+  and `entry_date` falls inside the current month in `Europe/Oslo`.
+
 
 ### Verify semantics
 
