@@ -104,6 +104,9 @@ export async function sendInvoice(params: {
     createdBy: userId ?? null,
   });
 
+  // Safety net: guarantee the PDF attachment is linked to the entry (paperclip).
+  await repairInvoiceAttachmentLinks(supabaseAdmin, organizationId, invoiceId);
+
   const { data: refreshed, error: refErr } = await supabaseAdmin
     .from("invoices")
     .select("*, invoice_lines(*)")
