@@ -37,6 +37,10 @@ Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**.
 
 Finance implementerer Platform Core Module Contract v1 under `/api/public/v1/module/*` (`health`, `info`, `organization`, `organization/{org_id}`). Alle responser inkluderer `contract_version: "1.0"`. Verify-endepunktet returnerer **404** (ikke 403) når `org_id` ikke matcher API-nøkkelen. Se `docs/MODULE_COMPLIANCE.md`. Spesifikasjon: Platform Core `MODULE_CONTRACT.v1.md`.
 
+## Faktura → regnskapspost (binders)
+
+Når en faktura sendes (`POST /invoices/:id/send`), genereres PDF-en, lagres som `finance_attachments`-rad, og kobles automatisk til den nye `finance_entries`-raden via `entry_id`. Dette gjør at `GET /entries` returnerer `has_attachment: true` (binders vises i UI) for fakturaposter. En safety-net-repair kjøres etter send, og igjen når fakturaen markeres som betalt, slik at koblingen alltid er konsistent.
+
 
 
 ## Endpoints
