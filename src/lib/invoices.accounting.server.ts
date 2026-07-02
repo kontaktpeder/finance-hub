@@ -316,4 +316,9 @@ export async function markFinanceEntryPaidForInvoice(params: {
     })
     .eq("id", entryId);
   if (error) throw new Error(error.message);
+
+  await ensureInvoicePdfLinkedToEntry(supabase, {
+    organizationId: invoice.organization_id,
+    invoiceId: invoice.id,
+  });
 }
