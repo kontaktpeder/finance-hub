@@ -4,6 +4,7 @@ import { storeInvoicePdf } from "./invoices.storage.server";
 import {
   createFinanceEntryForInvoice,
   markFinanceEntryPaidForInvoice,
+  repairInvoiceAttachmentLinks,
 } from "./invoices.accounting.server";
 
 export async function sendInvoice(params: {
