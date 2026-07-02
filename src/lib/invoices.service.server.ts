@@ -4,6 +4,7 @@ import { storeInvoicePdf } from "./invoices.storage.server";
 import {
   createFinanceEntryForInvoice,
   markFinanceEntryPaidForInvoice,
+  repairInvoiceAttachmentLinks,
 } from "./invoices.accounting.server";
 
 export async function sendInvoice(params: {
@@ -102,6 +103,9 @@ export async function sendInvoice(params: {
     apiClientId: params.apiClientId ?? null,
     createdBy: userId ?? null,
   });
+
+  // Safety net: guarantee the PDF attachment is linked to the entry (paperclip).
+  await repairInvoiceAttachmentLinks(supabaseAdmin, organizationId, invoiceId);
 
   const { data: refreshed, error: refErr } = await supabaseAdmin
     .from("invoices")
