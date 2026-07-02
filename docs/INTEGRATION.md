@@ -204,13 +204,13 @@ Bruk `source_app` + `source_ref` for å unngå duplikater:
 - `source_app = gold-of-sicily`
 - `source_ref = klink-oslo-2026-06`
 
-Det er en unique index på `(organization_id, source_app, source_ref)`. Duplikat-POST returnerer **400** — klient skal håndtere som «allerede bokført».
+Det er en unique index på `(organization_id, source_app, source_ref)`. Duplikat-POST returnerer **200** med `{ "data": <eksisterende entry>, "duplicate": true }` — klient kan trygt re-kjøre eksport uten å håndtere 400. Ingen ny rad opprettes.
 
 ## Feilkoder
 
 | Kode | Betydning |
 |---|---|
-| 400 | Valideringsfeil / duplikat `source_ref` |
+| 400 | Valideringsfeil |
 | 401 | Manglende eller ugyldig API-nøkkel |
 | 403 | Nøkkelen mangler nødvendig scope |
 | 404 | Ressurs ikke funnet (f.eks. `entry_id` i annen org) |
