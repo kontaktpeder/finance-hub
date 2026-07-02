@@ -3,7 +3,10 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type WidgetPayload = {
   id: string;
-  data: Record<string, unknown>;
+  value: number | string;
+  display: string;
+  status: "ok";
+  data?: Record<string, unknown>;
 };
 
 // Compute [startISO, endISO) for the current month in Europe/Oslo.
@@ -24,6 +27,14 @@ function currentMonthRangeOslo(): { start: string; end: string } {
   return { start, end };
 }
 
+function formatNokDisplay(amount: number): string {
+  const rounded = Math.round(amount);
+  const formatted = new Intl.NumberFormat("nb-NO", {
+    maximumFractionDigits: 0,
+  }).format(rounded);
+  return `${formatted} kr`;
+}
+
 export async function computeUnpaidInvoices(organizationId: string): Promise<WidgetPayload> {
   const { count, error } = await supabaseAdmin
     .from("invoices")
@@ -31,7 +42,14 @@ export async function computeUnpaidInvoices(organizationId: string): Promise<Wid
     .eq("organization_id", organizationId)
     .eq("status", "sent");
   if (error) throw new Error(error.message);
-  return { id: "unpaid_invoices", data: { count: count ?? 0 } };
+  const value = count ?? 0;
+  return {
+    id: "unpaid_invoices",
+    value,
+    display: String(value),
+    status: "ok",
+    data: { count: value },
+  };
 }
 
 export async function computeMonthRevenue(organizationId: string): Promise<WidgetPayload> {
@@ -47,6 +65,9 @@ export async function computeMonthRevenue(organizationId: string): Promise<Widge
   const total = (data ?? []).reduce((sum, row: any) => sum + Number(row.amount_gross ?? 0), 0);
   return {
     id: "month_revenue",
+    value: total,
+    display: formatNokDisplay(total),
+    status: "ok",
     data: { amount: total, currency: "NOK", period_start: start, period_end: end },
   };
 }
