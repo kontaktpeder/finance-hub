@@ -54,6 +54,79 @@ async function linkInvoicePdfToEntry(
   if (attachmentErr) throw new Error(attachmentErr.message);
 }
 
+/**
+ * Idempotent: ensure the invoice's PDF attachment is linked to the invoice's finance_entry.
+ * Safe to call multiple times. No-op when the invoice has no entry or no PDF.
+ */
+export async function ensureInvoicePdfLinkedToEntry(
+  supabase: any,
+  params: { organizationId: string; invoiceId: string },
+): Promise<void> {
+  const { data: inv, error } = await supabase
+    .from("invoices")
+    .select("finance_entry_id, pdf_attachment_id")
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const entryId = (inv as any)?.finance_entry_id ?? null;
+  const pdfAttachmentId = (inv as any)?.pdf_attachment_id ?? null;
+  if (!entryId || !pdfAttachmentId) return;
+  await linkInvoicePdfToEntry(supabase, {
+    organizationId: params.organizationId,
+    invoiceId: params.invoiceId,
+    entryId,
+    pdfAttachmentId,
+  });
+}
+
+/**
+ * Repair invoice → attachment links. Finds invoices where the PDF attachment's
+ * entry_id is missing or does not match the invoice's finance_entry_id, and fixes it.
+ * If invoiceId is provided, only that invoice is checked.
+ */
+export async function repairInvoiceAttachmentLinks(
+  supabase: any,
+  organizationId: string,
+  invoiceId?: string,
+): Promise<number> {
+  let query = supabase
+    .from("invoices")
+    .select("id, finance_entry_id, pdf_attachment_id")
+    .eq("organization_id", organizationId)
+    .not("finance_entry_id", "is", null)
+    .not("pdf_attachment_id", "is", null);
+  if (invoiceId) query = query.eq("id", invoiceId);
+  const { data: invoices, error } = await query;
+  if (error) throw new Error(error.message);
+  const rows = (invoices as any[]) ?? [];
+  if (rows.length === 0) return 0;
+
+  const attachmentIds = rows.map((r) => r.pdf_attachment_id);
+  const { data: attachments, error: attErr } = await supabase
+    .from("finance_attachments")
+    .select("id, entry_id")
+    .in("id", attachmentIds)
+    .eq("organization_id", organizationId);
+  if (attErr) throw new Error(attErr.message);
+  const attById = new Map<string, string | null>();
+  for (const a of (attachments as any[]) ?? []) {
+    attById.set(a.id, a.entry_id ?? null);
+  }
+
+  let repaired = 0;
+  for (const inv of rows) {
+    const currentEntry = attById.get(inv.pdf_attachment_id);
+    if (currentEntry === inv.finance_entry_id) continue;
+    await ensureInvoicePdfLinkedToEntry(supabase, {
+      organizationId,
+      invoiceId: inv.id,
+    });
+    repaired += 1;
+  }
+  return repaired;
+}
+
 export async function createFinanceEntryForInvoice(params: {
   supabase: any;
   invoiceId: string;
