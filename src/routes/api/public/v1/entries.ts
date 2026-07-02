@@ -100,6 +100,20 @@ export const Route = createFileRoute("/api/public/v1/entries")({
         if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 });
         const v = parsed.data;
 
+        // Idempotency: same (org, source_app, source_ref) → return existing row
+        if (v.source_app && v.source_ref) {
+          const { data: existing } = await supabaseAdmin
+            .from("finance_entries")
+            .select("*")
+            .eq("organization_id", auth.client.organization_id)
+            .eq("source_app", v.source_app)
+            .eq("source_ref", v.source_ref)
+            .maybeSingle();
+          if (existing) return Response.json({ data: existing, duplicate: true }, { status: 200 });
+        }
+
+
+
         let bookId = v.book_id;
         if (!bookId) {
           const { data: book } = await supabaseAdmin
