@@ -32,7 +32,7 @@ export const financeModuleWidgets = [
     description: "Open invoices awaiting payment.",
     deep_link: "org_home",
     capabilities_required: ["finance.invoices"],
-    placeholder: true,
+    placeholder: false,
   },
   {
     id: "month_revenue",
@@ -40,9 +40,10 @@ export const financeModuleWidgets = [
     description: "Revenue summary for the current month.",
     deep_link: "org_reports",
     capabilities_required: ["finance.reports"],
-    placeholder: true,
+    placeholder: false,
   },
 ] as const;
+
 
 export function moduleAppBaseUrl(request: Request): string {
   const envUrl = process.env.PUBLIC_APP_URL;
