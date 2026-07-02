@@ -45,6 +45,19 @@ membership of other organizations.
 ## Deep links
 
 `deep_links.org_home` → `{base_url}/orgs/{org_id}`
+`deep_links.org_entries` → `{base_url}/orgs/{org_id}/entries`
+`deep_links.org_reports` → `{base_url}/orgs/{org_id}/reports`
+
+## Widgets (Platform dashboard)
+
+`GET /module/info` includes `widgets[]` per MODULE_CONTRACT.v1.
+
+All widgets are `placeholder: true` in v1 — Platform shows titles only; live data comes later.
+
+| id | title | deep_link |
+| --- | --- | --- |
+| `unpaid_invoices` | Unpaid invoices | `org_home` |
+| `month_revenue` | Monthly revenue | `org_reports` |
 
 ## curl examples
 
