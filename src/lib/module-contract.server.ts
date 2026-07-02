@@ -19,6 +19,31 @@ export const financeModuleInfo = {
   ],
 } as const;
 
+export const financeModuleDeepLinks = {
+  org_home: "/orgs/{org_id}",
+  org_entries: "/orgs/{org_id}/entries",
+  org_reports: "/orgs/{org_id}/reports",
+} as const;
+
+export const financeModuleWidgets = [
+  {
+    id: "unpaid_invoices",
+    title: "Unpaid invoices",
+    description: "Open invoices awaiting payment.",
+    deep_link: "org_home",
+    capabilities_required: ["finance.invoices"],
+    placeholder: true,
+  },
+  {
+    id: "month_revenue",
+    title: "Monthly revenue",
+    description: "Revenue summary for the current month.",
+    deep_link: "org_reports",
+    capabilities_required: ["finance.reports"],
+    placeholder: true,
+  },
+] as const;
+
 export function moduleAppBaseUrl(request: Request): string {
   const envUrl = process.env.PUBLIC_APP_URL;
   if (envUrl) return envUrl.replace(/\/$/, "");
