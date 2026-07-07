@@ -130,10 +130,13 @@ function exportEntriesCsv(entries: Entry[], orgId: string) {
 
 function EntriesPage() {
   const { orgId } = Route.useParams();
+  const search = Route.useSearch();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [preFilter, setPreFilter] = useState<PreFilter>("all");
+
+  const missingAttachmentFilter = search.issue === "missing_attachment";
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
@@ -164,10 +167,36 @@ function EntriesPage() {
     },
   });
 
-  const filteredEntries = useMemo(
-    () => (entries ?? []).filter((e) => matchesPreFilter(e, preFilter)),
-    [entries, preFilter],
-  );
+  // Set of entry_ids that have at least one attachment (org-scoped).
+  const { data: entryIdsWithAttachment } = useQuery({
+    queryKey: ["entry-ids-with-attachment", orgId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("finance_attachments")
+        .select("entry_id")
+        .eq("organization_id", orgId)
+        .not("entry_id", "is", null);
+      if (error) throw error;
+      return new Set((data ?? []).map((r: { entry_id: string }) => r.entry_id));
+    },
+  });
+
+  const missingAttachmentIds = useMemo(() => {
+    if (!entries || !entryIdsWithAttachment) return new Set<string>();
+    const s = new Set<string>();
+    for (const e of entries) {
+      if (e.entry_type === "expense" && !entryIdsWithAttachment.has(e.id)) s.add(e.id);
+    }
+    return s;
+  }, [entries, entryIdsWithAttachment]);
+
+  const filteredEntries = useMemo(() => {
+    let list = (entries ?? []).filter((e) => matchesPreFilter(e, preFilter));
+    if (missingAttachmentFilter) {
+      list = list.filter((e) => missingAttachmentIds.has(e.id));
+    }
+    return list;
+  }, [entries, preFilter, missingAttachmentFilter, missingAttachmentIds]);
 
   const { income, expense } = useMemo(() => {
     const inc: Entry[] = [];
@@ -184,8 +213,26 @@ function EntriesPage() {
     [entries],
   );
 
+  // Auto-expand the first missing entry when arriving from Confidence.
+  const firstMissingId = useMemo(() => {
+    if (!missingAttachmentFilter) return null;
+    for (const e of filteredEntries) if (missingAttachmentIds.has(e.id)) return e.id;
+    return null;
+  }, [missingAttachmentFilter, filteredEntries, missingAttachmentIds]);
+
+  useEffect(() => {
+    if (firstMissingId) setExpandedId((cur) => cur ?? firstMissingId);
+  }, [firstMissingId]);
+
+  const isEmpty = !isLoading && filteredEntries.length === 0;
+
   return (
     <div className="p-3 sm:p-6 md:p-8 max-w-6xl">
+      {search.return && (
+        <div className="mb-3">
+          <MissionReturnLink returnUrl={search.return} />
+        </div>
+      )}
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Poster</h1>
@@ -215,13 +262,30 @@ function EntriesPage() {
               books={books ?? []}
               onCreated={() => {
                 qc.invalidateQueries({ queryKey: ["entries", orgId] });
+                qc.invalidateQueries({ queryKey: ["entry-ids-with-attachment", orgId] });
                 qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
+                qc.invalidateQueries({ queryKey: ["finance-confidence", orgId] });
                 setOpen(false);
               }}
             />
           </Dialog>
         </div>
       </header>
+
+      {missingAttachmentFilter && (
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-sm">
+          <AlertTriangle className="h-4 w-4 mt-0.5 text-warning shrink-0" />
+          <div className="flex-1">
+            Viser utgiftsposter som mangler bilag fra Finance Confidence.
+          </div>
+          <a
+            href={`/orgs/${orgId}/entries${search.return ? `?return=${encodeURIComponent(search.return)}` : ""}`}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Vis alle
+          </a>
+        </div>
+      )}
 
       {hasAnyPre && (
         <div className="mb-4 space-y-3">
@@ -247,7 +311,13 @@ function EntriesPage() {
         <div className="text-sm text-muted-foreground py-8 text-center">Laster…</div>
       )}
 
-      {!isLoading && (
+      {isEmpty && missingAttachmentFilter && (
+        <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
+          Ingen poster med dette problemet funnet.
+        </div>
+      )}
+
+      {!isLoading && !(isEmpty && missingAttachmentFilter) && (
         <div className="space-y-8">
           <Section
             title="Inntekter"
@@ -257,6 +327,7 @@ function EntriesPage() {
             orgId={orgId}
             expandedId={expandedId}
             setExpandedId={setExpandedId}
+            missingAttachmentIds={missingAttachmentIds}
           />
           <Section
             title="Utgifter"
@@ -266,13 +337,14 @@ function EntriesPage() {
             orgId={orgId}
             expandedId={expandedId}
             setExpandedId={setExpandedId}
+            missingAttachmentIds={missingAttachmentIds}
           />
         </div>
       )}
     </div>
-
   );
 }
+
 
 function Section({
   title,
