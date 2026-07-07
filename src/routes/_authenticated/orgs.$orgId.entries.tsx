@@ -232,16 +232,20 @@ function EntriesPage() {
     [entries],
   );
 
-  // Auto-expand the first missing entry when arriving from Confidence.
-  const firstMissingId = useMemo(() => {
-    if (!missingAttachmentFilter) return null;
-    for (const e of filteredEntries) if (missingAttachmentIds.has(e.id)) return e.id;
+  // Auto-expand the first issue entry when arriving from Confidence.
+  const firstIssueId = useMemo(() => {
+    if (!missingAttachmentFilter && !incomeWithoutDocFilter) return null;
+    for (const e of filteredEntries) {
+      if (missingAttachmentFilter && missingAttachmentIds.has(e.id)) return e.id;
+      if (incomeWithoutDocFilter && incomeWithoutDocIds.has(e.id)) return e.id;
+    }
     return null;
-  }, [missingAttachmentFilter, filteredEntries, missingAttachmentIds]);
+  }, [missingAttachmentFilter, incomeWithoutDocFilter, filteredEntries, missingAttachmentIds, incomeWithoutDocIds]);
 
   useEffect(() => {
-    if (firstMissingId) setExpandedId((cur) => cur ?? firstMissingId);
-  }, [firstMissingId]);
+    if (firstIssueId) setExpandedId((cur) => cur ?? firstIssueId);
+  }, [firstIssueId]);
+
 
   const isEmpty = !isLoading && filteredEntries.length === 0;
 
