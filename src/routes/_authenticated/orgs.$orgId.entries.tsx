@@ -1048,14 +1048,14 @@ function PreCompanyBadge({ pre }: { pre: boolean }) {
   );
 }
 
-function MissingAttachmentBadge({ show }: { show?: boolean }) {
+function MissingAttachmentBadge({ show, label = "Mangler bilag" }: { show?: boolean; label?: string }) {
   if (!show) return null;
   return (
     <Badge
       variant="outline"
       className="text-[10px] font-normal shrink-0 border-warning/40 text-warning"
     >
-      Mangler bilag
+      {label}
     </Badge>
   );
 }
