@@ -337,13 +337,13 @@ function EntriesPage() {
         <div className="text-sm text-muted-foreground py-8 text-center">Laster…</div>
       )}
 
-      {isEmpty && missingAttachmentFilter && (
+      {isEmpty && (missingAttachmentFilter || incomeWithoutDocFilter) && (
         <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
           Ingen poster med dette problemet funnet.
         </div>
       )}
 
-      {!isLoading && !(isEmpty && missingAttachmentFilter) && (
+      {!isLoading && !(isEmpty && (missingAttachmentFilter || incomeWithoutDocFilter)) && (
         <div className="space-y-8">
           <Section
             title="Inntekter"
@@ -354,6 +354,7 @@ function EntriesPage() {
             expandedId={expandedId}
             setExpandedId={setExpandedId}
             missingAttachmentIds={missingAttachmentIds}
+            incomeWithoutDocIds={incomeWithoutDocIds}
           />
           <Section
             title="Utgifter"
@@ -364,9 +365,11 @@ function EntriesPage() {
             expandedId={expandedId}
             setExpandedId={setExpandedId}
             missingAttachmentIds={missingAttachmentIds}
+            incomeWithoutDocIds={incomeWithoutDocIds}
           />
         </div>
       )}
+
     </div>
   );
 }
