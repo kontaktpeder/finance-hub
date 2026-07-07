@@ -559,6 +559,7 @@ function EntryRow({
         <span className="truncate text-muted-foreground flex items-center gap-2">
           <span className="truncate">{entry.description}</span>
           <PreCompanyBadge pre={entry.pre_company_expense} />
+          <MissingAttachmentBadge show={missingAttachment} />
         </span>
 
 
