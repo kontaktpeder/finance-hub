@@ -128,7 +128,7 @@ export async function checkStaleInvoiceDraft(ctx: CheckCtx): Promise<ConfidenceI
     title: `${n} fakturautkast har ligget lenge`,
     description: `Utkast eldre enn ${DRAFT_STALE_DAYS} dager.`,
     count: n,
-    action_url: url(ctx, `/orgs/${ctx.organizationId}/invoices`),
+    action_url: url(ctx, `/orgs/${ctx.organizationId}/invoices?issue=stale_draft`),
   };
 }
 
