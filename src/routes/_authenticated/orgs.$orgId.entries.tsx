@@ -602,6 +602,7 @@ function EntryRow({
           <span className="truncate">{entry.description}</span>
           <PreCompanyBadge pre={entry.pre_company_expense} />
           <MissingAttachmentBadge show={missingAttachment} />
+          <MissingAttachmentBadge show={incomeWithoutDoc} label="Mangler dokumentasjon" />
         </span>
 
 
