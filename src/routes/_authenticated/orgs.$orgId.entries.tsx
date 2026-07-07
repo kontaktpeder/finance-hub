@@ -1005,6 +1005,18 @@ function PreCompanyBadge({ pre }: { pre: boolean }) {
   );
 }
 
+function MissingAttachmentBadge({ show }: { show?: boolean }) {
+  if (!show) return null;
+  return (
+    <Badge
+      variant="outline"
+      className="text-[10px] font-normal shrink-0 border-warning/40 text-warning"
+    >
+      Mangler bilag
+    </Badge>
+  );
+}
+
 function PreCompanyTotals({
   entries,
   activeFilter,
