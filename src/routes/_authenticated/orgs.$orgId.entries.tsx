@@ -569,6 +569,7 @@ function EntryRow({
             </span>
             <PreCompanyBadge pre={entry.pre_company_expense} />
             <MissingAttachmentBadge show={missingAttachment} />
+            <MissingAttachmentBadge show={incomeWithoutDoc} label="Mangler dokumentasjon" />
           </div>
           <div className="truncate text-xs text-muted-foreground mt-0.5">
             {formatDate(entry.entry_date)}
