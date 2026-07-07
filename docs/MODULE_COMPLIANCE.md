@@ -18,6 +18,64 @@ All endpoints live under `/api/public/v1/module/*` and return
 | `/module/organization` | GET | `platform:read` |
 | `/module/organization/{org_id}` | GET | `platform:verify` |
 | `/module/widgets?ids=...` | GET | `platform:read` |
+| `/module/confidence` | GET | `platform:read` |
+| `/module/alerts` | GET | `platform:read` |
+
+## Confidence & Alerts endpoints
+
+`GET /api/public/v1/module/confidence`
+
+- Requires `platform:read`.
+- Org is taken from the API key — no query parameter is accepted.
+- Response: `ConfidenceSummary` with `contract_version`:
+
+  ```json
+  {
+    "contract_version": "1.0",
+    "status": "warning",
+    "score": 82,
+    "open_issues": 2,
+    "issues": [
+      {
+        "id": "missing_attachment",
+        "type": "missing_attachment",
+        "severity": "warning",
+        "title": "3 utgiftsposter mangler bilag",
+        "description": "Utgifter bør kunne dokumenteres med kvittering eller faktura.",
+        "count": 3,
+        "action_url": "https://<finance>/orgs/<org_id>/entries"
+      }
+    ],
+    "checked_at": "2026-07-07T12:00:00.000Z"
+  }
+  ```
+
+`GET /api/public/v1/module/alerts`
+
+- Requires `platform:read`.
+- Returns Platform-shaped alerts derived from the same confidence summary.
+- `alerts: []` when there are no issues — no "gratulerer"-alert.
+- Response:
+
+  ```json
+  {
+    "contract_version": "1.0",
+    "alerts": [
+      {
+        "id": "finance.missing_attachment",
+        "severity": "warning",
+        "title": "3 utgiftsposter mangler bilag",
+        "description": "Utgifter bør kunne dokumenteres med kvittering eller faktura.",
+        "action_url": "https://<finance>/orgs/<org_id>/entries",
+        "priority": 11,
+        "source_module": "finance"
+      }
+    ]
+  }
+  ```
+
+See `docs/FINANCE_CONFIDENCE.v0.md` for the check catalogue and scoring.
+
 
 ## Widgets endpoint
 

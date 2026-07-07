@@ -14,6 +14,7 @@ export const financeModuleInfo = {
     "finance.attachments",
     "finance.reports",
     "finance.banking",
+    "finance.confidence",
     "platform.organization.read",
     "platform.organization.verify",
   ],
@@ -23,6 +24,7 @@ export const financeModuleDeepLinks = {
   org_home: "/orgs/{org_id}",
   org_entries: "/orgs/{org_id}/entries",
   org_reports: "/orgs/{org_id}/reports",
+  org_confidence: "/orgs/{org_id}/dashboard",
 } as const;
 
 export const financeModuleWidgets = [
