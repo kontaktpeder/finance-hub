@@ -217,12 +217,12 @@ function FinanceConfidenceSection({ orgId }: { orgId: string }) {
                     )}
                   </div>
                   {issue.action_url && (
-                    <Link
-                      to={issue.action_url}
+                    <a
+                      href={issue.action_url}
                       className="text-xs text-primary hover:underline whitespace-nowrap shrink-0"
                     >
                       Gå til
-                    </Link>
+                    </a>
                   )}
                 </li>
               ))}
