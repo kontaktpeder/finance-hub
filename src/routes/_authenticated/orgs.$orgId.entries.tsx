@@ -210,8 +210,12 @@ function EntriesPage() {
     if (missingAttachmentFilter) {
       list = list.filter((e) => missingAttachmentIds.has(e.id));
     }
+    if (incomeWithoutDocFilter) {
+      list = list.filter((e) => incomeWithoutDocIds.has(e.id));
+    }
     return list;
-  }, [entries, preFilter, missingAttachmentFilter, missingAttachmentIds]);
+  }, [entries, preFilter, missingAttachmentFilter, missingAttachmentIds, incomeWithoutDocFilter, incomeWithoutDocIds]);
+
 
   const { income, expense } = useMemo(() => {
     const inc: Entry[] = [];
