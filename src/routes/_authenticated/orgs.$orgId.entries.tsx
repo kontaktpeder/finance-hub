@@ -192,6 +192,19 @@ function EntriesPage() {
     return s;
   }, [entries, entryIdsWithAttachment]);
 
+  const incomeWithoutDocIds = useMemo(() => {
+    if (!entries || !entryIdsWithAttachment) return new Set<string>();
+    const s = new Set<string>();
+    for (const e of entries) {
+      const hasInvoice = e.source_type === "invoice" && e.source_ref;
+      if (e.entry_type === "income" && !hasInvoice && !entryIdsWithAttachment.has(e.id)) {
+        s.add(e.id);
+      }
+    }
+    return s;
+  }, [entries, entryIdsWithAttachment]);
+
+
   const filteredEntries = useMemo(() => {
     let list = (entries ?? []).filter((e) => matchesPreFilter(e, preFilter));
     if (missingAttachmentFilter) {
