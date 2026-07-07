@@ -354,6 +354,7 @@ function Section({
   orgId,
   expandedId,
   setExpandedId,
+  missingAttachmentIds,
 }: {
   title: string;
   subtitle: string;
@@ -362,6 +363,7 @@ function Section({
   orgId: string;
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
+  missingAttachmentIds?: Set<string>;
 }) {
   const groups = useMemo(() => {
     const map = new Map<string, Entry[]>();
@@ -417,6 +419,7 @@ function Section({
               orgId={orgId}
               expandedId={expandedId}
               setExpandedId={setExpandedId}
+              missingAttachmentIds={missingAttachmentIds}
             />
           ))}
         </div>
@@ -430,11 +433,13 @@ function CategoryGroup({
   orgId,
   expandedId,
   setExpandedId,
+  missingAttachmentIds,
 }: {
   group: { name: string; items: Entry[]; total: number; unpaid: number };
   orgId: string;
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
+  missingAttachmentIds?: Set<string>;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -481,6 +486,7 @@ function CategoryGroup({
                 orgId={orgId}
                 expanded={expandedId === e.id}
                 onToggle={() => setExpandedId(expandedId === e.id ? null : e.id)}
+                missingAttachment={missingAttachmentIds?.has(e.id) ?? false}
               />
             ))}
           </div>
@@ -489,6 +495,7 @@ function CategoryGroup({
     </div>
   );
 }
+
 
 function EntryRow({
   entry,
