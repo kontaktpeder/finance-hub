@@ -524,7 +524,9 @@ function CategoryGroup({
                 expanded={expandedId === e.id}
                 onToggle={() => setExpandedId(expandedId === e.id ? null : e.id)}
                 missingAttachment={missingAttachmentIds?.has(e.id) ?? false}
+                incomeWithoutDoc={incomeWithoutDocIds?.has(e.id) ?? false}
               />
+
             ))}
           </div>
         </div>
