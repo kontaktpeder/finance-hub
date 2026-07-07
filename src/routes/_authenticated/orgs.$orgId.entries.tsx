@@ -384,6 +384,7 @@ function Section({
   expandedId,
   setExpandedId,
   missingAttachmentIds,
+  incomeWithoutDocIds,
 }: {
   title: string;
   subtitle: string;
@@ -393,7 +394,9 @@ function Section({
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
   missingAttachmentIds?: Set<string>;
+  incomeWithoutDocIds?: Set<string>;
 }) {
+
   const groups = useMemo(() => {
     const map = new Map<string, Entry[]>();
     for (const e of entries) {
