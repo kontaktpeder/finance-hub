@@ -137,6 +137,8 @@ function EntriesPage() {
   const [preFilter, setPreFilter] = useState<PreFilter>("all");
 
   const missingAttachmentFilter = search.issue === "missing_attachment";
+  const incomeWithoutDocFilter = search.issue === "income_without_documentation";
+
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
@@ -190,13 +192,30 @@ function EntriesPage() {
     return s;
   }, [entries, entryIdsWithAttachment]);
 
+  const incomeWithoutDocIds = useMemo(() => {
+    if (!entries || !entryIdsWithAttachment) return new Set<string>();
+    const s = new Set<string>();
+    for (const e of entries) {
+      const hasInvoice = e.source_type === "invoice" && e.source_ref;
+      if (e.entry_type === "income" && !hasInvoice && !entryIdsWithAttachment.has(e.id)) {
+        s.add(e.id);
+      }
+    }
+    return s;
+  }, [entries, entryIdsWithAttachment]);
+
+
   const filteredEntries = useMemo(() => {
     let list = (entries ?? []).filter((e) => matchesPreFilter(e, preFilter));
     if (missingAttachmentFilter) {
       list = list.filter((e) => missingAttachmentIds.has(e.id));
     }
+    if (incomeWithoutDocFilter) {
+      list = list.filter((e) => incomeWithoutDocIds.has(e.id));
+    }
     return list;
-  }, [entries, preFilter, missingAttachmentFilter, missingAttachmentIds]);
+  }, [entries, preFilter, missingAttachmentFilter, missingAttachmentIds, incomeWithoutDocFilter, incomeWithoutDocIds]);
+
 
   const { income, expense } = useMemo(() => {
     const inc: Entry[] = [];
@@ -213,16 +232,20 @@ function EntriesPage() {
     [entries],
   );
 
-  // Auto-expand the first missing entry when arriving from Confidence.
-  const firstMissingId = useMemo(() => {
-    if (!missingAttachmentFilter) return null;
-    for (const e of filteredEntries) if (missingAttachmentIds.has(e.id)) return e.id;
+  // Auto-expand the first issue entry when arriving from Confidence.
+  const firstIssueId = useMemo(() => {
+    if (!missingAttachmentFilter && !incomeWithoutDocFilter) return null;
+    for (const e of filteredEntries) {
+      if (missingAttachmentFilter && missingAttachmentIds.has(e.id)) return e.id;
+      if (incomeWithoutDocFilter && incomeWithoutDocIds.has(e.id)) return e.id;
+    }
     return null;
-  }, [missingAttachmentFilter, filteredEntries, missingAttachmentIds]);
+  }, [missingAttachmentFilter, incomeWithoutDocFilter, filteredEntries, missingAttachmentIds, incomeWithoutDocIds]);
 
   useEffect(() => {
-    if (firstMissingId) setExpandedId((cur) => cur ?? firstMissingId);
-  }, [firstMissingId]);
+    if (firstIssueId) setExpandedId((cur) => cur ?? firstIssueId);
+  }, [firstIssueId]);
+
 
   const isEmpty = !isLoading && filteredEntries.length === 0;
 
@@ -272,11 +295,13 @@ function EntriesPage() {
         </div>
       </header>
 
-      {missingAttachmentFilter && (
+      {(missingAttachmentFilter || incomeWithoutDocFilter) && (
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-sm">
           <AlertTriangle className="h-4 w-4 mt-0.5 text-warning shrink-0" />
           <div className="flex-1">
-            Viser utgiftsposter som mangler bilag fra Finance Confidence.
+            {missingAttachmentFilter
+              ? "Viser utgiftsposter som mangler bilag fra Finance Confidence."
+              : "Viser inntekter uten faktura som mangler dokumentasjon fra Finance Confidence."}
           </div>
           <a
             href={`/orgs/${orgId}/entries${search.return ? `?return=${encodeURIComponent(search.return)}` : ""}`}
@@ -286,6 +311,7 @@ function EntriesPage() {
           </a>
         </div>
       )}
+
 
       {hasAnyPre && (
         <div className="mb-4 space-y-3">
@@ -311,13 +337,13 @@ function EntriesPage() {
         <div className="text-sm text-muted-foreground py-8 text-center">Laster…</div>
       )}
 
-      {isEmpty && missingAttachmentFilter && (
+      {isEmpty && (missingAttachmentFilter || incomeWithoutDocFilter) && (
         <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
           Ingen poster med dette problemet funnet.
         </div>
       )}
 
-      {!isLoading && !(isEmpty && missingAttachmentFilter) && (
+      {!isLoading && !(isEmpty && (missingAttachmentFilter || incomeWithoutDocFilter)) && (
         <div className="space-y-8">
           <Section
             title="Inntekter"
@@ -328,6 +354,7 @@ function EntriesPage() {
             expandedId={expandedId}
             setExpandedId={setExpandedId}
             missingAttachmentIds={missingAttachmentIds}
+            incomeWithoutDocIds={incomeWithoutDocIds}
           />
           <Section
             title="Utgifter"
@@ -338,9 +365,11 @@ function EntriesPage() {
             expandedId={expandedId}
             setExpandedId={setExpandedId}
             missingAttachmentIds={missingAttachmentIds}
+            incomeWithoutDocIds={incomeWithoutDocIds}
           />
         </div>
       )}
+
     </div>
   );
 }
@@ -355,6 +384,7 @@ function Section({
   expandedId,
   setExpandedId,
   missingAttachmentIds,
+  incomeWithoutDocIds,
 }: {
   title: string;
   subtitle: string;
@@ -364,7 +394,9 @@ function Section({
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
   missingAttachmentIds?: Set<string>;
+  incomeWithoutDocIds?: Set<string>;
 }) {
+
   const groups = useMemo(() => {
     const map = new Map<string, Entry[]>();
     for (const e of entries) {
@@ -420,8 +452,10 @@ function Section({
               expandedId={expandedId}
               setExpandedId={setExpandedId}
               missingAttachmentIds={missingAttachmentIds}
+              incomeWithoutDocIds={incomeWithoutDocIds}
             />
           ))}
+
         </div>
       )}
     </section>
@@ -434,13 +468,16 @@ function CategoryGroup({
   expandedId,
   setExpandedId,
   missingAttachmentIds,
+  incomeWithoutDocIds,
 }: {
   group: { name: string; items: Entry[]; total: number; unpaid: number };
   orgId: string;
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
   missingAttachmentIds?: Set<string>;
+  incomeWithoutDocIds?: Set<string>;
 }) {
+
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b last:border-b-0">
@@ -487,7 +524,9 @@ function CategoryGroup({
                 expanded={expandedId === e.id}
                 onToggle={() => setExpandedId(expandedId === e.id ? null : e.id)}
                 missingAttachment={missingAttachmentIds?.has(e.id) ?? false}
+                incomeWithoutDoc={incomeWithoutDocIds?.has(e.id) ?? false}
               />
+
             ))}
           </div>
         </div>
@@ -503,12 +542,14 @@ function EntryRow({
   expanded,
   onToggle,
   missingAttachment,
+  incomeWithoutDoc,
 }: {
   entry: Entry;
   orgId: string;
   expanded: boolean;
   onToggle: () => void;
   missingAttachment?: boolean;
+  incomeWithoutDoc?: boolean;
 }) {
   const isInvoice = entry.source_type === "invoice" && entry.source_ref;
   return (
@@ -528,6 +569,7 @@ function EntryRow({
             </span>
             <PreCompanyBadge pre={entry.pre_company_expense} />
             <MissingAttachmentBadge show={missingAttachment} />
+            <MissingAttachmentBadge show={incomeWithoutDoc} label="Mangler dokumentasjon" />
           </div>
           <div className="truncate text-xs text-muted-foreground mt-0.5">
             {formatDate(entry.entry_date)}
@@ -560,6 +602,7 @@ function EntryRow({
           <span className="truncate">{entry.description}</span>
           <PreCompanyBadge pre={entry.pre_company_expense} />
           <MissingAttachmentBadge show={missingAttachment} />
+          <MissingAttachmentBadge show={incomeWithoutDoc} label="Mangler dokumentasjon" />
         </span>
 
 
@@ -1005,14 +1048,14 @@ function PreCompanyBadge({ pre }: { pre: boolean }) {
   );
 }
 
-function MissingAttachmentBadge({ show }: { show?: boolean }) {
+function MissingAttachmentBadge({ show, label = "Mangler bilag" }: { show?: boolean; label?: string }) {
   if (!show) return null;
   return (
     <Badge
       variant="outline"
       className="text-[10px] font-normal shrink-0 border-warning/40 text-warning"
     >
-      Mangler bilag
+      {label}
     </Badge>
   );
 }
