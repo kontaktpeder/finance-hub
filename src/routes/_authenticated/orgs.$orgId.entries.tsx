@@ -502,11 +502,13 @@ function EntryRow({
   orgId,
   expanded,
   onToggle,
+  missingAttachment,
 }: {
   entry: Entry;
   orgId: string;
   expanded: boolean;
   onToggle: () => void;
+  missingAttachment?: boolean;
 }) {
   const isInvoice = entry.source_type === "invoice" && entry.source_ref;
   return (
