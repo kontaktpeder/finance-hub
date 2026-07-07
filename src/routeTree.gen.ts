@@ -36,6 +36,7 @@ import { Route as ApiPublicV1ModuleOrganizationRouteImport } from './routes/api/
 import { Route as ApiPublicV1ModuleInfoRouteImport } from './routes/api/public/v1/module.info'
 import { Route as ApiPublicV1ModuleHealthRouteImport } from './routes/api/public/v1/module.health'
 import { Route as ApiPublicV1ModuleConfidenceRouteImport } from './routes/api/public/v1/module.confidence'
+import { Route as ApiPublicV1ModuleAlertsRouteImport } from './routes/api/public/v1/module.alerts'
 import { Route as ApiPublicV1InvoicesInvoiceIdRouteImport } from './routes/api/public/v1/invoices.$invoiceId'
 import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
 import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
@@ -198,6 +199,11 @@ const ApiPublicV1ModuleConfidenceRoute =
     path: '/api/public/v1/module/confidence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1ModuleAlertsRoute = ApiPublicV1ModuleAlertsRouteImport.update({
+  id: '/api/public/v1/module/alerts',
+  path: '/api/public/v1/module/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1InvoicesInvoiceIdRoute =
   ApiPublicV1InvoicesInvoiceIdRouteImport.update({
     id: '/$invoiceId',
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+  '/api/public/v1/module/alerts': typeof ApiPublicV1ModuleAlertsRoute
   '/api/public/v1/module/confidence': typeof ApiPublicV1ModuleConfidenceRoute
   '/api/public/v1/module/health': typeof ApiPublicV1ModuleHealthRoute
   '/api/public/v1/module/info': typeof ApiPublicV1ModuleInfoRoute
@@ -330,6 +337,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+  '/api/public/v1/module/alerts': typeof ApiPublicV1ModuleAlertsRoute
   '/api/public/v1/module/confidence': typeof ApiPublicV1ModuleConfidenceRoute
   '/api/public/v1/module/health': typeof ApiPublicV1ModuleHealthRoute
   '/api/public/v1/module/info': typeof ApiPublicV1ModuleInfoRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/api/public/v1/attachments/$attachmentId': typeof ApiPublicV1AttachmentsAttachmentIdRoute
   '/api/public/v1/entries/$entryId': typeof ApiPublicV1EntriesEntryIdRouteWithChildren
   '/api/public/v1/invoices/$invoiceId': typeof ApiPublicV1InvoicesInvoiceIdRouteWithChildren
+  '/api/public/v1/module/alerts': typeof ApiPublicV1ModuleAlertsRoute
   '/api/public/v1/module/confidence': typeof ApiPublicV1ModuleConfidenceRoute
   '/api/public/v1/module/health': typeof ApiPublicV1ModuleHealthRoute
   '/api/public/v1/module/info': typeof ApiPublicV1ModuleInfoRoute
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/invoices/$invoiceId'
+    | '/api/public/v1/module/alerts'
     | '/api/public/v1/module/confidence'
     | '/api/public/v1/module/health'
     | '/api/public/v1/module/info'
@@ -450,6 +460,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/invoices/$invoiceId'
+    | '/api/public/v1/module/alerts'
     | '/api/public/v1/module/confidence'
     | '/api/public/v1/module/health'
     | '/api/public/v1/module/info'
@@ -490,6 +501,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/attachments/$attachmentId'
     | '/api/public/v1/entries/$entryId'
     | '/api/public/v1/invoices/$invoiceId'
+    | '/api/public/v1/module/alerts'
     | '/api/public/v1/module/confidence'
     | '/api/public/v1/module/health'
     | '/api/public/v1/module/info'
@@ -512,6 +524,7 @@ export interface RootRouteChildren {
   ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRouteWithChildren
   ApiPublicV1InvoicesRoute: typeof ApiPublicV1InvoicesRouteWithChildren
   ApiPublicV1AiScanReceiptRoute: typeof ApiPublicV1AiScanReceiptRoute
+  ApiPublicV1ModuleAlertsRoute: typeof ApiPublicV1ModuleAlertsRoute
   ApiPublicV1ModuleConfidenceRoute: typeof ApiPublicV1ModuleConfidenceRoute
   ApiPublicV1ModuleHealthRoute: typeof ApiPublicV1ModuleHealthRoute
   ApiPublicV1ModuleInfoRoute: typeof ApiPublicV1ModuleInfoRoute
@@ -709,6 +722,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/v1/module/confidence'
       fullPath: '/api/public/v1/module/confidence'
       preLoaderRoute: typeof ApiPublicV1ModuleConfidenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/alerts': {
+      id: '/api/public/v1/module/alerts'
+      path: '/api/public/v1/module/alerts'
+      fullPath: '/api/public/v1/module/alerts'
+      preLoaderRoute: typeof ApiPublicV1ModuleAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/v1/invoices/$invoiceId': {
@@ -946,6 +966,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1EntriesRoute: ApiPublicV1EntriesRouteWithChildren,
   ApiPublicV1InvoicesRoute: ApiPublicV1InvoicesRouteWithChildren,
   ApiPublicV1AiScanReceiptRoute: ApiPublicV1AiScanReceiptRoute,
+  ApiPublicV1ModuleAlertsRoute: ApiPublicV1ModuleAlertsRoute,
   ApiPublicV1ModuleConfidenceRoute: ApiPublicV1ModuleConfidenceRoute,
   ApiPublicV1ModuleHealthRoute: ApiPublicV1ModuleHealthRoute,
   ApiPublicV1ModuleInfoRoute: ApiPublicV1ModuleInfoRoute,
