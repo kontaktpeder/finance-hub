@@ -46,7 +46,7 @@ export async function checkMissingAttachment(ctx: CheckCtx): Promise<ConfidenceI
     title: `${missing.length} utgiftsposter mangler bilag`,
     description: "Utgifter bør kunne dokumenteres med kvittering eller faktura.",
     count: missing.length,
-    action_url: url(ctx, `/orgs/${ctx.organizationId}/entries`),
+    action_url: url(ctx, `/orgs/${ctx.organizationId}/entries?issue=missing_attachment`),
   };
 }
 
@@ -128,7 +128,7 @@ export async function checkStaleInvoiceDraft(ctx: CheckCtx): Promise<ConfidenceI
     title: `${n} fakturautkast har ligget lenge`,
     description: `Utkast eldre enn ${DRAFT_STALE_DAYS} dager.`,
     count: n,
-    action_url: url(ctx, `/orgs/${ctx.organizationId}/invoices`),
+    action_url: url(ctx, `/orgs/${ctx.organizationId}/invoices?issue=stale_draft`),
   };
 }
 
