@@ -468,13 +468,16 @@ function CategoryGroup({
   expandedId,
   setExpandedId,
   missingAttachmentIds,
+  incomeWithoutDocIds,
 }: {
   group: { name: string; items: Entry[]; total: number; unpaid: number };
   orgId: string;
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
   missingAttachmentIds?: Set<string>;
+  incomeWithoutDocIds?: Set<string>;
 }) {
+
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b last:border-b-0">
