@@ -452,8 +452,10 @@ function Section({
               expandedId={expandedId}
               setExpandedId={setExpandedId}
               missingAttachmentIds={missingAttachmentIds}
+              incomeWithoutDocIds={incomeWithoutDocIds}
             />
           ))}
+
         </div>
       )}
     </section>
