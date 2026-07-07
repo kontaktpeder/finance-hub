@@ -140,6 +140,99 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <FinanceConfidenceSection orgId={orgId} />
     </div>
+  );
+}
+
+function severityBadgeVariant(sev: "info" | "warning" | "critical") {
+  if (sev === "critical") return "destructive" as const;
+  if (sev === "warning") return "secondary" as const;
+  return "outline" as const;
+}
+
+function severityLabel(sev: "info" | "warning" | "critical") {
+  if (sev === "critical") return "Kritisk";
+  if (sev === "warning") return "Bør sjekkes";
+  return "Info";
+}
+
+function FinanceConfidenceSection({ orgId }: { orgId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["finance-confidence", orgId],
+    queryFn: () => getFinanceConfidenceFn({ data: { orgId } }),
+  });
+
+  const status = data?.status ?? "ok";
+  const isOk = status === "ok";
+  const StatusIcon = isOk ? ShieldCheck : ShieldAlert;
+  const statusColor = isOk
+    ? "text-success"
+    : status === "critical"
+      ? "text-destructive"
+      : "text-warning";
+  const statusText = isOk
+    ? "Ingen kjente mangler funnet"
+    : "Mangler som bør sjekkes";
+
+  return (
+    <section className="mt-4">
+      <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-3">
+        Finance Confidence
+      </h2>
+      <Card>
+        <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+          <div className="flex items-center gap-2">
+            <StatusIcon className={`h-5 w-5 ${statusColor}`} />
+            <CardTitle className="text-base font-semibold">
+              {isLoading ? "Kjører kontroller…" : error ? "Kunne ikke hente status" : statusText}
+            </CardTitle>
+          </div>
+          {data && (
+            <div className="text-xs text-muted-foreground tabular">
+              Score: {data.score} %
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          {data && data.issues.length === 0 && !error && (
+            <p className="text-sm text-muted-foreground">
+              Ingen avvik oppdaget av de automatiske kontrollene.
+            </p>
+          )}
+          {data && data.issues.length > 0 && (
+            <ul className="divide-y divide-border">
+              {data.issues.map((issue) => (
+                <li key={issue.id} className="py-3 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant={severityBadgeVariant(issue.severity)}>
+                        {severityLabel(issue.severity)}
+                      </Badge>
+                      <span className="text-sm font-medium">{issue.title}</span>
+                    </div>
+                    {issue.description && (
+                      <p className="text-xs text-muted-foreground">{issue.description}</p>
+                    )}
+                  </div>
+                  {issue.action_url && (
+                    <Link
+                      to={issue.action_url}
+                      className="text-xs text-primary hover:underline whitespace-nowrap shrink-0"
+                    >
+                      Gå til
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-4 text-[11px] text-muted-foreground">
+            Basert på automatiske kontroller. Erstatter ikke regnskapsfører.
+          </p>
+        </CardContent>
+      </Card>
+    </section>
   );
 }
