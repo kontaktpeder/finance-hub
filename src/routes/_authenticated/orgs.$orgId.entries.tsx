@@ -295,11 +295,13 @@ function EntriesPage() {
         </div>
       </header>
 
-      {missingAttachmentFilter && (
+      {(missingAttachmentFilter || incomeWithoutDocFilter) && (
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-sm">
           <AlertTriangle className="h-4 w-4 mt-0.5 text-warning shrink-0" />
           <div className="flex-1">
-            Viser utgiftsposter som mangler bilag fra Finance Confidence.
+            {missingAttachmentFilter
+              ? "Viser utgiftsposter som mangler bilag fra Finance Confidence."
+              : "Viser inntekter uten faktura som mangler dokumentasjon fra Finance Confidence."}
           </div>
           <a
             href={`/orgs/${orgId}/entries${search.return ? `?return=${encodeURIComponent(search.return)}` : ""}`}
@@ -309,6 +311,7 @@ function EntriesPage() {
           </a>
         </div>
       )}
+
 
       {hasAnyPre && (
         <div className="mb-4 space-y-3">
