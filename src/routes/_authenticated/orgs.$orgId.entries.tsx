@@ -514,6 +514,10 @@ function StatusBadge({ kind, value }: { kind: "payment" | "invoice"; value: stri
 }
 
 function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
+  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useState(() => ({ current: null as HTMLInputElement | null }))[0];
+
   const { data: attachments } = useQuery({
     queryKey: ["entry-attachments", entry.id],
     queryFn: async () => {
@@ -535,6 +539,40 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
       return;
     }
     window.open(data.signedUrl, "_blank");
+  }
+
+  async function uploadAttachment(file: File) {
+    setUploading(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const path = `${orgId}/${entry.id}/${Date.now()}-${file.name}`;
+      const { error: upErr } = await supabase.storage
+        .from("finance-attachments")
+        .upload(path, file);
+      if (upErr) throw upErr;
+      const { error: insErr } = await supabase.from("finance_attachments").insert({
+        organization_id: orgId,
+        entry_id: entry.id,
+        storage_path: path,
+        file_name: file.name,
+        mime_type: file.type,
+        size_bytes: file.size,
+        uploaded_by: u.user?.id ?? null,
+      });
+      if (insErr) throw insErr;
+      toast.success("Bilag lastet opp");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["entry-attachments", entry.id] }),
+        queryClient.invalidateQueries({ queryKey: ["entries", orgId] }),
+        queryClient.invalidateQueries({ queryKey: ["finance-confidence", orgId] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard", orgId] }),
+      ]);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Kunne ikke laste opp bilag");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
   }
 
   const isInvoice = entry.source_type === "invoice" && entry.source_ref;
@@ -603,8 +641,32 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
 
       <div className="mt-5">
         <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Bilag</div>
+        <input
+          ref={(el) => {
+            inputRef.current = el;
+          }}
+          type="file"
+          accept="image/*,application/pdf"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void uploadAttachment(f);
+          }}
+        />
         {!attachments || attachments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Ingen vedlegg.</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">Mangler bilag.</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+            >
+              <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+              {uploading ? "Laster opp…" : "Last opp bilag"}
+            </Button>
+          </div>
         ) : (
           <div className="space-y-1.5">
             {attachments.map((a) => (
@@ -621,12 +683,25 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
                 </span>
               </button>
             ))}
+            <div className="pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={uploading}
+                onClick={() => inputRef.current?.click()}
+              >
+                <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+                {uploading ? "Laster opp…" : "Last opp flere"}
+              </Button>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
+
 
 function Field({ label, value, help }: { label: string; value: string | null | undefined; help?: string }) {
   return (
