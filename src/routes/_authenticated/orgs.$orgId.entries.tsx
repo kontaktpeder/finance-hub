@@ -137,6 +137,8 @@ function EntriesPage() {
   const [preFilter, setPreFilter] = useState<PreFilter>("all");
 
   const missingAttachmentFilter = search.issue === "missing_attachment";
+  const incomeWithoutDocFilter = search.issue === "income_without_documentation";
+
 
   const { data: books } = useQuery({
     queryKey: ["books", orgId],
