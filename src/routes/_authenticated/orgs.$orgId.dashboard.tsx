@@ -1,9 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { formatNOK } from "@/lib/format";
-import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt } from "lucide-react";
+import { getFinanceConfidenceFn } from "@/lib/confidence.functions";
+import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt, ShieldCheck, ShieldAlert } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/dashboard")({
   component: Dashboard,
