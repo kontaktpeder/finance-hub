@@ -166,7 +166,7 @@ export async function checkIncomeWithoutDocumentation(
     title: `${missing.length} inntekter mangler dokumentasjon`,
     description: "Inntekter uten faktura bør ha bilag.",
     count: missing.length,
-    action_url: url(ctx, `/orgs/${ctx.organizationId}/entries`),
+    action_url: url(ctx, `/orgs/${ctx.organizationId}/entries?issue=income_without_documentation`),
   };
 }
 
