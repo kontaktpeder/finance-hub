@@ -231,9 +231,12 @@ Disse hører hjemme i Finance Core, ikke i klient-appen:
 - Bilag/attachment-galleri på tvers av poster
 
 Klient-appen skal kun:
-1. Sende inntekter/utgifter inn med `source_app` + `source_ref`
-2. Hente `summary` for enkel status
-3. Lenke brukeren videre til Finance Core for full visning
+1. Sende **utgifter** og ad-hoc inntekter inn med `source_app` + `source_ref` via `/entries`
+2. Sende **popup-salg / fakturerbar inntekt** via **Invoices API** (`POST /invoices` → `POST /invoices/:id/send`) — ikke direkte `/entries`
+3. Hente `summary` for enkel status
+4. Lenke brukeren videre til Finance Core for full visning
+
+> **Gold of Sicily:** Popup-oppgjør mot JAJAJA AS går via faktura-flyten. Den eldre `popup_settlement`-posten via `/entries` er avviklet — se `supabase/scripts/cleanup-popup-settlement-duplicates.sql` for opprydding av historiske duplikater.
 
 ---
 

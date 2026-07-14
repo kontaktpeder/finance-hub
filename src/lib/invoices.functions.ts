@@ -20,6 +20,18 @@ async function requireEditor(supabase: any, organizationId: string, userId: stri
   }
 }
 
+async function requireAdmin(supabase: any, organizationId: string, userId: string) {
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!membership || !["owner", "admin"].includes((membership as any).role)) {
+    throw new Error("Kun eier/admin kan slette fakturaer.");
+  }
+}
+
 export const sendInvoiceFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => SendInput.parse(input))
@@ -137,6 +149,35 @@ const PreviewPatchSchema = z.object({
     )
     .optional(),
 }).optional();
+
+export const deleteDraftInvoiceFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ organizationId: z.string().uuid(), invoiceId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, data.organizationId, context.userId);
+    const { deleteDraftInvoice } = await import("./invoices.service.server");
+    return deleteDraftInvoice(context.supabase, {
+      organizationId: data.organizationId,
+      invoiceId: data.invoiceId,
+    });
+  });
+
+export const adminDeleteInvoiceFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ organizationId: z.string().uuid(), invoiceId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, data.organizationId, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { adminDeleteInvoice } = await import("./invoices.service.server");
+    return adminDeleteInvoice(supabaseAdmin, {
+      organizationId: data.organizationId,
+      invoiceId: data.invoiceId,
+    });
+  });
 
 export const previewDraftInvoicePdfFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

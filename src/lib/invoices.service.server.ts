@@ -270,6 +270,59 @@ export async function updateDraftInvoice(
   return full;
 }
 
+export async function deleteDraftInvoice(
+  supabase: any,
+  params: { organizationId: string; invoiceId: string },
+) {
+  const { data: invoice, error } = await supabase
+    .from("invoices")
+    .select("id, status, locked_at")
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .maybeSingle();
+
+  if (error || !invoice) throw new Error("Faktura ikke funnet");
+  if ((invoice as any).status !== "draft" || (invoice as any).locked_at) {
+    throw new Error("Kun utkast kan slettes her. Sendte fakturaer krever admin-sletting.");
+  }
+
+  const { error: delErr } = await supabase
+    .from("invoices")
+    .delete()
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .eq("status", "draft");
+  if (delErr) throw new Error(delErr.message);
+  return { deleted: true, invoiceId: params.invoiceId };
+}
+
+export async function adminDeleteInvoice(
+  supabase: any,
+  params: { organizationId: string; invoiceId: string },
+) {
+  const { data: invoice, error } = await supabase
+    .from("invoices")
+    .select("id, status, pdf_attachment_id, finance_attachments:pdf_attachment_id(storage_path)")
+    .eq("id", params.invoiceId)
+    .eq("organization_id", params.organizationId)
+    .maybeSingle();
+  if (error || !invoice) throw new Error("Faktura ikke funnet");
+
+  const storagePath = (invoice as any).finance_attachments?.storage_path as string | undefined;
+
+  const { data, error: rpcErr } = await supabase.rpc("admin_delete_invoice", {
+    p_organization_id: params.organizationId,
+    p_invoice_id: params.invoiceId,
+  });
+  if (rpcErr) throw new Error(rpcErr.message);
+
+  if (storagePath) {
+    await supabase.storage.from("finance-attachments").remove([storagePath]);
+  }
+
+  return data ?? { deleted: true, invoiceId: params.invoiceId };
+}
+
 export async function markInvoicePaid(
   supabase: any,
   params: {

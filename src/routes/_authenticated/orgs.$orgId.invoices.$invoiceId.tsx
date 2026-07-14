@@ -9,6 +9,8 @@ import {
   markInvoicePaidFn,
   getInvoicePdfUrlFn,
   previewDraftInvoicePdfFn,
+  deleteDraftInvoiceFn,
+  adminDeleteInvoiceFn,
 } from "@/lib/invoices.functions";
 import { calcInvoiceTotals } from "@/lib/invoices.calc";
 import { Button } from "@/components/ui/button";
@@ -100,6 +102,8 @@ function InvoiceDetailPage() {
   const markPaid = useServerFn(markInvoicePaidFn);
   const getPdf = useServerFn(getInvoicePdfUrlFn);
   const previewPdf = useServerFn(previewDraftInvoicePdfFn);
+  const deleteDraft = useServerFn(deleteDraftInvoiceFn);
+  const adminDelete = useServerFn(adminDeleteInvoiceFn);
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -248,6 +252,24 @@ function InvoiceDetailPage() {
     }
   }
 
+  async function doDelete() {
+    setBusy(true);
+    try {
+      if (status === "draft") {
+        await deleteDraft({ data: { organizationId: orgId, invoiceId } });
+      } else {
+        await adminDelete({ data: { organizationId: orgId, invoiceId } });
+      }
+      toast.success("Faktura slettet");
+      await qc.invalidateQueries({ queryKey: ["invoices", orgId] });
+      navigate({ to: "/orgs/$orgId/invoices", params: { orgId } });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Kunne ikke slette faktura");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function doPreview() {
     // Open the tab synchronously so popup blockers allow it.
     // NB: no "noopener" — that makes window.open() return null and we lose the reference.
@@ -321,7 +343,7 @@ function InvoiceDetailPage() {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {readOnly && inv.pdf_attachment_id && (
             <Button variant="outline" onClick={openPdf}>
               <FileDown className="h-4 w-4 mr-2" /> Vis PDF
@@ -361,6 +383,27 @@ function InvoiceDetailPage() {
               </AlertDialog>
             </>
           )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={busy}>
+                <Trash2 className="h-4 w-4 mr-2" /> Slett
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Slett faktura?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {status === "draft"
+                    ? "Utkastet slettes permanent."
+                    : "Sendte fakturaer slettes sammen med tilhørende regnskapspost. Dette kan ikke angres."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction onClick={doDelete}>Slett faktura</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </header>
 
