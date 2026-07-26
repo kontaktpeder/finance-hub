@@ -1,12 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { formatNOK } from "@/lib/format";
 import { getFinanceConfidenceFn } from "@/lib/confidence.functions";
-import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt, ShieldCheck, ShieldAlert, Info } from "lucide-react";
+import { seedFinanceDemoData } from "@/lib/demo-seed.functions";
+import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt, ShieldCheck, ShieldAlert, Info, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/dashboard")({
   component: Dashboard,
@@ -14,9 +18,24 @@ export const Route = createFileRoute("/_authenticated/orgs/$orgId/dashboard")({
 
 function Dashboard() {
   const { orgId } = Route.useParams();
+  const qc = useQueryClient();
+  const seedFn = useServerFn(seedFinanceDemoData);
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
+
+  const seedMut = useMutation({
+    mutationFn: () => seedFn({ data: { organizationId: orgId } }),
+    onSuccess: (res) => {
+      if (res.seeded) {
+        toast.success(`La til ${res.count} demoposter`);
+        void qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
+      } else {
+        toast.message("Demodata er allerede lagt inn");
+      }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data } = useQuery({
     queryKey: ["dashboard", orgId, year, month],
@@ -90,12 +109,24 @@ function Dashboard() {
       {data && data.count === 0 && (
         <Alert className="mb-6">
           <Info className="h-4 w-4" />
-          <AlertDescription>
-            Kom i gang: skann eller legg inn første bilag, opprett en{" "}
-            <Link to="/orgs/$orgId/settings" params={{ orgId }} className="underline font-medium">
-              platform-verify-nøkkel
-            </Link>{" "}
-            for Nexus, og inviter kolleger under Medlemmer.
+          <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Kom i gang: skann bilag, opprett{" "}
+              <Link to="/orgs/$orgId/settings" params={{ orgId }} className="underline font-medium">
+                platform-verify-nøkkel
+              </Link>
+              , eller fyll dashbordet med demodata.
+            </span>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="shrink-0 gap-1"
+              disabled={seedMut.isPending}
+              onClick={() => seedMut.mutate()}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {seedMut.isPending ? "Legger inn…" : "Fyll med demodata"}
+            </Button>
           </AlertDescription>
         </Alert>
       )}

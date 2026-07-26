@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "node --test src/lib/*.test.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.48",
