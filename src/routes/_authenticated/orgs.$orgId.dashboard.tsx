@@ -1,11 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatNOK } from "@/lib/format";
 import { getFinanceConfidenceFn } from "@/lib/confidence.functions";
-import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt, ShieldCheck, ShieldAlert } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, AlertCircle, CalendarDays, FileWarning, Receipt, ShieldCheck, ShieldAlert, Info } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/dashboard")({
   component: Dashboard,
@@ -85,6 +86,19 @@ function Dashboard() {
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Dashbord {year}</h1>
         <p className="text-sm text-muted-foreground mt-1">{data?.count ?? 0} poster i år</p>
       </header>
+
+      {data && data.count === 0 && (
+        <Alert className="mb-6">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Kom i gang: skann eller legg inn første bilag, opprett en{" "}
+            <Link to="/orgs/$orgId/settings" params={{ orgId }} className="underline font-medium">
+              platform-verify-nøkkel
+            </Link>{" "}
+            for Nexus, og inviter kolleger under Medlemmer.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {stats.map((s) => (

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Plus, KeyRound, Copy } from "lucide-react";
+import { PlatformLinkingCard } from "@/components/finance/PlatformLinkingCard";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/api-keys")({
   component: ApiKeysPage,
@@ -79,8 +80,8 @@ function ApiKeysPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-3xl">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
+    <div className="p-4 sm:p-6 md:p-8 max-w-3xl space-y-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">API-nøkler</h1>
           <p className="text-sm text-muted-foreground mt-1">Nøkler gir tilgang til kun denne organisasjonen.</p>
@@ -128,6 +129,8 @@ function ApiKeysPage() {
           </DialogContent>
         </Dialog>
       </header>
+
+      <PlatformLinkingCard orgId={orgId} />
 
       <div className="space-y-3">
         {clients?.length === 0 && (

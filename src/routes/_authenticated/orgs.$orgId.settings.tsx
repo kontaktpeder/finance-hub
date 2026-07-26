@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
+import { PlatformLinkingCard } from "@/components/finance/PlatformLinkingCard";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/settings")({
   component: SettingsPage,
@@ -99,19 +100,21 @@ function SettingsPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-2xl">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Fakturainnstillinger</h1>
+    <div className="p-4 sm:p-6 md:p-8 max-w-2xl space-y-6">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">Innstillinger</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Selgerinformasjon som vises på fakturaer.
+          Platform-kobling og selgerinformasjon for fakturaer.
         </p>
       </header>
 
-      <Alert className="mb-6">
+      <PlatformLinkingCard orgId={orgId} />
+
+      <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Endringer gjelder kun nye utkast og fakturaer som sendes fremover. Allerede sendte
-          fakturaer beholder opplysningene de hadde ved utsendelse.
+          Endringer i selgerinfo gjelder kun nye utkast og fakturaer som sendes fremover.
+          Allerede sendte fakturaer beholder opplysningene de hadde ved utsendelse.
         </AlertDescription>
       </Alert>
 
