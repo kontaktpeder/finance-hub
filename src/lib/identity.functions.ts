@@ -36,38 +36,104 @@ async function findUserIdsByEmail(admin: any, email: string): Promise<string[]> 
   return [...ids];
 }
 
-async function remapMemberships(admin: any, fromUserId: string, toUserId: string): Promise<number> {
-  if (fromUserId === toUserId) return 0;
-  const { data: rows, error } = await admin
-    .from("organization_members")
-    .select("id, organization_id")
-    .eq("user_id", fromUserId);
-  if (error) throw new Error(error.message);
-  let remapped = 0;
-  for (const row of rows ?? []) {
-    const { data: clash } = await admin
-      .from("organization_members")
-      .select("id")
-      .eq("organization_id", row.organization_id)
-      .eq("user_id", toUserId)
-      .maybeSingle();
-    if (clash) {
-      await admin.from("organization_members").delete().eq("id", row.id);
-    } else {
-      const { error: upErr } = await admin
-        .from("organization_members")
-        .update({ user_id: toUserId })
-        .eq("id", row.id);
-      if (upErr) throw new Error(upErr.message);
-      remapped += 1;
+async function ensureNexusUserExists(admin: any, nexusUserId: string, email: string) {
+  const { data: existing } = await admin.auth.admin.getUserById(nexusUserId);
+  if (existing.user) {
+    const current = (existing.user.email ?? "").toLowerCase();
+    if (current !== email) {
+      const { error } = await admin.auth.admin.updateUserById(nexusUserId, {
+        email,
+        email_confirm: true,
+      });
+      if (error) throw new Error(error.message);
+    }
+    return;
+  }
+  const { error: createErr } = await admin.auth.admin.createUser({
+    id: nexusUserId,
+    email,
+    email_confirm: true,
+  });
+  if (createErr) throw new Error(createErr.message);
+}
+
+/**
+ * Move legacy local auth user → Nexus UUID without orphaning memberships.
+ * Order: free email → create Nexus user → remap rows → delete legacy user.
+ */
+async function replaceLegacyUsersWithNexusId(
+  admin: any,
+  nexusUserId: string,
+  email: string,
+): Promise<number> {
+  const legacyIds = (await findUserIdsByEmail(admin, email)).filter((id) => id !== nexusUserId);
+  if (!legacyIds.length) {
+    await ensureNexusUserExists(admin, nexusUserId, email);
+    return 0;
+  }
+
+  for (const oldId of legacyIds) {
+    const parkingEmail = `migrated+${oldId.replace(/-/g, "")}@users.invalid`;
+    const { error: parkErr } = await admin.auth.admin.updateUserById(oldId, {
+      email: parkingEmail,
+      email_confirm: true,
+    });
+    if (parkErr) {
+      throw new Error(`Kunne ikke frigjøre e-post fra lokal bruker: ${parkErr.message}`);
     }
   }
+
+  await ensureNexusUserExists(admin, nexusUserId, email);
+
+  let remapped = 0;
+  for (const oldId of legacyIds) {
+    const { data: rows, error } = await admin
+      .from("organization_members")
+      .select("id, organization_id, role")
+      .eq("user_id", oldId);
+    if (error) throw new Error(error.message);
+
+    for (const row of rows ?? []) {
+      const { data: clash } = await admin
+        .from("organization_members")
+        .select("id")
+        .eq("organization_id", row.organization_id)
+        .eq("user_id", nexusUserId)
+        .maybeSingle();
+      if (clash) {
+        const { error: delErr } = await admin
+          .from("organization_members")
+          .delete()
+          .eq("id", row.id);
+        if (delErr) throw new Error(delErr.message);
+        continue;
+      }
+      const { error: updErr } = await admin
+        .from("organization_members")
+        .update({ user_id: nexusUserId })
+        .eq("id", row.id);
+      if (updErr) throw new Error(updErr.message);
+      remapped += 1;
+    }
+
+    const { error: createdByErr } = await admin
+      .from("organizations")
+      .update({ created_by: nexusUserId })
+      .eq("created_by", oldId);
+    if (createdByErr) throw new Error(createdByErr.message);
+
+    const { error: delUserErr } = await admin.auth.admin.deleteUser(oldId);
+    if (delUserErr) {
+      throw new Error(`Kunne ikke slette lokal bruker: ${delUserErr.message}`);
+    }
+  }
+
   return remapped;
 }
 
 /**
  * Ensure auth.users contains Nexus user id. If the email is already taken by a
- * legacy local UUID, remap memberships, delete the legacy user, recreate with Nexus id.
+ * legacy local UUID, migrate memberships then recreate with Nexus id (FK-safe).
  */
 async function ensureShadowAndRemap(
   admin: any,
@@ -80,8 +146,9 @@ async function ensureShadowAndRemap(
       email?.trim().toLowerCase() || existing.user.email?.trim().toLowerCase() || null;
     let remapped = 0;
     if (resolvedEmail) {
-      for (const oldId of await findUserIdsByEmail(admin, resolvedEmail)) {
-        remapped += await remapMemberships(admin, oldId, userId);
+      const others = (await findUserIdsByEmail(admin, resolvedEmail)).filter((id) => id !== userId);
+      if (others.length) {
+        remapped += await replaceLegacyUsersWithNexusId(admin, userId, resolvedEmail);
       }
     }
     return { remapped, shadowCreated: false, email: resolvedEmail };
@@ -91,41 +158,7 @@ async function ensureShadowAndRemap(
     throw new Error("Kan ikke opprette shadow-bruker uten e-post.");
   }
   const normalized = email.trim().toLowerCase();
-
-  const { error: createErr } = await admin.auth.admin.createUser({
-    id: userId,
-    email: normalized,
-    email_confirm: true,
-  });
-
-  if (!createErr) {
-    let remapped = 0;
-    for (const oldId of await findUserIdsByEmail(admin, normalized)) {
-      remapped += await remapMemberships(admin, oldId, userId);
-    }
-    return { remapped, shadowCreated: true, email: normalized };
-  }
-
-  // Email already registered under another UUID — migrate dogfood identity.
-  if (!/already|exists|registered/i.test(createErr.message)) {
-    throw new Error(createErr.message);
-  }
-
-  const legacyIds = (await findUserIdsByEmail(admin, normalized)).filter((id) => id !== userId);
-  let remapped = 0;
-  for (const oldId of legacyIds) {
-    remapped += await remapMemberships(admin, oldId, userId);
-    const { error: delErr } = await admin.auth.admin.deleteUser(oldId);
-    if (delErr) throw new Error(`Kunne ikke erstatte lokal bruker: ${delErr.message}`);
-  }
-
-  const { error: retryErr } = await admin.auth.admin.createUser({
-    id: userId,
-    email: normalized,
-    email_confirm: true,
-  });
-  if (retryErr) throw new Error(retryErr.message);
-
+  const remapped = await replaceLegacyUsersWithNexusId(admin, userId, normalized);
   return { remapped, shadowCreated: true, email: normalized };
 }
 
