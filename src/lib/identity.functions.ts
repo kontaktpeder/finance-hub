@@ -180,7 +180,7 @@ export const completeNexusSsoLogin = createServerFn({ method: "POST" })
     const nexusApp = (
       process.env.NEXUS_APP_URL ||
       process.env.VITE_NEXUS_APP_URL ||
-      ""
+      "https://foundation-verse-core.lovable.app"
     ).replace(/\/$/, "");
     if (!nexusApp) throw new Error("NEXUS_APP_URL er ikke satt på server.");
 
