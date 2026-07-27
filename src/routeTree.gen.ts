@@ -9,58 +9,59 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
-import { Route as AuthenticatedOrgsNewRouteImport } from './routes/_authenticated/orgs.new'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthenticatedOrgsOrgIdRouteImport } from './routes/_authenticated/orgs.$orgId'
+import { Route as AuthenticatedOrgsNewRouteImport } from './routes/_authenticated/orgs.new'
 import { Route as AuthenticatedOrgsOrgIdIndexRouteImport } from './routes/_authenticated/orgs.$orgId.index'
-import { Route as ApiPublicV1InvoicesRouteImport } from './routes/api/public/v1/invoices'
-import { Route as ApiPublicV1EntriesRouteImport } from './routes/api/public/v1/entries'
-import { Route as ApiPublicV1CompanySearchRouteImport } from './routes/api/public/v1/company-search'
-import { Route as ApiPublicV1AttachmentsRouteImport } from './routes/api/public/v1/attachments'
-import { Route as AuthenticatedOrgsOrgIdSettingsRouteImport } from './routes/_authenticated/orgs.$orgId.settings'
-import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authenticated/orgs.$orgId.scan'
-import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
-import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
-import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
-import { Route as AuthenticatedOrgsOrgIdDashboardRouteImport } from './routes/_authenticated/orgs.$orgId.dashboard'
-import { Route as AuthenticatedOrgsOrgIdBankRouteImport } from './routes/_authenticated/orgs.$orgId.bank'
-import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
 import { Route as AuthenticatedOrgsOrgIdApiKeysRouteImport } from './routes/_authenticated/orgs.$orgId.api-keys'
-import { Route as AuthenticatedOrgsOrgIdInvoicesIndexRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.index'
-import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
-import { Route as ApiPublicV1ModuleWidgetsRouteImport } from './routes/api/public/v1/module.widgets'
-import { Route as ApiPublicV1ModuleOrganizationRouteImport } from './routes/api/public/v1/module.organization'
-import { Route as ApiPublicV1ModuleInfoRouteImport } from './routes/api/public/v1/module.info'
-import { Route as ApiPublicV1ModuleHealthRouteImport } from './routes/api/public/v1/module.health'
-import { Route as ApiPublicV1ModuleConfidenceRouteImport } from './routes/api/public/v1/module.confidence'
-import { Route as ApiPublicV1ModuleAlertsRouteImport } from './routes/api/public/v1/module.alerts'
-import { Route as ApiPublicV1InvoicesInvoiceIdRouteImport } from './routes/api/public/v1/invoices.$invoiceId'
-import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
-import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
-import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/public/v1/ai.scan-receipt'
-import { Route as AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.$invoiceId'
-import { Route as AuthenticatedOrgsOrgIdBankDiagnosticsRouteImport } from './routes/_authenticated/orgs.$orgId.bank_.diagnostics'
+import { Route as AuthenticatedOrgsOrgIdAttachmentsRouteImport } from './routes/_authenticated/orgs.$orgId.attachments'
+import { Route as AuthenticatedOrgsOrgIdBankRouteImport } from './routes/_authenticated/orgs.$orgId.bank'
+import { Route as AuthenticatedOrgsOrgIdDashboardRouteImport } from './routes/_authenticated/orgs.$orgId.dashboard'
+import { Route as AuthenticatedOrgsOrgIdEntriesRouteImport } from './routes/_authenticated/orgs.$orgId.entries'
+import { Route as AuthenticatedOrgsOrgIdMembersRouteImport } from './routes/_authenticated/orgs.$orgId.members'
+import { Route as AuthenticatedOrgsOrgIdReportsRouteImport } from './routes/_authenticated/orgs.$orgId.reports'
+import { Route as AuthenticatedOrgsOrgIdScanRouteImport } from './routes/_authenticated/orgs.$orgId.scan'
+import { Route as AuthenticatedOrgsOrgIdSettingsRouteImport } from './routes/_authenticated/orgs.$orgId.settings'
+import { Route as ApiPublicV1AttachmentsRouteImport } from './routes/api/public/v1/attachments'
+import { Route as ApiPublicV1CompanySearchRouteImport } from './routes/api/public/v1/company-search'
+import { Route as ApiPublicV1EntriesRouteImport } from './routes/api/public/v1/entries'
+import { Route as ApiPublicV1InvoicesRouteImport } from './routes/api/public/v1/invoices'
 import { Route as AuthenticatedOrgsOrgIdBankCallbackRouteImport } from './routes/_authenticated/orgs.$orgId.bank_.callback'
-import { Route as ApiPublicV1ModuleOrganizationOrgIdRouteImport } from './routes/api/public/v1/module.organization.$orgId'
-import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
-import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
+import { Route as AuthenticatedOrgsOrgIdBankDiagnosticsRouteImport } from './routes/_authenticated/orgs.$orgId.bank_.diagnostics'
+import { Route as AuthenticatedOrgsOrgIdInvoicesIndexRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.index'
+import { Route as AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport } from './routes/_authenticated/orgs.$orgId.invoices.$invoiceId'
+import { Route as ApiPublicV1AiScanReceiptRouteImport } from './routes/api/public/v1/ai.scan-receipt'
+import { Route as ApiPublicV1AttachmentsAttachmentIdRouteImport } from './routes/api/public/v1/attachments.$attachmentId'
+import { Route as ApiPublicV1EntriesEntryIdRouteImport } from './routes/api/public/v1/entries.$entryId'
+import { Route as ApiPublicV1InvoicesInvoiceIdRouteImport } from './routes/api/public/v1/invoices.$invoiceId'
+import { Route as ApiPublicV1ModuleAlertsRouteImport } from './routes/api/public/v1/module.alerts'
+import { Route as ApiPublicV1ModuleConfidenceRouteImport } from './routes/api/public/v1/module.confidence'
+import { Route as ApiPublicV1ModuleHealthRouteImport } from './routes/api/public/v1/module.health'
+import { Route as ApiPublicV1ModuleInfoRouteImport } from './routes/api/public/v1/module.info'
+import { Route as ApiPublicV1ModuleOrganizationRouteImport } from './routes/api/public/v1/module.organization'
+import { Route as ApiPublicV1ModuleWidgetsRouteImport } from './routes/api/public/v1/module.widgets'
+import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
 import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
+import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
+import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
+import { Route as ApiPublicV1ModuleOrganizationOrgIdRouteImport } from './routes/api/public/v1/module.organization.$orgId'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -68,14 +69,19 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedOrgsNewRoute = AuthenticatedOrgsNewRouteImport.update({
-  id: '/orgs/new',
-  path: '/orgs/new',
-  getParentRoute: () => AuthenticatedRoute,
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthenticatedOrgsOrgIdRoute = AuthenticatedOrgsOrgIdRouteImport.update({
   id: '/orgs/$orgId',
   path: '/orgs/$orgId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOrgsNewRoute = AuthenticatedOrgsNewRouteImport.update({
+  id: '/orgs/new',
+  path: '/orgs/new',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOrgsOrgIdIndexRoute =
@@ -84,67 +90,10 @@ const AuthenticatedOrgsOrgIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const ApiPublicV1InvoicesRoute = ApiPublicV1InvoicesRouteImport.update({
-  id: '/api/public/v1/invoices',
-  path: '/api/public/v1/invoices',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicV1EntriesRoute = ApiPublicV1EntriesRouteImport.update({
-  id: '/api/public/v1/entries',
-  path: '/api/public/v1/entries',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicV1CompanySearchRoute =
-  ApiPublicV1CompanySearchRouteImport.update({
-    id: '/api/public/v1/company-search',
-    path: '/api/public/v1/company-search',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicV1AttachmentsRoute = ApiPublicV1AttachmentsRouteImport.update({
-  id: '/api/public/v1/attachments',
-  path: '/api/public/v1/attachments',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedOrgsOrgIdSettingsRoute =
-  AuthenticatedOrgsOrgIdSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
-  } as any)
-const AuthenticatedOrgsOrgIdScanRoute =
-  AuthenticatedOrgsOrgIdScanRouteImport.update({
-    id: '/scan',
-    path: '/scan',
-    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
-  } as any)
-const AuthenticatedOrgsOrgIdReportsRoute =
-  AuthenticatedOrgsOrgIdReportsRouteImport.update({
-    id: '/reports',
-    path: '/reports',
-    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
-  } as any)
-const AuthenticatedOrgsOrgIdMembersRoute =
-  AuthenticatedOrgsOrgIdMembersRouteImport.update({
-    id: '/members',
-    path: '/members',
-    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
-  } as any)
-const AuthenticatedOrgsOrgIdEntriesRoute =
-  AuthenticatedOrgsOrgIdEntriesRouteImport.update({
-    id: '/entries',
-    path: '/entries',
-    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
-  } as any)
-const AuthenticatedOrgsOrgIdDashboardRoute =
-  AuthenticatedOrgsOrgIdDashboardRouteImport.update({
-    id: '/dashboard',
-    path: '/dashboard',
-    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
-  } as any)
-const AuthenticatedOrgsOrgIdBankRoute =
-  AuthenticatedOrgsOrgIdBankRouteImport.update({
-    id: '/bank',
-    path: '/bank',
+const AuthenticatedOrgsOrgIdApiKeysRoute =
+  AuthenticatedOrgsOrgIdApiKeysRouteImport.update({
+    id: '/api-keys',
+    path: '/api-keys',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
 const AuthenticatedOrgsOrgIdAttachmentsRoute =
@@ -153,85 +102,73 @@ const AuthenticatedOrgsOrgIdAttachmentsRoute =
     path: '/attachments',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const AuthenticatedOrgsOrgIdApiKeysRoute =
-  AuthenticatedOrgsOrgIdApiKeysRouteImport.update({
-    id: '/api-keys',
-    path: '/api-keys',
+const AuthenticatedOrgsOrgIdBankRoute =
+  AuthenticatedOrgsOrgIdBankRouteImport.update({
+    id: '/bank',
+    path: '/bank',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const AuthenticatedOrgsOrgIdInvoicesIndexRoute =
-  AuthenticatedOrgsOrgIdInvoicesIndexRouteImport.update({
-    id: '/invoices/',
-    path: '/invoices/',
+const AuthenticatedOrgsOrgIdDashboardRoute =
+  AuthenticatedOrgsOrgIdDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const ApiPublicV1ReportsSummaryRoute =
-  ApiPublicV1ReportsSummaryRouteImport.update({
-    id: '/api/public/v1/reports/summary',
-    path: '/api/public/v1/reports/summary',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedOrgsOrgIdEntriesRoute =
+  AuthenticatedOrgsOrgIdEntriesRouteImport.update({
+    id: '/entries',
+    path: '/entries',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const ApiPublicV1ModuleWidgetsRoute =
-  ApiPublicV1ModuleWidgetsRouteImport.update({
-    id: '/api/public/v1/module/widgets',
-    path: '/api/public/v1/module/widgets',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedOrgsOrgIdMembersRoute =
+  AuthenticatedOrgsOrgIdMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const ApiPublicV1ModuleOrganizationRoute =
-  ApiPublicV1ModuleOrganizationRouteImport.update({
-    id: '/api/public/v1/module/organization',
-    path: '/api/public/v1/module/organization',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedOrgsOrgIdReportsRoute =
+  AuthenticatedOrgsOrgIdReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const ApiPublicV1ModuleInfoRoute = ApiPublicV1ModuleInfoRouteImport.update({
-  id: '/api/public/v1/module/info',
-  path: '/api/public/v1/module/info',
+const AuthenticatedOrgsOrgIdScanRoute =
+  AuthenticatedOrgsOrgIdScanRouteImport.update({
+    id: '/scan',
+    path: '/scan',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const AuthenticatedOrgsOrgIdSettingsRoute =
+  AuthenticatedOrgsOrgIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
+  } as any)
+const ApiPublicV1AttachmentsRoute = ApiPublicV1AttachmentsRouteImport.update({
+  id: '/api/public/v1/attachments',
+  path: '/api/public/v1/attachments',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicV1ModuleHealthRoute = ApiPublicV1ModuleHealthRouteImport.update({
-  id: '/api/public/v1/module/health',
-  path: '/api/public/v1/module/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicV1ModuleConfidenceRoute =
-  ApiPublicV1ModuleConfidenceRouteImport.update({
-    id: '/api/public/v1/module/confidence',
-    path: '/api/public/v1/module/confidence',
+const ApiPublicV1CompanySearchRoute =
+  ApiPublicV1CompanySearchRouteImport.update({
+    id: '/api/public/v1/company-search',
+    path: '/api/public/v1/company-search',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicV1ModuleAlertsRoute = ApiPublicV1ModuleAlertsRouteImport.update({
-  id: '/api/public/v1/module/alerts',
-  path: '/api/public/v1/module/alerts',
+const ApiPublicV1EntriesRoute = ApiPublicV1EntriesRouteImport.update({
+  id: '/api/public/v1/entries',
+  path: '/api/public/v1/entries',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicV1InvoicesInvoiceIdRoute =
-  ApiPublicV1InvoicesInvoiceIdRouteImport.update({
-    id: '/$invoiceId',
-    path: '/$invoiceId',
-    getParentRoute: () => ApiPublicV1InvoicesRoute,
-  } as any)
-const ApiPublicV1EntriesEntryIdRoute =
-  ApiPublicV1EntriesEntryIdRouteImport.update({
-    id: '/$entryId',
-    path: '/$entryId',
-    getParentRoute: () => ApiPublicV1EntriesRoute,
-  } as any)
-const ApiPublicV1AttachmentsAttachmentIdRoute =
-  ApiPublicV1AttachmentsAttachmentIdRouteImport.update({
-    id: '/$attachmentId',
-    path: '/$attachmentId',
-    getParentRoute: () => ApiPublicV1AttachmentsRoute,
-  } as any)
-const ApiPublicV1AiScanReceiptRoute =
-  ApiPublicV1AiScanReceiptRouteImport.update({
-    id: '/api/public/v1/ai/scan-receipt',
-    path: '/api/public/v1/ai/scan-receipt',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute =
-  AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport.update({
-    id: '/invoices/$invoiceId',
-    path: '/invoices/$invoiceId',
+const ApiPublicV1InvoicesRoute = ApiPublicV1InvoicesRouteImport.update({
+  id: '/api/public/v1/invoices',
+  path: '/api/public/v1/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedOrgsOrgIdBankCallbackRoute =
+  AuthenticatedOrgsOrgIdBankCallbackRouteImport.update({
+    id: '/bank_/callback',
+    path: '/bank/callback',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
 const AuthenticatedOrgsOrgIdBankDiagnosticsRoute =
@@ -240,29 +177,80 @@ const AuthenticatedOrgsOrgIdBankDiagnosticsRoute =
     path: '/bank/diagnostics',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const AuthenticatedOrgsOrgIdBankCallbackRoute =
-  AuthenticatedOrgsOrgIdBankCallbackRouteImport.update({
-    id: '/bank_/callback',
-    path: '/bank/callback',
+const AuthenticatedOrgsOrgIdInvoicesIndexRoute =
+  AuthenticatedOrgsOrgIdInvoicesIndexRouteImport.update({
+    id: '/invoices/',
+    path: '/invoices/',
     getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const ApiPublicV1ModuleOrganizationOrgIdRoute =
-  ApiPublicV1ModuleOrganizationOrgIdRouteImport.update({
-    id: '/$orgId',
-    path: '/$orgId',
-    getParentRoute: () => ApiPublicV1ModuleOrganizationRoute,
+const AuthenticatedOrgsOrgIdInvoicesInvoiceIdRoute =
+  AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport.update({
+    id: '/invoices/$invoiceId',
+    path: '/invoices/$invoiceId',
+    getParentRoute: () => AuthenticatedOrgsOrgIdRoute,
   } as any)
-const ApiPublicV1InvoicesInvoiceIdSendRoute =
-  ApiPublicV1InvoicesInvoiceIdSendRouteImport.update({
-    id: '/send',
-    path: '/send',
-    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
+const ApiPublicV1AiScanReceiptRoute =
+  ApiPublicV1AiScanReceiptRouteImport.update({
+    id: '/api/public/v1/ai/scan-receipt',
+    path: '/api/public/v1/ai/scan-receipt',
+    getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicV1InvoicesInvoiceIdPdfRoute =
-  ApiPublicV1InvoicesInvoiceIdPdfRouteImport.update({
-    id: '/pdf',
-    path: '/pdf',
-    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
+const ApiPublicV1AttachmentsAttachmentIdRoute =
+  ApiPublicV1AttachmentsAttachmentIdRouteImport.update({
+    id: '/$attachmentId',
+    path: '/$attachmentId',
+    getParentRoute: () => ApiPublicV1AttachmentsRoute,
+  } as any)
+const ApiPublicV1EntriesEntryIdRoute =
+  ApiPublicV1EntriesEntryIdRouteImport.update({
+    id: '/$entryId',
+    path: '/$entryId',
+    getParentRoute: () => ApiPublicV1EntriesRoute,
+  } as any)
+const ApiPublicV1InvoicesInvoiceIdRoute =
+  ApiPublicV1InvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => ApiPublicV1InvoicesRoute,
+  } as any)
+const ApiPublicV1ModuleAlertsRoute = ApiPublicV1ModuleAlertsRouteImport.update({
+  id: '/api/public/v1/module/alerts',
+  path: '/api/public/v1/module/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ModuleConfidenceRoute =
+  ApiPublicV1ModuleConfidenceRouteImport.update({
+    id: '/api/public/v1/module/confidence',
+    path: '/api/public/v1/module/confidence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1ModuleHealthRoute = ApiPublicV1ModuleHealthRouteImport.update({
+  id: '/api/public/v1/module/health',
+  path: '/api/public/v1/module/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ModuleInfoRoute = ApiPublicV1ModuleInfoRouteImport.update({
+  id: '/api/public/v1/module/info',
+  path: '/api/public/v1/module/info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ModuleOrganizationRoute =
+  ApiPublicV1ModuleOrganizationRouteImport.update({
+    id: '/api/public/v1/module/organization',
+    path: '/api/public/v1/module/organization',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1ModuleWidgetsRoute =
+  ApiPublicV1ModuleWidgetsRouteImport.update({
+    id: '/api/public/v1/module/widgets',
+    path: '/api/public/v1/module/widgets',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1ReportsSummaryRoute =
+  ApiPublicV1ReportsSummaryRouteImport.update({
+    id: '/api/public/v1/reports/summary',
+    path: '/api/public/v1/reports/summary',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicV1EntriesEntryIdAttachmentsRoute =
   ApiPublicV1EntriesEntryIdAttachmentsRouteImport.update({
@@ -270,11 +258,30 @@ const ApiPublicV1EntriesEntryIdAttachmentsRoute =
     path: '/attachments',
     getParentRoute: () => ApiPublicV1EntriesEntryIdRoute,
   } as any)
+const ApiPublicV1InvoicesInvoiceIdPdfRoute =
+  ApiPublicV1InvoicesInvoiceIdPdfRouteImport.update({
+    id: '/pdf',
+    path: '/pdf',
+    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
+  } as any)
+const ApiPublicV1InvoicesInvoiceIdSendRoute =
+  ApiPublicV1InvoicesInvoiceIdSendRouteImport.update({
+    id: '/send',
+    path: '/send',
+    getParentRoute: () => ApiPublicV1InvoicesInvoiceIdRoute,
+  } as any)
+const ApiPublicV1ModuleOrganizationOrgIdRoute =
+  ApiPublicV1ModuleOrganizationOrgIdRouteImport.update({
+    id: '/$orgId',
+    path: '/$orgId',
+    getParentRoute: () => ApiPublicV1ModuleOrganizationRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
@@ -313,8 +320,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
@@ -354,8 +362,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/_authenticated/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
@@ -398,6 +407,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
+    | '/auth/callback'
     | '/orgs/$orgId'
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
@@ -438,6 +448,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
+    | '/auth/callback'
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
@@ -478,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/auth/callback'
     | '/_authenticated/orgs/$orgId'
     | '/_authenticated/orgs/new'
     | '/_authenticated/orgs/$orgId/api-keys'
@@ -518,7 +530,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   ApiPublicV1AttachmentsRoute: typeof ApiPublicV1AttachmentsRouteWithChildren
   ApiPublicV1CompanySearchRoute: typeof ApiPublicV1CompanySearchRoute
   ApiPublicV1EntriesRoute: typeof ApiPublicV1EntriesRouteWithChildren
@@ -535,11 +547,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -549,11 +561,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -563,18 +575,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/orgs/new': {
-      id: '/_authenticated/orgs/new'
-      path: '/orgs/new'
-      fullPath: '/orgs/new'
-      preLoaderRoute: typeof AuthenticatedOrgsNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_authenticated/orgs/$orgId': {
       id: '/_authenticated/orgs/$orgId'
       path: '/orgs/$orgId'
       fullPath: '/orgs/$orgId'
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/orgs/new': {
+      id: '/_authenticated/orgs/new'
+      path: '/orgs/new'
+      fullPath: '/orgs/new'
+      preLoaderRoute: typeof AuthenticatedOrgsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/orgs/$orgId/': {
@@ -584,81 +603,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdIndexRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
-    '/api/public/v1/invoices': {
-      id: '/api/public/v1/invoices'
-      path: '/api/public/v1/invoices'
-      fullPath: '/api/public/v1/invoices'
-      preLoaderRoute: typeof ApiPublicV1InvoicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/v1/entries': {
-      id: '/api/public/v1/entries'
-      path: '/api/public/v1/entries'
-      fullPath: '/api/public/v1/entries'
-      preLoaderRoute: typeof ApiPublicV1EntriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/v1/company-search': {
-      id: '/api/public/v1/company-search'
-      path: '/api/public/v1/company-search'
-      fullPath: '/api/public/v1/company-search'
-      preLoaderRoute: typeof ApiPublicV1CompanySearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/v1/attachments': {
-      id: '/api/public/v1/attachments'
-      path: '/api/public/v1/attachments'
-      fullPath: '/api/public/v1/attachments'
-      preLoaderRoute: typeof ApiPublicV1AttachmentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/orgs/$orgId/settings': {
-      id: '/_authenticated/orgs/$orgId/settings'
-      path: '/settings'
-      fullPath: '/orgs/$orgId/settings'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdSettingsRouteImport
-      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
-    }
-    '/_authenticated/orgs/$orgId/scan': {
-      id: '/_authenticated/orgs/$orgId/scan'
-      path: '/scan'
-      fullPath: '/orgs/$orgId/scan'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdScanRouteImport
-      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
-    }
-    '/_authenticated/orgs/$orgId/reports': {
-      id: '/_authenticated/orgs/$orgId/reports'
-      path: '/reports'
-      fullPath: '/orgs/$orgId/reports'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdReportsRouteImport
-      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
-    }
-    '/_authenticated/orgs/$orgId/members': {
-      id: '/_authenticated/orgs/$orgId/members'
-      path: '/members'
-      fullPath: '/orgs/$orgId/members'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdMembersRouteImport
-      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
-    }
-    '/_authenticated/orgs/$orgId/entries': {
-      id: '/_authenticated/orgs/$orgId/entries'
-      path: '/entries'
-      fullPath: '/orgs/$orgId/entries'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdEntriesRouteImport
-      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
-    }
-    '/_authenticated/orgs/$orgId/dashboard': {
-      id: '/_authenticated/orgs/$orgId/dashboard'
-      path: '/dashboard'
-      fullPath: '/orgs/$orgId/dashboard'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdDashboardRouteImport
-      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
-    }
-    '/_authenticated/orgs/$orgId/bank': {
-      id: '/_authenticated/orgs/$orgId/bank'
-      path: '/bank'
-      fullPath: '/orgs/$orgId/bank'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankRouteImport
+    '/_authenticated/orgs/$orgId/api-keys': {
+      id: '/_authenticated/orgs/$orgId/api-keys'
+      path: '/api-keys'
+      fullPath: '/orgs/$orgId/api-keys'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdApiKeysRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
     '/_authenticated/orgs/$orgId/attachments': {
@@ -668,102 +617,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdAttachmentsRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
-    '/_authenticated/orgs/$orgId/api-keys': {
-      id: '/_authenticated/orgs/$orgId/api-keys'
-      path: '/api-keys'
-      fullPath: '/orgs/$orgId/api-keys'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdApiKeysRouteImport
+    '/_authenticated/orgs/$orgId/bank': {
+      id: '/_authenticated/orgs/$orgId/bank'
+      path: '/bank'
+      fullPath: '/orgs/$orgId/bank'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
-    '/_authenticated/orgs/$orgId/invoices/': {
-      id: '/_authenticated/orgs/$orgId/invoices/'
-      path: '/invoices'
-      fullPath: '/orgs/$orgId/invoices/'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesIndexRouteImport
+    '/_authenticated/orgs/$orgId/dashboard': {
+      id: '/_authenticated/orgs/$orgId/dashboard'
+      path: '/dashboard'
+      fullPath: '/orgs/$orgId/dashboard'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdDashboardRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
-    '/api/public/v1/reports/summary': {
-      id: '/api/public/v1/reports/summary'
-      path: '/api/public/v1/reports/summary'
-      fullPath: '/api/public/v1/reports/summary'
-      preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
+    '/_authenticated/orgs/$orgId/entries': {
+      id: '/_authenticated/orgs/$orgId/entries'
+      path: '/entries'
+      fullPath: '/orgs/$orgId/entries'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdEntriesRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/members': {
+      id: '/_authenticated/orgs/$orgId/members'
+      path: '/members'
+      fullPath: '/orgs/$orgId/members'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdMembersRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/reports': {
+      id: '/_authenticated/orgs/$orgId/reports'
+      path: '/reports'
+      fullPath: '/orgs/$orgId/reports'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdReportsRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/scan': {
+      id: '/_authenticated/orgs/$orgId/scan'
+      path: '/scan'
+      fullPath: '/orgs/$orgId/scan'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdScanRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/_authenticated/orgs/$orgId/settings': {
+      id: '/_authenticated/orgs/$orgId/settings'
+      path: '/settings'
+      fullPath: '/orgs/$orgId/settings'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
+    }
+    '/api/public/v1/attachments': {
+      id: '/api/public/v1/attachments'
+      path: '/api/public/v1/attachments'
+      fullPath: '/api/public/v1/attachments'
+      preLoaderRoute: typeof ApiPublicV1AttachmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/v1/module/widgets': {
-      id: '/api/public/v1/module/widgets'
-      path: '/api/public/v1/module/widgets'
-      fullPath: '/api/public/v1/module/widgets'
-      preLoaderRoute: typeof ApiPublicV1ModuleWidgetsRouteImport
+    '/api/public/v1/company-search': {
+      id: '/api/public/v1/company-search'
+      path: '/api/public/v1/company-search'
+      fullPath: '/api/public/v1/company-search'
+      preLoaderRoute: typeof ApiPublicV1CompanySearchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/v1/module/organization': {
-      id: '/api/public/v1/module/organization'
-      path: '/api/public/v1/module/organization'
-      fullPath: '/api/public/v1/module/organization'
-      preLoaderRoute: typeof ApiPublicV1ModuleOrganizationRouteImport
+    '/api/public/v1/entries': {
+      id: '/api/public/v1/entries'
+      path: '/api/public/v1/entries'
+      fullPath: '/api/public/v1/entries'
+      preLoaderRoute: typeof ApiPublicV1EntriesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/v1/module/info': {
-      id: '/api/public/v1/module/info'
-      path: '/api/public/v1/module/info'
-      fullPath: '/api/public/v1/module/info'
-      preLoaderRoute: typeof ApiPublicV1ModuleInfoRouteImport
+    '/api/public/v1/invoices': {
+      id: '/api/public/v1/invoices'
+      path: '/api/public/v1/invoices'
+      fullPath: '/api/public/v1/invoices'
+      preLoaderRoute: typeof ApiPublicV1InvoicesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/v1/module/health': {
-      id: '/api/public/v1/module/health'
-      path: '/api/public/v1/module/health'
-      fullPath: '/api/public/v1/module/health'
-      preLoaderRoute: typeof ApiPublicV1ModuleHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/v1/module/confidence': {
-      id: '/api/public/v1/module/confidence'
-      path: '/api/public/v1/module/confidence'
-      fullPath: '/api/public/v1/module/confidence'
-      preLoaderRoute: typeof ApiPublicV1ModuleConfidenceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/v1/module/alerts': {
-      id: '/api/public/v1/module/alerts'
-      path: '/api/public/v1/module/alerts'
-      fullPath: '/api/public/v1/module/alerts'
-      preLoaderRoute: typeof ApiPublicV1ModuleAlertsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/v1/invoices/$invoiceId': {
-      id: '/api/public/v1/invoices/$invoiceId'
-      path: '/$invoiceId'
-      fullPath: '/api/public/v1/invoices/$invoiceId'
-      preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdRouteImport
-      parentRoute: typeof ApiPublicV1InvoicesRoute
-    }
-    '/api/public/v1/entries/$entryId': {
-      id: '/api/public/v1/entries/$entryId'
-      path: '/$entryId'
-      fullPath: '/api/public/v1/entries/$entryId'
-      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdRouteImport
-      parentRoute: typeof ApiPublicV1EntriesRoute
-    }
-    '/api/public/v1/attachments/$attachmentId': {
-      id: '/api/public/v1/attachments/$attachmentId'
-      path: '/$attachmentId'
-      fullPath: '/api/public/v1/attachments/$attachmentId'
-      preLoaderRoute: typeof ApiPublicV1AttachmentsAttachmentIdRouteImport
-      parentRoute: typeof ApiPublicV1AttachmentsRoute
-    }
-    '/api/public/v1/ai/scan-receipt': {
-      id: '/api/public/v1/ai/scan-receipt'
-      path: '/api/public/v1/ai/scan-receipt'
-      fullPath: '/api/public/v1/ai/scan-receipt'
-      preLoaderRoute: typeof ApiPublicV1AiScanReceiptRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/orgs/$orgId/invoices/$invoiceId': {
-      id: '/_authenticated/orgs/$orgId/invoices/$invoiceId'
-      path: '/invoices/$invoiceId'
-      fullPath: '/orgs/$orgId/invoices/$invoiceId'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport
+    '/_authenticated/orgs/$orgId/bank_/callback': {
+      id: '/_authenticated/orgs/$orgId/bank_/callback'
+      path: '/bank/callback'
+      fullPath: '/orgs/$orgId/bank/callback'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankCallbackRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
     '/_authenticated/orgs/$orgId/bank_/diagnostics': {
@@ -773,26 +708,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankDiagnosticsRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
-    '/_authenticated/orgs/$orgId/bank_/callback': {
-      id: '/_authenticated/orgs/$orgId/bank_/callback'
-      path: '/bank/callback'
-      fullPath: '/orgs/$orgId/bank/callback'
-      preLoaderRoute: typeof AuthenticatedOrgsOrgIdBankCallbackRouteImport
+    '/_authenticated/orgs/$orgId/invoices/': {
+      id: '/_authenticated/orgs/$orgId/invoices/'
+      path: '/invoices'
+      fullPath: '/orgs/$orgId/invoices/'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesIndexRouteImport
       parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
-    '/api/public/v1/module/organization/$orgId': {
-      id: '/api/public/v1/module/organization/$orgId'
-      path: '/$orgId'
-      fullPath: '/api/public/v1/module/organization/$orgId'
-      preLoaderRoute: typeof ApiPublicV1ModuleOrganizationOrgIdRouteImport
-      parentRoute: typeof ApiPublicV1ModuleOrganizationRoute
+    '/_authenticated/orgs/$orgId/invoices/$invoiceId': {
+      id: '/_authenticated/orgs/$orgId/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/orgs/$orgId/invoices/$invoiceId'
+      preLoaderRoute: typeof AuthenticatedOrgsOrgIdInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AuthenticatedOrgsOrgIdRoute
     }
-    '/api/public/v1/invoices/$invoiceId/send': {
-      id: '/api/public/v1/invoices/$invoiceId/send'
-      path: '/send'
-      fullPath: '/api/public/v1/invoices/$invoiceId/send'
-      preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdSendRouteImport
-      parentRoute: typeof ApiPublicV1InvoicesInvoiceIdRoute
+    '/api/public/v1/ai/scan-receipt': {
+      id: '/api/public/v1/ai/scan-receipt'
+      path: '/api/public/v1/ai/scan-receipt'
+      fullPath: '/api/public/v1/ai/scan-receipt'
+      preLoaderRoute: typeof ApiPublicV1AiScanReceiptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/attachments/$attachmentId': {
+      id: '/api/public/v1/attachments/$attachmentId'
+      path: '/$attachmentId'
+      fullPath: '/api/public/v1/attachments/$attachmentId'
+      preLoaderRoute: typeof ApiPublicV1AttachmentsAttachmentIdRouteImport
+      parentRoute: typeof ApiPublicV1AttachmentsRoute
+    }
+    '/api/public/v1/entries/$entryId': {
+      id: '/api/public/v1/entries/$entryId'
+      path: '/$entryId'
+      fullPath: '/api/public/v1/entries/$entryId'
+      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdRouteImport
+      parentRoute: typeof ApiPublicV1EntriesRoute
+    }
+    '/api/public/v1/invoices/$invoiceId': {
+      id: '/api/public/v1/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/api/public/v1/invoices/$invoiceId'
+      preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdRouteImport
+      parentRoute: typeof ApiPublicV1InvoicesRoute
+    }
+    '/api/public/v1/module/alerts': {
+      id: '/api/public/v1/module/alerts'
+      path: '/api/public/v1/module/alerts'
+      fullPath: '/api/public/v1/module/alerts'
+      preLoaderRoute: typeof ApiPublicV1ModuleAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/confidence': {
+      id: '/api/public/v1/module/confidence'
+      path: '/api/public/v1/module/confidence'
+      fullPath: '/api/public/v1/module/confidence'
+      preLoaderRoute: typeof ApiPublicV1ModuleConfidenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/health': {
+      id: '/api/public/v1/module/health'
+      path: '/api/public/v1/module/health'
+      fullPath: '/api/public/v1/module/health'
+      preLoaderRoute: typeof ApiPublicV1ModuleHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/info': {
+      id: '/api/public/v1/module/info'
+      path: '/api/public/v1/module/info'
+      fullPath: '/api/public/v1/module/info'
+      preLoaderRoute: typeof ApiPublicV1ModuleInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/organization': {
+      id: '/api/public/v1/module/organization'
+      path: '/api/public/v1/module/organization'
+      fullPath: '/api/public/v1/module/organization'
+      preLoaderRoute: typeof ApiPublicV1ModuleOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/module/widgets': {
+      id: '/api/public/v1/module/widgets'
+      path: '/api/public/v1/module/widgets'
+      fullPath: '/api/public/v1/module/widgets'
+      preLoaderRoute: typeof ApiPublicV1ModuleWidgetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/reports/summary': {
+      id: '/api/public/v1/reports/summary'
+      path: '/api/public/v1/reports/summary'
+      fullPath: '/api/public/v1/reports/summary'
+      preLoaderRoute: typeof ApiPublicV1ReportsSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/entries/$entryId/attachments': {
+      id: '/api/public/v1/entries/$entryId/attachments'
+      path: '/attachments'
+      fullPath: '/api/public/v1/entries/$entryId/attachments'
+      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRouteImport
+      parentRoute: typeof ApiPublicV1EntriesEntryIdRoute
     }
     '/api/public/v1/invoices/$invoiceId/pdf': {
       id: '/api/public/v1/invoices/$invoiceId/pdf'
@@ -801,12 +813,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdPdfRouteImport
       parentRoute: typeof ApiPublicV1InvoicesInvoiceIdRoute
     }
-    '/api/public/v1/entries/$entryId/attachments': {
-      id: '/api/public/v1/entries/$entryId/attachments'
-      path: '/attachments'
-      fullPath: '/api/public/v1/entries/$entryId/attachments'
-      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRouteImport
-      parentRoute: typeof ApiPublicV1EntriesEntryIdRoute
+    '/api/public/v1/invoices/$invoiceId/send': {
+      id: '/api/public/v1/invoices/$invoiceId/send'
+      path: '/send'
+      fullPath: '/api/public/v1/invoices/$invoiceId/send'
+      preLoaderRoute: typeof ApiPublicV1InvoicesInvoiceIdSendRouteImport
+      parentRoute: typeof ApiPublicV1InvoicesInvoiceIdRoute
+    }
+    '/api/public/v1/module/organization/$orgId': {
+      id: '/api/public/v1/module/organization/$orgId'
+      path: '/$orgId'
+      fullPath: '/api/public/v1/module/organization/$orgId'
+      preLoaderRoute: typeof ApiPublicV1ModuleOrganizationOrgIdRouteImport
+      parentRoute: typeof ApiPublicV1ModuleOrganizationRoute
     }
   }
 }
@@ -871,6 +890,16 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
+
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface ApiPublicV1AttachmentsRouteChildren {
   ApiPublicV1AttachmentsAttachmentIdRoute: typeof ApiPublicV1AttachmentsAttachmentIdRoute
@@ -960,7 +989,7 @@ const ApiPublicV1ModuleOrganizationRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   ApiPublicV1AttachmentsRoute: ApiPublicV1AttachmentsRouteWithChildren,
   ApiPublicV1CompanySearchRoute: ApiPublicV1CompanySearchRoute,
   ApiPublicV1EntriesRoute: ApiPublicV1EntriesRouteWithChildren,
@@ -978,13 +1007,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

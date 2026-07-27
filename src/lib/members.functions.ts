@@ -99,7 +99,18 @@ export const inviteOrganizationMember = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const appUrl = (process.env.PUBLIC_APP_URL ?? "").replace(/\/$/, "");
-    const redirectTo = appUrl ? `${appUrl}/auth` : undefined;
+    const nexusApp = (
+      process.env.NEXUS_APP_URL ||
+      process.env.VITE_NEXUS_APP_URL ||
+      ""
+    ).replace(/\/$/, "");
+    // Identity Core: prefer Nexus login with return_to back to this module.
+    const redirectTo =
+      nexusApp && appUrl
+        ? `${nexusApp}/auth?return_to=${encodeURIComponent(appUrl)}`
+        : appUrl
+          ? `${appUrl}/auth`
+          : undefined;
 
     let targetUserId: string | null = null;
     let invited = false;

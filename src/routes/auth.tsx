@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { getNexusAppUrl, isSharedAuthEnabled } from "@/integrations/supabase/shared-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,10 +46,13 @@ function GoogleIcon() {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const shared = isSharedAuthEnabled();
+  const nexusApp = getNexusAppUrl();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(!shared || !nexusApp);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -56,11 +60,21 @@ function AuthPage() {
     });
   }, [navigate]);
 
+  function loginViaNexus() {
+    if (!nexusApp) {
+      toast.error("NEXUS_APP_URL er ikke satt");
+      return;
+    }
+    window.location.assign(
+      `${nexusApp}/auth?return_to=${encodeURIComponent(window.location.origin)}`,
+    );
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
+      if (!shared && mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -110,62 +124,112 @@ function AuthPage() {
         <Card>
           <CardHeader>
             <CardTitle>Velkommen</CardTitle>
-            <CardDescription>Logg inn eller opprett konto for å fortsette.</CardDescription>
+            <CardDescription>
+              {shared
+                ? "Logg inn via Platform Core (Nexus) for felles identitet."
+                : "Logg inn eller opprett konto for å fortsette."}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogle}
-              disabled={busy}
-            >
-              <GoogleIcon />
-              Fortsett med Google
-            </Button>
+          <CardContent className="space-y-4">
+            {shared && nexusApp ? (
+              <>
+                <Button type="button" className="w-full" onClick={loginViaNexus} disabled={busy}>
+                  Logg inn via Nexus
+                </Button>
+                <button
+                  type="button"
+                  className="w-full text-xs text-muted-foreground hover:underline"
+                  onClick={() => setShowEmergency((v) => !v)}
+                >
+                  {showEmergency ? "Skjul nødinnlogging" : "Nødinnlogging (e-post)"}
+                </button>
+              </>
+            ) : null}
 
-            <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-border" />
-              ELLER
-              <div className="h-px flex-1 bg-border" />
-            </div>
-
-            <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Logg inn</TabsTrigger>
-                <TabsTrigger value="signup">Opprett konto</TabsTrigger>
-              </TabsList>
-              <TabsContent value={mode}>
-                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E-post</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Passord</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                      required
-                      minLength={8}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={busy}>
-                    {busy ? "Vent…" : mode === "signin" ? "Logg inn" : "Opprett konto"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+            {!shared ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleGoogle}
+                  disabled={busy}
+                >
+                  <GoogleIcon />
+                  Fortsett med Google
+                </Button>
+                <div className="my-2 flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className="h-px flex-1 bg-border" />
+                  ELLER
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="signin">Logg inn</TabsTrigger>
+                    <TabsTrigger value="signup">Opprett konto</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value={mode}>
+                    <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-post</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          autoComplete="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Passord</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                          required
+                          minLength={8}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={busy}>
+                        {busy ? "Vent…" : mode === "signin" ? "Logg inn" : "Opprett konto"}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              </>
+            ) : showEmergency ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email-em">E-post</Label>
+                  <Input
+                    id="email-em"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-em">Passord</Label>
+                  <Input
+                    id="password-em"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={busy}>
+                  {busy ? "Vent…" : "Logg inn"}
+                </Button>
+              </form>
+            ) : null}
           </CardContent>
         </Card>
         <p className="mt-6 text-center text-xs text-muted-foreground">
