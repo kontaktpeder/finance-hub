@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthIndexRouteImport } from './routes/auth.index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthenticatedOrgsOrgIdRouteImport } from './routes/_authenticated/orgs.$orgId'
 import { Route as AuthenticatedOrgsNewRouteImport } from './routes/_authenticated/orgs.new'
@@ -68,6 +69,11 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/callback',
@@ -282,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/': typeof AuthIndexRoute
   '/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
@@ -320,9 +327,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth': typeof AuthIndexRoute
   '/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
   '/orgs/$orgId/attachments': typeof AuthenticatedOrgsOrgIdAttachmentsRoute
@@ -365,6 +372,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/': typeof AuthIndexRoute
   '/_authenticated/orgs/$orgId': typeof AuthenticatedOrgsOrgIdRouteWithChildren
   '/_authenticated/orgs/new': typeof AuthenticatedOrgsNewRoute
   '/_authenticated/orgs/$orgId/api-keys': typeof AuthenticatedOrgsOrgIdApiKeysRoute
@@ -408,6 +416,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/auth/callback'
+    | '/auth/'
     | '/orgs/$orgId'
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
@@ -446,9 +455,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth'
     | '/app'
     | '/auth/callback'
+    | '/auth'
     | '/orgs/new'
     | '/orgs/$orgId/api-keys'
     | '/orgs/$orgId/attachments'
@@ -490,6 +499,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/app'
     | '/auth/callback'
+    | '/auth/'
     | '/_authenticated/orgs/$orgId'
     | '/_authenticated/orgs/new'
     | '/_authenticated/orgs/$orgId/api-keys'
@@ -574,6 +584,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/auth/': {
+      id: '/auth/'
+      path: '/'
+      fullPath: '/auth/'
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/auth/callback': {
       id: '/auth/callback'
@@ -893,10 +910,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 interface AuthRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
+  AuthIndexRoute: AuthIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
