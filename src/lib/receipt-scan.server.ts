@@ -1,8 +1,8 @@
 import { generateText } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { geminiModelId, getGeminiApiKey, getGeminiModel } from "@/lib/ai-gateway.server";
 
-export const RECEIPT_SCAN_MODEL = "google/gemini-3-flash-preview";
+export const RECEIPT_SCAN_MODEL = geminiModelId("flash");
 
 const MAX_SCAN_BYTES = 25 * 1024 * 1024;
 export const MAX_SCAN_FILES = 10;
@@ -229,9 +229,8 @@ export function assertScannableFiles(
 export async function scanReceiptContentFromParts(
   parts: ReceiptScanFilePart[],
 ): Promise<ReceiptSuggestion> {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) {
-    throw new ScanFailedError("Missing LOVABLE_API_KEY");
+  if (!getGeminiApiKey()) {
+    throw new ScanFailedError("Missing GOOGLE_GENERATIVE_AI_API_KEY (or GEMINI_API_KEY)");
   }
   if (parts.length === 0) {
     throw new ScanValidationError("Ingen filer å skanne");
@@ -250,7 +249,6 @@ export async function scanReceiptContentFromParts(
     throw new ScanValidationError("Total filstørrelse overstiger 25 MB");
   }
 
-  const gateway = createLovableAiGatewayProvider(apiKey);
   const intro =
     parts.length === 1
       ? `Analyser vedlagt ${normalized[0].mimeType === "application/pdf" ? "PDF" : "bilde"} (filnavn: ${normalized[0].fileName}) og returner JSON-objektet.`
@@ -276,7 +274,7 @@ export async function scanReceiptContentFromParts(
   let text: string;
   try {
     const result = await generateText({
-      model: gateway(RECEIPT_SCAN_MODEL),
+      model: getGeminiModel("flash"),
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: content as any },
