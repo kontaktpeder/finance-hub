@@ -15,6 +15,13 @@ import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Came
 import { toast } from "sonner";
 import { scanReceiptDraft, convertDraftToEntry, type ReceiptSuggestion } from "@/lib/receipt-drafts.functions";
 import { CameraCapture } from "@/components/scan/CameraCapture";
+import { CategorySelect, categoryOrDefault } from "@/lib/CategorySelect";
+import {
+  DOCUMENTATION_STATUSES,
+  DOCUMENTATION_STATUS_LABELS,
+  syncCategoryGroup,
+  type DocumentationStatus,
+} from "@/lib/categories";
 
 
 
@@ -392,8 +399,7 @@ function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft:
     entry_date: s?.entry_date ?? new Date().toISOString().slice(0, 10),
     counterparty: s?.counterparty ?? "",
     description: s?.description ?? "",
-    category: s?.category ?? "",
-    category_group: s?.category_group ?? "",
+    category: categoryOrDefault(s?.category ?? s?.category_group, (s?.entry_type ?? "expense") as "income" | "expense"),
     amount_gross: String(s?.amount_gross ?? ""),
     vat_rate: String(s?.vat_rate ?? "25"),
     vat_amount: String(s?.vat_amount ?? ""),
@@ -401,6 +407,10 @@ function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft:
     payment_status: (s?.payment_status ?? "unpaid") as "paid" | "unpaid" | "partial",
     invoice_status: (s?.invoice_status ?? "none") as "none" | "draft" | "sent" | "overdue" | "paid",
     pre_company_expense: s?.pre_company_expense ?? false,
+    paid_by: "",
+    reimbursed: false,
+    accountant_approved: false,
+    documentation_status: "unknown" as DocumentationStatus,
     notes: s?.notes ?? "",
   }));
   const [activeAttachmentId, setActiveAttachmentId] = useState<string | null>(null);
@@ -476,8 +486,8 @@ function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft:
             entry_date: form.entry_date,
             counterparty: form.counterparty.trim() || null,
             description: form.description.trim(),
-            category: form.category.trim() || null,
-            category_group: form.category_group.trim() || null,
+            category: form.category,
+            category_group: syncCategoryGroup(form.category),
             amount_gross: Number(form.amount_gross.replace(",", ".")),
             vat_rate: Number(form.vat_rate.replace(",", ".")),
             vat_amount: Number(form.vat_amount.replace(",", ".")),
@@ -485,6 +495,10 @@ function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft:
             payment_status: form.payment_status,
             invoice_status: form.invoice_status,
             pre_company_expense: form.pre_company_expense,
+            paid_by: form.pre_company_expense ? (form.paid_by.trim() || null) : null,
+            reimbursed: form.pre_company_expense ? form.reimbursed : false,
+            accountant_approved: form.accountant_approved,
+            documentation_status: form.documentation_status,
             notes: form.notes.trim() || null,
           },
         },
@@ -540,7 +554,14 @@ function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft:
         </div>
 
         <FieldRow label="Type" confidence={conf.entry_type} note={notes.entry_type}>
-          <Select value={form.entry_type} onValueChange={(v) => set("entry_type", v as any)}>
+          <Select
+            value={form.entry_type}
+            onValueChange={(v) => {
+              const t = v as "income" | "expense";
+              set("entry_type", t);
+              set("category", categoryOrDefault(form.category, t));
+            }}
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="expense">Utgift</SelectItem>
@@ -562,14 +583,13 @@ function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft:
           <Input value={form.description} onChange={(e) => set("description", e.target.value)} />
         </FieldRow>
 
-        <div className="grid grid-cols-2 gap-3">
-          <FieldRow label="Kategori" confidence={conf.category} note={notes.category}>
-            <Input value={form.category} onChange={(e) => set("category", e.target.value)} />
-          </FieldRow>
-          <FieldRow label="Kategorigruppe" confidence={conf.category_group} note={notes.category_group}>
-            <Input value={form.category_group} onChange={(e) => set("category_group", e.target.value)} />
-          </FieldRow>
-        </div>
+        <FieldRow label="Kategori" confidence={conf.category} note={notes.category ?? "Bekreft — leverandør er bare et forslag"}>
+          <CategorySelect
+            value={form.category}
+            entryType={form.entry_type}
+            onChange={(v) => set("category", v)}
+          />
+        </FieldRow>
 
         <div className="grid grid-cols-2 gap-3">
           <FieldRow label="Brutto" confidence={conf.amount_gross} note={notes.amount_gross}>
@@ -639,6 +659,39 @@ function ReviewPanelInner({ orgId, draft, onConverted }: { orgId: string; draft:
           </div>
           <Switch checked={form.pre_company_expense} onCheckedChange={(v) => set("pre_company_expense", v)} />
         </div>
+
+        {form.pre_company_expense && (
+          <div className="space-y-3 rounded-md border p-3 bg-muted/20">
+            <div className="space-y-1.5">
+              <Label className="text-sm">Hvem betalte</Label>
+              <Input
+                value={form.paid_by}
+                onChange={(e) => set("paid_by", e.target.value)}
+                placeholder="Navn"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Refundert</Label>
+              <Switch checked={form.reimbursed} onCheckedChange={(v) => set("reimbursed", v)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm">Dokumentasjonsstatus</Label>
+              <Select
+                value={form.documentation_status}
+                onValueChange={(v) => set("documentation_status", v as DocumentationStatus)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DOCUMENTATION_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {DOCUMENTATION_STATUS_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
 
         <FieldRow label="Notater" confidence={conf.notes} note={notes.notes}>
           <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} />

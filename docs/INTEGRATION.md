@@ -87,9 +87,29 @@ curl -X POST "$BASE/api/public/v1/entries" \
 ```
 
 **Felt-regler:**
+- `category` / `category_group` bruker kontrollert taksonomi: `Salg`, `Varekost`, `Driftsutstyr`, `Driftskostnader`, `Administrasjon`. `category_group` speiler `category`.
+- Aliaser (f.eks. `Varekjøp`) normaliseres til taksonomien.
 - `external_url` må være full URL (`https://...`) — relative paths feiler validering.
 - `vat_rate` / `vat_amount`: utelat eller send tall, **ikke `null`**. Hvis `vat_amount` utelates beregnes det fra `amount_gross` og `vat_rate`.
 - `amount_net` beregnes hvis utelatt.
+- Pre-company: `pre_company_expense`, `paid_by`, `reimbursed`, `accountant_approved`, `documentation_status` (`unknown` | `missing` | `incomplete` | `complete`).
+
+### PATCH /api/public/v1/entries/{entry_id}
+
+Oppdaterer kategori, beskrivelse, før-stiftelse-felter m.m. Krever scope `entries:write`.
+
+```bash
+curl -X PATCH "$BASE/api/public/v1/entries/<uuid>" \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "category": "Varekost",
+    "description": "Mozzarella — Smak av Italia",
+    "pre_company_expense": true,
+    "paid_by": "Peder",
+    "documentation_status": "incomplete"
+  }'
+```
 
 ### GET /api/public/v1/entries
 
@@ -120,7 +140,7 @@ curl "$BASE/api/public/v1/entries/<entry-uuid>/attachments" \
 curl "$BASE/api/public/v1/reports/summary?year=2026" -H "Authorization: Bearer $KEY"
 ```
 
-Returnerer månedlig sum av income/expense/vat for året.
+Returnerer månedlig sum av income/expense/varekost/vat, pluss `totals` med `gross_profit` og `gross_margin` (bruttofortjeneste / salgsinntekter).
 
 ### POST /api/public/v1/attachments
 

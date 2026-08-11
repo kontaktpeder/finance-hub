@@ -225,7 +225,7 @@ export async function createFinanceEntryForInvoice(params: {
     counterparty: inv.customer_name,
     description: `Faktura ${inv.invoice_number}`,
     category: "Salg",
-    category_group: "Inntekter",
+    category_group: "Salg",
     payment_status: isPaid ? "paid" : "unpaid",
     invoice_status: isPaid ? "paid" : "sent",
     due_date: inv.due_date ?? null,

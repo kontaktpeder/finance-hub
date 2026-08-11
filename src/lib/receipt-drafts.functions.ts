@@ -7,6 +7,12 @@ import {
   type ReceiptScanFilePart,
   type ReceiptSuggestion,
 } from "@/lib/receipt-scan.server";
+import {
+  DocumentationStatusSchema,
+  defaultCategoryForType,
+  normalizeCategory,
+  syncCategoryGroup,
+} from "@/lib/categories";
 
 export type { ReceiptSuggestion };
 
@@ -177,6 +183,10 @@ const ConvertInput = z.object({
     payment_status: z.enum(["paid", "unpaid", "partial"]),
     invoice_status: z.enum(["none", "draft", "sent", "overdue", "paid"]),
     pre_company_expense: z.boolean(),
+    paid_by: z.string().nullable().optional(),
+    reimbursed: z.boolean().optional(),
+    accountant_approved: z.boolean().optional(),
+    documentation_status: DocumentationStatusSchema.optional(),
     notes: z.string().nullable().optional(),
   }),
 });
@@ -197,6 +207,10 @@ export const convertDraftToEntry = createServerFn({ method: "POST" })
     if (draft.status === "converted") throw new Error("Utkastet er allerede konvertert.");
 
     const e = data.entry;
+    const category =
+      normalizeCategory(e.category) ??
+      normalizeCategory(e.category_group) ??
+      defaultCategoryForType(e.entry_type);
     const { data: entry, error: eErr } = await supabase
       .from("finance_entries")
       .insert({
@@ -206,8 +220,8 @@ export const convertDraftToEntry = createServerFn({ method: "POST" })
         entry_date: e.entry_date,
         description: e.description,
         counterparty: e.counterparty ?? null,
-        category: e.category ?? null,
-        category_group: e.category_group ?? null,
+        category,
+        category_group: syncCategoryGroup(category),
         amount_gross: e.amount_gross,
         vat_rate: e.vat_rate,
         vat_amount: e.vat_amount,
@@ -215,6 +229,10 @@ export const convertDraftToEntry = createServerFn({ method: "POST" })
         payment_status: e.payment_status,
         invoice_status: e.invoice_status,
         pre_company_expense: e.pre_company_expense,
+        paid_by: e.pre_company_expense ? (e.paid_by ?? null) : null,
+        reimbursed: e.pre_company_expense ? (e.reimbursed ?? false) : false,
+        accountant_approved: e.accountant_approved ?? false,
+        documentation_status: e.documentation_status ?? "unknown",
         notes: e.notes ?? null,
         created_by: userId,
         created_via: "ai-scan",

@@ -449,6 +449,7 @@ export type Database = {
       }
       finance_entries: {
         Row: {
+          accountant_approved: boolean
           amount_gross: number
           amount_net: number
           api_client_id: string | null
@@ -461,6 +462,7 @@ export type Database = {
           created_via: string
           currency: string
           description: string
+          documentation_status: string
           due_date: string | null
           entry_date: string
           entry_type: Database["public"]["Enums"]["entry_type"]
@@ -471,8 +473,10 @@ export type Database = {
           organization_id: string
           original_voucher_number: string | null
           paid_at: string | null
+          paid_by: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           pre_company_expense: boolean
+          reimbursed: boolean
           source_app: string | null
           source_ref: string | null
           source_type: string | null
@@ -482,6 +486,7 @@ export type Database = {
           voucher_number: string | null
         }
         Insert: {
+          accountant_approved?: boolean
           amount_gross?: number
           amount_net?: number
           api_client_id?: string | null
@@ -494,6 +499,7 @@ export type Database = {
           created_via?: string
           currency?: string
           description: string
+          documentation_status?: string
           due_date?: string | null
           entry_date?: string
           entry_type: Database["public"]["Enums"]["entry_type"]
@@ -504,8 +510,10 @@ export type Database = {
           organization_id: string
           original_voucher_number?: string | null
           paid_at?: string | null
+          paid_by?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pre_company_expense?: boolean
+          reimbursed?: boolean
           source_app?: string | null
           source_ref?: string | null
           source_type?: string | null
@@ -515,6 +523,7 @@ export type Database = {
           voucher_number?: string | null
         }
         Update: {
+          accountant_approved?: boolean
           amount_gross?: number
           amount_net?: number
           api_client_id?: string | null
@@ -527,6 +536,7 @@ export type Database = {
           created_via?: string
           currency?: string
           description?: string
+          documentation_status?: string
           due_date?: string | null
           entry_date?: string
           entry_type?: Database["public"]["Enums"]["entry_type"]
@@ -537,8 +547,10 @@ export type Database = {
           organization_id?: string
           original_voucher_number?: string | null
           paid_at?: string | null
+          paid_by?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pre_company_expense?: boolean
+          reimbursed?: boolean
           source_app?: string | null
           source_ref?: string | null
           source_type?: string | null

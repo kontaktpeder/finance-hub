@@ -23,6 +23,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { formatNOK, formatDate } from "@/lib/format";
+import { MissionReturnLink } from "@/components/finance/MissionReturnLink";
+import { CategorySelect, categoryOrDefault } from "@/lib/CategorySelect";
+import {
+  DOCUMENTATION_STATUSES,
+  DOCUMENTATION_STATUS_LABELS,
+  syncCategoryGroup,
+  type Category,
+  type DocumentationStatus,
+} from "@/lib/categories";
 import {
   Plus,
   Paperclip,
@@ -33,11 +46,8 @@ import {
   FileText,
   Download,
   AlertTriangle,
+  Pencil,
 } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { toast } from "sonner";
-import { formatNOK, formatDate } from "@/lib/format";
-import { MissionReturnLink } from "@/components/finance/MissionReturnLink";
 
 const Search = z.object({
   issue: z.string().optional(),
@@ -73,6 +83,10 @@ type Entry = {
   external_url: string | null;
   notes: string | null;
   pre_company_expense: boolean;
+  paid_by: string | null;
+  reimbursed: boolean;
+  accountant_approved: boolean;
+  documentation_status: string;
 };
 
 function preCompanyLabel(pre: boolean): string {
@@ -102,6 +116,7 @@ function exportEntriesCsv(entries: Entry[], orgId: string) {
     "voucher_number", "entry_type", "entry_date", "description", "counterparty",
     "category", "category_group", "amount_gross", "amount_net", "vat_rate", "vat_amount",
     "payment_status", "invoice_status", "pre_company_expense", "pre_company_label",
+    "paid_by", "reimbursed", "accountant_approved", "documentation_status",
   ];
   const rows = [header.join(",")];
   for (const e of entries) {
@@ -109,6 +124,8 @@ function exportEntriesCsv(entries: Entry[], orgId: string) {
       ...e,
       pre_company_expense: e.pre_company_expense ? "true" : "false",
       pre_company_label: preCompanyLabel(e.pre_company_expense),
+      reimbursed: e.reimbursed ? "true" : "false",
+      accountant_approved: e.accountant_approved ? "true" : "false",
     };
     rows.push(
       header.map((k) => {
@@ -159,7 +176,7 @@ function EntriesPage() {
       const { data, error } = await supabase
         .from("finance_entries")
         .select(
-          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes, pre_company_expense",
+          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes, pre_company_expense, paid_by, reimbursed, accountant_approved, documentation_status",
         )
         .eq("organization_id", orgId)
         .order("entry_date", { ascending: false })
@@ -651,6 +668,19 @@ function StatusBadge({ kind, value }: { kind: "payment" | "invoice"; value: stri
 function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(() => ({
+    description: entry.description,
+    counterparty: entry.counterparty ?? "",
+    category: categoryOrDefault(entry.category, entry.entry_type),
+    notes: entry.notes ?? "",
+    pre_company_expense: entry.pre_company_expense,
+    paid_by: entry.paid_by ?? "",
+    reimbursed: entry.reimbursed ?? false,
+    accountant_approved: entry.accountant_approved ?? false,
+    documentation_status: (entry.documentation_status ?? "unknown") as DocumentationStatus,
+  }));
   const inputRef = useState(() => ({ current: null as HTMLInputElement | null }))[0];
 
   const { data: attachments } = useQuery({
@@ -664,6 +694,65 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
       return data;
     },
   });
+
+  function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  function startEdit() {
+    setForm({
+      description: entry.description,
+      counterparty: entry.counterparty ?? "",
+      category: categoryOrDefault(entry.category, entry.entry_type),
+      notes: entry.notes ?? "",
+      pre_company_expense: entry.pre_company_expense,
+      paid_by: entry.paid_by ?? "",
+      reimbursed: entry.reimbursed ?? false,
+      accountant_approved: entry.accountant_approved ?? false,
+      documentation_status: (entry.documentation_status ?? "unknown") as DocumentationStatus,
+    });
+    setEditing(true);
+  }
+
+  async function saveEdit() {
+    if (!form.description.trim()) {
+      toast.error("Beskrivelse er påkrevd");
+      return;
+    }
+    setSaving(true);
+    try {
+      const category = form.category as Category;
+      const { error } = await supabase
+        .from("finance_entries")
+        .update({
+          description: form.description.trim(),
+          counterparty: form.counterparty.trim() || null,
+          category,
+          category_group: syncCategoryGroup(category),
+          notes: form.notes.trim() || null,
+          pre_company_expense: form.pre_company_expense,
+          paid_by: form.pre_company_expense ? (form.paid_by.trim() || null) : null,
+          reimbursed: form.pre_company_expense ? form.reimbursed : false,
+          accountant_approved: form.accountant_approved,
+          documentation_status: form.documentation_status,
+        })
+        .eq("id", entry.id)
+        .eq("organization_id", orgId);
+      if (error) throw error;
+      toast.success("Post oppdatert");
+      setEditing(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["entries", orgId] }),
+        queryClient.invalidateQueries({ queryKey: ["report", orgId] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard", orgId] }),
+        queryClient.invalidateQueries({ queryKey: ["finance-confidence", orgId] }),
+      ]);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Klarte ikke lagre");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function openAttachment(path: string) {
     const { data, error } = await supabase.storage
@@ -711,50 +800,188 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
   }
 
   const isInvoice = entry.source_type === "invoice" && entry.source_ref;
+  const showPre = editing ? form.pre_company_expense : entry.pre_company_expense;
 
   return (
     <div className="border-t bg-background px-5 py-5">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Field label="Motpart" value={entry.counterparty} />
-        <Field label="Kategori" value={entry.category} />
-        <Field label="Kategori-gruppe" value={entry.category_group} />
-
-        <Field label="Beløp brutto" value={`${formatNOK(entry.amount_gross)} kr`} />
-        <Field label="Netto" value={`${formatNOK(entry.amount_net)} kr`} />
-        <Field
-          label="MVA"
-          value={`${formatNOK(entry.vat_amount)} kr (${Number(entry.vat_rate)}%)`}
-        />
-
-        <Field label="Betalingsstatus" value={entry.payment_status} />
-        <Field label="Fakturastatus" value={entry.invoice_status} />
-        <Field
-          label="Bilagsnummer"
-          value={entry.voucher_number}
-          help="Internt bilagsnummer i regnskapsboken"
-        />
-        <Field label="Stiftelse" value={preCompanyLabel(entry.pre_company_expense)} />
-
-
-        {isInvoice ? (
-          <>
-            <Field label="Fakturanummer" value={entry.source_ref} />
-            <div className="md:col-span-2">
-              <p className="text-xs text-muted-foreground">
-                Fakturanummer er kundens dokument. Bilagsnummer er intern rekkefølge i boken.
-              </p>
-            </div>
-          </>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Detaljer</div>
+        {!editing ? (
+          <Button type="button" size="sm" variant="outline" onClick={startEdit}>
+            <Pencil className="h-3.5 w-3.5 mr-1.5" /> Rediger
+          </Button>
         ) : (
-          <>
-            <Field label="Kildeapp" value={entry.source_app} />
-            <Field label="Kildetype" value={entry.source_type} />
-            <Field label="Kildereferanse" value={entry.source_ref} />
-          </>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={saving}>
+              Avbryt
+            </Button>
+            <Button type="button" size="sm" onClick={() => void saveEdit()} disabled={saving}>
+              {saving ? "Lagrer…" : "Lagre"}
+            </Button>
+          </div>
         )}
       </div>
 
-      {entry.external_url && (
+      {editing ? (
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Beskrivelse</Label>
+            <Input value={form.description} onChange={(e) => set("description", e.target.value)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Motpart</Label>
+              <Input value={form.counterparty} onChange={(e) => set("counterparty", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Kategori</Label>
+              <CategorySelect
+                value={form.category}
+                entryType={entry.entry_type}
+                onChange={(v) => set("category", v)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between py-2 border-y">
+            <div>
+              <Label className="text-sm">Før stiftelse</Label>
+              <div className="text-xs text-muted-foreground">Utlegg før selskapet eksisterte / kunne betale.</div>
+            </div>
+            <Switch checked={form.pre_company_expense} onCheckedChange={(v) => set("pre_company_expense", v)} />
+          </div>
+          {form.pre_company_expense && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-md border p-3 bg-muted/20">
+              <div className="space-y-1.5">
+                <Label>Hvem betalte</Label>
+                <Input
+                  value={form.paid_by}
+                  onChange={(e) => set("paid_by", e.target.value)}
+                  placeholder="Navn"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Dokumentasjonsstatus</Label>
+                <Select
+                  value={form.documentation_status}
+                  onValueChange={(v) => set("documentation_status", v as DocumentationStatus)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENTATION_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {DOCUMENTATION_STATUS_LABELS[s]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Refundert</Label>
+                <Switch checked={form.reimbursed} onCheckedChange={(v) => set("reimbursed", v)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Godkjent av regnskapsfører</Label>
+                <Switch
+                  checked={form.accountant_approved}
+                  onCheckedChange={(v) => set("accountant_approved", v)}
+                />
+              </div>
+            </div>
+          )}
+          {!form.pre_company_expense && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Dokumentasjonsstatus</Label>
+                <Select
+                  value={form.documentation_status}
+                  onValueChange={(v) => set("documentation_status", v as DocumentationStatus)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENTATION_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {DOCUMENTATION_STATUS_LABELS[s]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <Label className="text-sm">Godkjent av regnskapsfører</Label>
+                <Switch
+                  checked={form.accountant_approved}
+                  onCheckedChange={(v) => set("accountant_approved", v)}
+                />
+              </div>
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <Label>Notater</Label>
+            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Field label="Motpart" value={entry.counterparty} />
+          <Field label="Kategori" value={entry.category} />
+          <Field label="Kategori-gruppe" value={entry.category_group} />
+
+          <Field label="Beløp brutto" value={`${formatNOK(entry.amount_gross)} kr`} />
+          <Field label="Netto" value={`${formatNOK(entry.amount_net)} kr`} />
+          <Field
+            label="MVA"
+            value={`${formatNOK(entry.vat_amount)} kr (${Number(entry.vat_rate)}%)`}
+          />
+
+          <Field label="Betalingsstatus" value={entry.payment_status} />
+          <Field label="Fakturastatus" value={entry.invoice_status} />
+          <Field
+            label="Bilagsnummer"
+            value={entry.voucher_number}
+            help="Internt bilagsnummer i regnskapsboken"
+          />
+          <Field label="Stiftelse" value={preCompanyLabel(entry.pre_company_expense)} />
+          <Field
+            label="Dokumentasjon"
+            value={
+              DOCUMENTATION_STATUS_LABELS[
+                (entry.documentation_status as DocumentationStatus) ?? "unknown"
+              ] ?? entry.documentation_status
+            }
+          />
+          <Field label="Regnskapsfører" value={entry.accountant_approved ? "Godkjent" : "Ikke godkjent"} />
+
+          {showPre && (
+            <>
+              <Field label="Hvem betalte" value={entry.paid_by} />
+              <Field label="Refundert" value={entry.reimbursed ? "Ja" : "Nei"} />
+            </>
+          )}
+
+          {isInvoice ? (
+            <>
+              <Field label="Fakturanummer" value={entry.source_ref} />
+              <div className="md:col-span-2">
+                <p className="text-xs text-muted-foreground">
+                  Fakturanummer er kundens dokument. Bilagsnummer er intern rekkefølge i boken.
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <Field label="Kildeapp" value={entry.source_app} />
+              <Field label="Kildetype" value={entry.source_type} />
+              <Field label="Kildereferanse" value={entry.source_ref} />
+            </>
+          )}
+        </div>
+      )}
+
+      {entry.external_url && !editing && (
         <div className="mt-4">
           <a
             href={entry.external_url}
@@ -767,7 +994,7 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
         </div>
       )}
 
-      {entry.notes && (
+      {!editing && entry.notes && (
         <div className="mt-5">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Notater</div>
           <p className="text-sm whitespace-pre-wrap">{entry.notes}</p>
@@ -818,18 +1045,16 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
                 </span>
               </button>
             ))}
-            <div className="pt-1">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={uploading}
-                onClick={() => inputRef.current?.click()}
-              >
-                <Paperclip className="h-3.5 w-3.5 mr-1.5" />
-                {uploading ? "Laster opp…" : "Last opp flere"}
-              </Button>
-            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+            >
+              <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+              {uploading ? "Laster opp…" : "Legg til bilag"}
+            </Button>
           </div>
         )}
       </div>
@@ -865,8 +1090,7 @@ function NewEntryDialog({
   const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState("");
   const [counterparty, setCounterparty] = useState("");
-  const [category, setCategory] = useState("");
-  const [categoryGroup, setCategoryGroup] = useState("");
+  const [category, setCategory] = useState<Category>("Driftskostnader");
   const [amountGross, setAmountGross] = useState("");
   const [vatRate, setVatRate] = useState("25");
   const [notes, setNotes] = useState("");
@@ -885,6 +1109,7 @@ function NewEntryDialog({
       const rate = Number(vatRate);
       const vatAmount = +(gross - gross / (1 + rate / 100)).toFixed(2);
       const net = +(gross - vatAmount).toFixed(2);
+      const resolved = categoryOrDefault(category, entryType);
       const { data: u } = await supabase.auth.getUser();
       const { data: entry, error } = await supabase
         .from("finance_entries")
@@ -895,8 +1120,8 @@ function NewEntryDialog({
           entry_date: entryDate,
           description: description.trim(),
           counterparty: counterparty.trim() || null,
-          category: category.trim() || null,
-          category_group: categoryGroup.trim() || null,
+          category: resolved,
+          category_group: syncCategoryGroup(resolved),
           amount_gross: gross,
           vat_rate: rate,
           vat_amount: vatAmount,
@@ -943,7 +1168,11 @@ function NewEntryDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Type</Label>
-            <Select value={entryType} onValueChange={(v) => setEntryType(v as "income" | "expense")}>
+            <Select value={entryType} onValueChange={(v) => {
+              const t = v as "income" | "expense";
+              setEntryType(t);
+              setCategory(categoryOrDefault(category, t));
+            }}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -989,16 +1218,12 @@ function NewEntryDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Kategori</Label>
-            <Input value={category} onChange={(e) => setCategory(e.target.value)} />
+            <CategorySelect
+              value={category}
+              entryType={entryType}
+              onChange={setCategory}
+            />
           </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Kategori-gruppe (valgfritt)</Label>
-          <Input
-            value={categoryGroup}
-            onChange={(e) => setCategoryGroup(e.target.value)}
-            placeholder="f.eks. Råvarer, Honorar, Transport"
-          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">

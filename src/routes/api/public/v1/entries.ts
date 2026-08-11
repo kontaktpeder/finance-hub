@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import {
+  DocumentationStatusSchema,
+  defaultCategoryForType,
+  normalizeCategory,
+  syncCategoryGroup,
+} from "@/lib/categories";
 
 const EntryInput = z.object({
   book_id: z.string().uuid().optional(),
@@ -19,6 +25,10 @@ const EntryInput = z.object({
   invoice_status: z.enum(["none", "draft", "sent", "overdue", "paid"]).optional(),
   due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   pre_company_expense: z.boolean().optional(),
+  paid_by: z.string().max(200).optional(),
+  reimbursed: z.boolean().optional(),
+  accountant_approved: z.boolean().optional(),
+  documentation_status: DocumentationStatusSchema.optional(),
   notes: z.string().max(2000).optional(),
   source_app: z.string().max(64).optional(),
   source_type: z.string().max(64).optional(),
@@ -130,6 +140,10 @@ export const Route = createFileRoute("/api/public/v1/entries")({
         const rate = v.vat_rate ?? 0;
         const vatAmount = v.vat_amount ?? +(gross - gross / (1 + rate / 100)).toFixed(2);
         const net = v.amount_net ?? +(gross - vatAmount).toFixed(2);
+        const category =
+          normalizeCategory(v.category) ??
+          normalizeCategory(v.category_group) ??
+          defaultCategoryForType(v.entry_type);
 
         const { data, error } = await supabaseAdmin
           .from("finance_entries")
@@ -140,8 +154,8 @@ export const Route = createFileRoute("/api/public/v1/entries")({
             entry_date: v.entry_date ?? new Date().toISOString().slice(0, 10),
             description: v.description,
             counterparty: v.counterparty ?? null,
-            category: v.category ?? null,
-            category_group: v.category_group ?? null,
+            category,
+            category_group: syncCategoryGroup(category),
             amount_gross: gross,
             vat_rate: rate,
             vat_amount: vatAmount,
@@ -151,6 +165,10 @@ export const Route = createFileRoute("/api/public/v1/entries")({
             invoice_status: v.invoice_status ?? "none",
             due_date: v.due_date ?? null,
             pre_company_expense: v.pre_company_expense ?? false,
+            paid_by: v.paid_by ?? null,
+            reimbursed: v.reimbursed ?? false,
+            accountant_approved: v.accountant_approved ?? false,
+            documentation_status: v.documentation_status ?? "unknown",
             notes: v.notes ?? null,
             source_app: v.source_app ?? null,
             source_type: v.source_type ?? null,

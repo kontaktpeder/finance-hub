@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatNOK, monthLabel } from "@/lib/format";
+import { isVarekost } from "@/lib/categories";
 import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/reports")({
@@ -28,37 +29,59 @@ function ReportsPage() {
         .lt("entry_date", `${year + 1}-01-01`)
         .order("entry_date");
       if (error) throw error;
-      const months: Record<number, { income: number; expense: number; vat: number }> = {};
-      for (let m = 1; m <= 12; m++) months[m] = { income: 0, expense: 0, vat: 0 };
+      const months: Record<
+        number,
+        { income: number; expense: number; varekost: number; vat: number }
+      > = {};
+      for (let m = 1; m <= 12; m++) months[m] = { income: 0, expense: 0, varekost: 0, vat: 0 };
       for (const e of entries ?? []) {
         const m = new Date(e.entry_date).getMonth() + 1;
-        if (e.entry_type === "income") months[m].income += Number(e.amount_gross);
-        else months[m].expense += Number(e.amount_gross);
+        const amt = Number(e.amount_gross);
+        if (e.entry_type === "income") months[m].income += amt;
+        else {
+          months[m].expense += amt;
+          if (isVarekost(e.category) || isVarekost(e.category_group)) {
+            months[m].varekost += amt;
+          }
+        }
         months[m].vat += Number(e.vat_amount);
       }
       return { months, entries: entries ?? [] };
     },
   });
 
-  const { incomeCats, expenseCats, incomeTotal, expenseTotal } = useMemo(() => {
-    const inc = new Map<string, number>();
-    const exp = new Map<string, number>();
-    let it = 0, et = 0;
-    for (const e of data?.entries ?? []) {
-      const key = (e as any).category_group || (e as any).category || "Uten kategori";
-      const amt = Number(e.amount_gross);
-      if (e.entry_type === "income") {
-        inc.set(key, (inc.get(key) ?? 0) + amt);
-        it += amt;
-      } else {
-        exp.set(key, (exp.get(key) ?? 0) + amt);
-        et += amt;
+  const { incomeCats, expenseCats, incomeTotal, expenseTotal, varekostTotal, grossProfit, grossMargin } =
+    useMemo(() => {
+      const inc = new Map<string, number>();
+      const exp = new Map<string, number>();
+      let it = 0,
+        et = 0,
+        vt = 0;
+      for (const e of data?.entries ?? []) {
+        const key = (e as any).category_group || (e as any).category || "Uten kategori";
+        const amt = Number(e.amount_gross);
+        if (e.entry_type === "income") {
+          inc.set(key, (inc.get(key) ?? 0) + amt);
+          it += amt;
+        } else {
+          exp.set(key, (exp.get(key) ?? 0) + amt);
+          et += amt;
+          if (isVarekost(e.category) || isVarekost(e.category_group)) vt += amt;
+        }
       }
-    }
-    const sort = (m: Map<string, number>) =>
-      Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
-    return { incomeCats: sort(inc), expenseCats: sort(exp), incomeTotal: it, expenseTotal: et };
-  }, [data]);
+      const sort = (m: Map<string, number>) =>
+        Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
+      const profit = it - vt;
+      return {
+        incomeCats: sort(inc),
+        expenseCats: sort(exp),
+        incomeTotal: it,
+        expenseTotal: et,
+        varekostTotal: vt,
+        grossProfit: profit,
+        grossMargin: it > 0 ? profit / it : null,
+      };
+    }, [data]);
 
   function exportCsv() {
     if (!data) return;
@@ -99,7 +122,7 @@ function ReportsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Rapporter {year}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Resultat per måned og fordeling på kategori.
+            Resultat per måned, bruttomargin og fordeling på kategori.
           </p>
         </div>
         <Button onClick={exportCsv} variant="outline">
@@ -109,38 +132,72 @@ function ReportsPage() {
 
       <section>
         <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-3">
+          Bruttofortjeneste
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard label="Salgsinntekter" value={formatNOK(incomeTotal)} />
+          <MetricCard label="Varekost" value={`−${formatNOK(varekostTotal)}`} />
+          <MetricCard label="Bruttofortjeneste" value={formatNOK(grossProfit)} emphasize />
+          <MetricCard
+            label="Bruttomargin"
+            value={grossMargin == null ? "—" : `${(grossMargin * 100).toFixed(1)} %`}
+            emphasize
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Bruttofortjeneste = salgsinntekter − varekost. Viser om prisene dekker
+          ingrediensene før leie, strøm og administrasjon.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-3">
           Resultat per måned
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {data && Object.entries(data.months).map(([m, v]) => (
-            <Card key={m}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium capitalize">
-                  {monthLabel(year, Number(m))}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Inntekt</span>
-                  <span className="tabular text-success">{formatNOK(v.income)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Utgift</span>
-                  <span className="tabular">−{formatNOK(v.expense)}</span>
-                </div>
-                <div className="flex justify-between text-sm pt-1 border-t mt-2">
-                  <span className="font-medium">Resultat</span>
-                  <span className="tabular font-semibold">
-                    {formatNOK(v.income - v.expense)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>MVA</span>
-                  <span className="tabular">{formatNOK(v.vat)}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {data && Object.entries(data.months).map(([m, v]) => {
+            const monthProfit = v.income - v.varekost;
+            const monthMargin = v.income > 0 ? monthProfit / v.income : null;
+            return (
+              <Card key={m}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium capitalize">
+                    {monthLabel(year, Number(m))}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Inntekt</span>
+                    <span className="tabular text-success">{formatNOK(v.income)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Varekost</span>
+                    <span className="tabular">−{formatNOK(v.varekost)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Bruttomargin</span>
+                    <span className="tabular">
+                      {monthMargin == null ? "—" : `${(monthMargin * 100).toFixed(0)} %`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Alle utgifter</span>
+                    <span className="tabular">−{formatNOK(v.expense)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-1 border-t mt-2">
+                    <span className="font-medium">Resultat</span>
+                    <span className="tabular font-semibold">
+                      {formatNOK(v.income - v.expense)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>MVA</span>
+                    <span className="tabular">{formatNOK(v.vat)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
@@ -149,6 +206,27 @@ function ReportsPage() {
         <CategoryReport title="Utgifter per kategori" rows={expenseCats} total={expenseTotal} tone="expense" />
       </section>
     </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  emphasize,
+}: {
+  label: string;
+  value: string;
+  emphasize?: boolean;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className={`tabular text-xl ${emphasize ? "font-semibold" : ""}`}>{value}</div>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -1,6 +1,11 @@
 import { generateText } from "ai";
 import { z } from "zod";
 import { geminiModelId, getGeminiApiKey, getGeminiModel } from "@/lib/ai-gateway.server";
+import {
+  defaultCategoryForType,
+  normalizeCategory,
+  syncCategoryGroup,
+} from "@/lib/categories";
 
 export const RECEIPT_SCAN_MODEL = geminiModelId("flash");
 
@@ -76,14 +81,27 @@ export type ReceiptScanContentInput = {
 
 const SYSTEM_PROMPT = `Du er en regnskapsassistent for norske organisasjoner. Du analyserer kvitteringer/fakturaer og foreslår en finance_entry. Bruk norske MVA-satser (0, 12, 15, 25). amount_net = amount_gross - vat_amount. ISO-dato YYYY-MM-DD. Du skal IKKE bokføre — kun foreslå.
 
+Kategorier (category og category_group SKAL være samme verdi, fra denne listen):
+- "Salg" — inntekter
+- "Varekost" — råvarer/ingredienser brukt i produksjon (matvarer, mozzarella, etc.)
+- "Driftsutstyr" — kjøkkenutstyr og fysiske driftsmidler (riskoker, airfryer, frityrkoker, thermobokser)
+- "Driftskostnader" — øvrige driftsutgifter
+- "Administrasjon" — admin, kontor, gebyrer
+
+Leverandørhint er FORSLAG, ikke absolutte regler — brukeren bekrefter:
+- REMA 1000 / KIWI / matleverandører (f.eks. Smak av Italia) → foreslå "Varekost" når det ser ut som mat/råvarer
+- Power / Biltema / Batteri Online → foreslå "Driftsutstyr" når det er kjøkken-/driftsutstyr; ellers "Driftskostnader"
+- Restaurantbesøk (McDonald's, etc.) → "Driftskostnader" og beskriv formålet (f.eks. "test av konkurrentprodukt") hvis uklart
+Sett lav confidence.score på category når leverandøren kan selge flere typer varer.
+
 Svar KUN med ett JSON-objekt (ingen markdown, ingen forklaring) på dette skjemaet:
 {
   "entry_type": "income" | "expense",
   "entry_date": "YYYY-MM-DD",
   "counterparty": string | null,
   "description": string,
-  "category": string | null,
-  "category_group": string | null,
+  "category": "Salg" | "Varekost" | "Driftsutstyr" | "Driftskostnader" | "Administrasjon",
+  "category_group": "Salg" | "Varekost" | "Driftsutstyr" | "Driftskostnader" | "Administrasjon",
   "amount_gross": number,
   "vat_rate": number,
   "vat_amount": number,
@@ -189,13 +207,18 @@ export function mapInvoiceStatusToPublic(
 export function toPublicReceiptScan(
   suggestion: ReceiptSuggestion,
 ): NormalizedReceiptScan {
+  const entryType = suggestion.entry_type ?? "expense";
+  const category =
+    normalizeCategory(suggestion.category) ??
+    normalizeCategory(suggestion.category_group) ??
+    defaultCategoryForType(entryType);
   return {
-    entry_type: suggestion.entry_type ?? "expense",
+    entry_type: entryType,
     entry_date: suggestion.entry_date,
     counterparty: suggestion.counterparty ?? "",
     description: suggestion.description,
-    category: suggestion.category ?? "Annet",
-    category_group: suggestion.category_group ?? undefined,
+    category,
+    category_group: syncCategoryGroup(category) ?? undefined,
     amount_gross: suggestion.amount_gross,
     amount_net: suggestion.amount_net,
     vat_rate: vatRateToDecimal(suggestion.vat_rate),
@@ -300,7 +323,17 @@ export async function scanReceiptContentFromParts(
     );
   }
 
-  return validated.data;
+  const suggestion = validated.data;
+  const entryType = suggestion.entry_type ?? "expense";
+  const category =
+    normalizeCategory(suggestion.category) ??
+    normalizeCategory(suggestion.category_group) ??
+    defaultCategoryForType(entryType);
+  return {
+    ...suggestion,
+    category,
+    category_group: syncCategoryGroup(category),
+  };
 }
 
 export async function scanReceiptContent(
