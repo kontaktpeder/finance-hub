@@ -141,7 +141,7 @@ async function copyAttachments(
     size_bytes: a.size_bytes ?? null,
     uploaded_by: a.uploaded_by ?? null,
     page_index: a.page_index ?? null,
-    receipt_draft_id: a.receipt_draft_id ?? null,
+    receipt_draft_id: null,
   }));
   const { error: insErr } = await supabase.from("finance_attachments").insert(copies);
   if (insErr) throw new LedgerError("db", insErr.message);
@@ -209,7 +209,7 @@ export async function voidEntry(
       vat_rate: original.vat_rate,
       currency: original.currency ?? "NOK",
       payment_status: "paid",
-      invoice_status: original.invoice_status ?? "none",
+      invoice_status: "none",
       paid_at: posting.date,
       notes: original.notes,
       pre_company_expense: original.pre_company_expense,

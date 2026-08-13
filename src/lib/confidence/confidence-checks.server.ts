@@ -22,11 +22,17 @@ function url(ctx: CheckCtx, path: string): string {
 export async function checkMissingAttachment(ctx: CheckCtx): Promise<ConfidenceIssue | null> {
   const { data: expenses, error } = await ctx.supabase
     .from("finance_entries")
-    .select("id")
+    .select("id, posting_kind, booking_status")
     .eq("organization_id", ctx.organizationId)
     .eq("entry_type", "expense");
   if (error) throw new Error(error.message);
-  const ids = (expenses ?? []).map((e: { id: string }) => e.id);
+  const ids = (expenses ?? [])
+    .filter(
+      (e: { posting_kind?: string | null; booking_status?: string | null }) =>
+        (e.posting_kind ?? "original") === "original" &&
+        (e.booking_status ?? "active") === "active",
+    )
+    .map((e: { id: string }) => e.id);
   if (ids.length === 0) return null;
 
   const { data: atts, error: aErr } = await ctx.supabase
@@ -138,12 +144,19 @@ export async function checkIncomeWithoutDocumentation(
 ): Promise<ConfidenceIssue | null> {
   const { data: incomes, error } = await ctx.supabase
     .from("finance_entries")
-    .select("id, source_type, source_ref")
+    .select("id, source_type, source_ref, posting_kind, booking_status")
     .eq("organization_id", ctx.organizationId)
     .eq("entry_type", "income");
   if (error) throw new Error(error.message);
   const candidates = (incomes ?? []).filter(
-    (e: { source_type: string | null; source_ref: string | null }) =>
+    (e: {
+      source_type: string | null;
+      source_ref: string | null;
+      posting_kind?: string | null;
+      booking_status?: string | null;
+    }) =>
+      (e.posting_kind ?? "original") === "original" &&
+      (e.booking_status ?? "active") === "active" &&
       !(e.source_type === "invoice" && e.source_ref),
   );
   const ids = candidates.map((e: { id: string }) => e.id);

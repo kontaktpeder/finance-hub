@@ -58,8 +58,18 @@ export function bookingBadge(entry: EntryLite) {
   return null;
 }
 
-export function isActiveOriginal(entry: EntryLite) {
+type BookingLite = {
+  posting_kind?: string | null;
+  booking_status?: string | null;
+};
+
+export function isActiveOriginal(entry: BookingLite) {
   return (entry.posting_kind ?? "original") === "original" && (entry.booking_status ?? "active") === "active";
+}
+
+/** Motposter og annullerte/korrigerte originaler skal ikke advares for manglende bilag. */
+export function needsSourceDocument(entry: BookingLite) {
+  return isActiveOriginal(entry);
 }
 
 export function EntryLedgerActions({ entry, orgId }: { entry: EntryLite; orgId: string }) {

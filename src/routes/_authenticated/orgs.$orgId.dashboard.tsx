@@ -61,7 +61,10 @@ function Dashboard() {
         const kind = (e as any).posting_kind ?? "original";
         const status = (e as any).booking_status ?? "active";
         if (e.entry_type === "income") income += amt;
-        else { expense += amt; expenseIds.push(e.id); }
+        else {
+          expense += amt;
+          if (kind === "original" && status === "active") expenseIds.push(e.id);
+        }
         if (
           e.payment_status === "unpaid" &&
           kind === "original" &&

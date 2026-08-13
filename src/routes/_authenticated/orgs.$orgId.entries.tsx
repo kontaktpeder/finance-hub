@@ -28,7 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
 import { MissionReturnLink } from "@/components/finance/MissionReturnLink";
-import { BookingStatusBadge, EntryLedgerActions } from "@/components/finance/EntryLedgerActions";
+import { BookingStatusBadge, EntryLedgerActions, needsSourceDocument } from "@/components/finance/EntryLedgerActions";
 import { CategorySelect, categoryOrDefault } from "@/lib/CategorySelect";
 import {
   DOCUMENTATION_STATUSES,
@@ -211,7 +211,13 @@ function EntriesPage() {
     if (!entries || !entryIdsWithAttachment) return new Set<string>();
     const s = new Set<string>();
     for (const e of entries) {
-      if (e.entry_type === "expense" && !entryIdsWithAttachment.has(e.id)) s.add(e.id);
+      if (
+        e.entry_type === "expense" &&
+        needsSourceDocument(e) &&
+        !entryIdsWithAttachment.has(e.id)
+      ) {
+        s.add(e.id);
+      }
     }
     return s;
   }, [entries, entryIdsWithAttachment]);
@@ -221,7 +227,12 @@ function EntriesPage() {
     const s = new Set<string>();
     for (const e of entries) {
       const hasInvoice = e.source_type === "invoice" && e.source_ref;
-      if (e.entry_type === "income" && !hasInvoice && !entryIdsWithAttachment.has(e.id)) {
+      if (
+        e.entry_type === "income" &&
+        needsSourceDocument(e) &&
+        !hasInvoice &&
+        !entryIdsWithAttachment.has(e.id)
+      ) {
         s.add(e.id);
       }
     }
@@ -432,7 +443,7 @@ function Section({
       .map(([name, items]) => {
         const total = items.reduce((s, e) => s + Number(e.amount_gross), 0);
         const unpaid = items
-          .filter((e) => e.payment_status === "unpaid")
+          .filter((e) => needsSourceDocument(e) && e.payment_status === "unpaid")
           .reduce((s, e) => s + Number(e.amount_gross), 0);
         return { name, items, total, unpaid };
       })
@@ -598,7 +609,7 @@ function EntryRow({
           </div>
           <div className="truncate text-xs text-muted-foreground mt-0.5">
             {formatDate(entry.entry_date)}
-            {entry.payment_status === "unpaid" && " · Ubetalt"}
+            {needsSourceDocument(entry) && entry.payment_status === "unpaid" && " · Ubetalt"}
           </div>
         </div>
         <div className="tabular text-sm font-semibold shrink-0">
@@ -634,10 +645,16 @@ function EntryRow({
 
         <span className="tabular text-right font-medium">{formatNOK(entry.amount_gross)} kr</span>
         <span>
-          <StatusBadge kind="payment" value={entry.payment_status} />
+          {needsSourceDocument(entry) ? (
+            <StatusBadge kind="payment" value={entry.payment_status} />
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          )}
         </span>
         <span>
-          {isInvoice ? (
+          {!needsSourceDocument(entry) ? (
+            <span className="text-xs text-muted-foreground">—</span>
+          ) : isInvoice ? (
             <div className="flex flex-col gap-0.5">
               <span className="tabular text-xs font-medium">{entry.source_ref}</span>
               <StatusBadge kind="invoice" value={entry.invoice_status} />
@@ -946,8 +963,20 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
             value={`${formatNOK(entry.vat_amount)} kr (${Number(entry.vat_rate)}%)`}
           />
 
-          <Field label="Betalingsstatus" value={entry.payment_status} />
-          <Field label="Fakturastatus" value={entry.invoice_status} />
+          <Field
+            label="Betalingsstatus"
+            value={
+              needsSourceDocument(entry)
+                ? entry.payment_status
+                : entry.posting_kind === "reversal"
+                  ? "Motpost (ikke en ny betaling)"
+                  : "—"
+            }
+          />
+          <Field
+            label="Fakturastatus"
+            value={needsSourceDocument(entry) ? entry.invoice_status : "—"}
+          />
           <Field
             label="Bilagsnummer"
             value={entry.voucher_number}
@@ -1025,6 +1054,7 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
           }}
         />
         {!attachments || attachments.length === 0 ? (
+          needsSourceDocument(entry) ? (
           <div className="flex items-center gap-3">
             <p className="text-sm text-muted-foreground">Mangler bilag.</p>
             <Button
@@ -1038,6 +1068,13 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
               {uploading ? "Laster opp…" : "Last opp bilag"}
             </Button>
           </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {entry.posting_kind === "reversal"
+                ? "Motpost. Bilag ligger på originalposten."
+                : "Bilag gjelder originalposten."}
+            </p>
+          )
         ) : (
           <div className="space-y-1.5">
             {attachments.map((a) => (
@@ -1054,6 +1091,7 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
                 </span>
               </button>
             ))}
+            {needsSourceDocument(entry) && (
             <Button
               type="button"
               size="sm"
@@ -1064,6 +1102,7 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
               <Paperclip className="h-3.5 w-3.5 mr-1.5" />
               {uploading ? "Laster opp…" : "Legg til bilag"}
             </Button>
+            )}
           </div>
         )}
       </div>
