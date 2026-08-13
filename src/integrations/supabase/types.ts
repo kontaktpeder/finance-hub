@@ -475,15 +475,25 @@ export type Database = {
           paid_at: string | null
           paid_by: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          period_lock_exception_id: string | null
+          posting_kind: string
           pre_company_expense: boolean
+          private_expense: boolean
           reimbursed: boolean
+          reverses_entry_id: string | null
+          reversed_by_entry_id: string | null
           source_app: string | null
           source_ref: string | null
           source_type: string | null
           updated_at: string
           vat_amount: number
           vat_rate: number
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
           voucher_number: string | null
+          booking_status: string
+          correction_of_entry_id: string | null
         }
         Insert: {
           accountant_approved?: boolean
@@ -512,15 +522,25 @@ export type Database = {
           paid_at?: string | null
           paid_by?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          period_lock_exception_id?: string | null
+          posting_kind?: string
           pre_company_expense?: boolean
+          private_expense?: boolean
           reimbursed?: boolean
+          reverses_entry_id?: string | null
+          reversed_by_entry_id?: string | null
           source_app?: string | null
           source_ref?: string | null
           source_type?: string | null
           updated_at?: string
           vat_amount?: number
           vat_rate?: number
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
           voucher_number?: string | null
+          booking_status?: string
+          correction_of_entry_id?: string | null
         }
         Update: {
           accountant_approved?: boolean
@@ -528,8 +548,10 @@ export type Database = {
           amount_net?: number
           api_client_id?: string | null
           book_id?: string
+          booking_status?: string
           category?: string | null
           category_group?: string | null
+          correction_of_entry_id?: string | null
           counterparty?: string | null
           created_at?: string
           created_by?: string | null
@@ -549,14 +571,22 @@ export type Database = {
           paid_at?: string | null
           paid_by?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          period_lock_exception_id?: string | null
+          posting_kind?: string
           pre_company_expense?: boolean
+          private_expense?: boolean
           reimbursed?: boolean
+          reverses_entry_id?: string | null
+          reversed_by_entry_id?: string | null
           source_app?: string | null
           source_ref?: string | null
           source_type?: string | null
           updated_at?: string
           vat_amount?: number
           vat_rate?: number
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
           voucher_number?: string | null
         }
         Relationships: [
@@ -575,6 +605,153 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      finance_entry_audit: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entry_id: string
+          field_name: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          organization_id: string
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entry_id: string
+          field_name?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          organization_id: string
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entry_id?: string
+          field_name?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          organization_id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      finance_payments: {
+        Row: {
+          amount: number
+          bank_transaction_id: string | null
+          created_at: string
+          created_by: string | null
+          entry_id: string
+          id: string
+          kind: string
+          notes: string | null
+          organization_id: string
+          paid_by: string | null
+          paid_on: string
+        }
+        Insert: {
+          amount: number
+          bank_transaction_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entry_id: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          organization_id: string
+          paid_by?: string | null
+          paid_on: string
+        }
+        Update: {
+          amount?: number
+          bank_transaction_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entry_id?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          organization_id?: string
+          paid_by?: string | null
+          paid_on?: string
+        }
+        Relationships: []
+      }
+      finance_period_locks: {
+        Row: {
+          id: string
+          locked_at: string
+          locked_by: string | null
+          organization_id: string
+          period_month: number
+          period_year: number
+          reason: string | null
+        }
+        Insert: {
+          id?: string
+          locked_at?: string
+          locked_by?: string | null
+          organization_id: string
+          period_month: number
+          period_year: number
+          reason?: string | null
+        }
+        Update: {
+          id?: string
+          locked_at?: string
+          locked_by?: string | null
+          organization_id?: string
+          period_month?: number
+          period_year?: number
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      finance_admin_exceptions: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entry_id: string | null
+          id: string
+          organization_id: string
+          period_month: number | null
+          period_year: number | null
+          reason: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entry_id?: string | null
+          id?: string
+          organization_id: string
+          period_month?: number | null
+          period_year?: number | null
+          reason: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entry_id?: string | null
+          id?: string
+          organization_id?: string
+          period_month?: number | null
+          period_year?: number | null
+          reason?: string
+        }
+        Relationships: []
       }
       finance_receipt_drafts: {
         Row: {

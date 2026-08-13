@@ -7,6 +7,7 @@ import {
   normalizeCategory,
   syncCategoryGroup,
 } from "@/lib/categories";
+import { recordPayment } from "@/lib/ledger.server";
 
 const EntryInput = z.object({
   book_id: z.string().uuid().optional(),
@@ -161,7 +162,7 @@ export const Route = createFileRoute("/api/public/v1/entries")({
             vat_amount: vatAmount,
             amount_net: net,
             currency: v.currency ?? "NOK",
-            payment_status: v.payment_status ?? "unpaid",
+            payment_status: "unpaid",
             invoice_status: v.invoice_status ?? "none",
             due_date: v.due_date ?? null,
             pre_company_expense: v.pre_company_expense ?? false,
@@ -180,6 +181,27 @@ export const Route = createFileRoute("/api/public/v1/entries")({
           .select("*")
           .single();
         if (error) return Response.json({ error: error.message }, { status: 400 });
+        if (v.payment_status === "paid") {
+          try {
+            await recordPayment(supabaseAdmin, {
+              organizationId: auth.client.organization_id,
+              entryId: data.id,
+              amount: Math.abs(gross),
+              paidOn: v.entry_date ?? new Date().toISOString().slice(0, 10),
+              kind: "payment",
+              paidBy: v.paid_by ?? null,
+              actorId: null,
+            });
+            const { data: refreshed } = await supabaseAdmin
+              .from("finance_entries")
+              .select("*")
+              .eq("id", data.id)
+              .single();
+            return Response.json({ data: refreshed ?? data }, { status: 201 });
+          } catch {
+            return Response.json({ data }, { status: 201 });
+          }
+        }
         return Response.json({ data }, { status: 201 });
       },
     },

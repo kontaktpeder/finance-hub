@@ -25,7 +25,7 @@ Nøkkelen identifiserer én `api_client`, som er låst til **én organisasjon**.
 | Scope | Tilgang |
 |---|---|
 | `entries:read` | `GET /api/public/v1/entries`, `GET /api/public/v1/reports/summary` |
-| `entries:write` | `POST /api/public/v1/entries`, `DELETE /api/public/v1/entries/{entry_id}`, `POST /api/public/v1/ai/scan-receipt` |
+| `entries:write` | `POST /api/public/v1/entries`, `PATCH /api/public/v1/entries/{id}`, `POST .../void`, `POST .../correct`, `POST .../payments`, `POST /api/public/v1/ai/scan-receipt` |
 | `reports:read` | `GET /api/public/v1/reports/summary` |
 | `attachments:write` | `POST /api/public/v1/attachments`, `DELETE /api/public/v1/attachments/{attachment_id}` |
 | `invoices:read` | `GET /invoices`, `GET /invoices/:id`, `GET /invoices/:id/pdf` |
@@ -111,6 +111,35 @@ curl -X PATCH "$BASE/api/public/v1/entries/<uuid>" \
   }'
 ```
 
+PATCH kan **ikke** endre beløp eller `payment_status`. Beløp rettes med korrigering; betaling registreres som betalingshendelse.
+
+### POST /api/public/v1/entries/{entry_id}/void
+
+Annullerer en bokført originalpost. Originalbeløpet beholdes. Det opprettes en motpost med eget bilagsnummer og motsatt beløp. Krever `entries:write`.
+
+```bash
+curl -X POST "$BASE/api/public/v1/entries/<uuid>/void" \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "reason": "Feilregistrering — privat kjøp", "private_expense": true }'
+```
+
+### POST /api/public/v1/entries/{entry_id}/correct
+
+Motpost + ny korrekt post. Originalbeløpet overskrives ikke.
+
+### POST /api/public/v1/entries/{entry_id}/payments
+
+Registrerer betaling/refusjon/kreditnota. `payment_status` og `paid_at` avledes (full innfrielse = `paid_at`). Overbetaling avvises.
+
+### DELETE /api/public/v1/entries/{entry_id}
+
+Returnerer **409**. Bokførte poster slettes ikke. Hard delete gjelder bare `finance_receipt_drafts`.
+
+### GET/POST/DELETE /api/public/v1/periods
+
+Periodelås. Korreksjoner i låst periode bokføres i neste åpne periode. Opplåsing krever begrunnelse og logges som admin-unntak.
+
 ### GET /api/public/v1/entries
 
 ```bash
@@ -167,19 +196,6 @@ curl -X DELETE "$BASE/api/public/v1/attachments/<uuid>" \
 - Krever scope `attachments:write`
 - Returnerer `{ "data": { "deleted": true, "id": "..." } }`
 - 404 hvis bilaget ikke finnes i organisasjonen
-
-### DELETE /api/public/v1/entries/{entry_id}
-
-Sletter en regnskapspost og alle tilknyttede bilag.
-
-```bash
-curl -X DELETE "$BASE/api/public/v1/entries/<uuid>" \
-  -H "Authorization: Bearer $KEY"
-```
-
-- Krever scope `entries:write`
-- Returnerer `{ "data": { "deleted": true, "id": "...", "attachments_deleted": N } }`
-- 404 hvis posten ikke finnes i organisasjonen
 
 ### POST /api/public/v1/ai/scan-receipt
 

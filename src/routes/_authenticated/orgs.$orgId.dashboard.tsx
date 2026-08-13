@@ -47,7 +47,7 @@ function Dashboard() {
 
       const { data: entries, error } = await supabase
         .from("finance_entries")
-        .select("id, entry_type, amount_gross, payment_status, entry_date")
+        .select("id, entry_type, amount_gross, payment_status, entry_date, booking_status, posting_kind")
         .eq("organization_id", orgId)
         .gte("entry_date", start)
         .lt("entry_date", end);
@@ -58,9 +58,15 @@ function Dashboard() {
       const expenseIds: string[] = [];
       for (const e of entries ?? []) {
         const amt = Number(e.amount_gross);
+        const kind = (e as any).posting_kind ?? "original";
+        const status = (e as any).booking_status ?? "active";
         if (e.entry_type === "income") income += amt;
         else { expense += amt; expenseIds.push(e.id); }
-        if (e.payment_status === "unpaid") unpaid += amt;
+        if (
+          e.payment_status === "unpaid" &&
+          kind === "original" &&
+          status === "active"
+        ) unpaid += amt;
         if (e.entry_date >= mStart && e.entry_date < nextMonth) {
           mCount += 1;
           if (e.entry_type === "income") mIncome += amt;

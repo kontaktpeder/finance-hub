@@ -40,17 +40,12 @@ const EntryPatchInput = z
     category_group: z.string().max(100).nullable().optional(),
     notes: z.string().max(2000).nullable().optional(),
     pre_company_expense: z.boolean().optional(),
-    payment_status: z.enum(["unpaid", "paid", "partial", "refunded"]).optional(),
     invoice_status: z.enum(["none", "draft", "sent", "overdue", "paid"]).optional(),
     paid_by: z.string().max(200).nullable().optional(),
     reimbursed: z.boolean().optional(),
     accountant_approved: z.boolean().optional(),
     documentation_status: DocumentationStatusSchema.optional(),
-    entry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    amount_gross: z.number().optional(),
-    vat_rate: z.number().min(0).max(100).optional(),
-    vat_amount: z.number().optional(),
-    amount_net: z.number().optional(),
+    private_expense: z.boolean().optional(),
   })
   .strict();
 
@@ -86,7 +81,7 @@ export const Route = createFileRoute("/api/public/v1/entries/$entryId")({
 
         const { data: existing } = await supabaseAdmin
           .from("finance_entries")
-          .select("id, organization_id, amount_gross, vat_rate")
+          .select("id, organization_id, booking_status")
           .eq("id", entryId)
           .maybeSingle();
         if (!existing || existing.organization_id !== auth.client.organization_id) {
@@ -100,34 +95,24 @@ export const Route = createFileRoute("/api/public/v1/entries/$entryId")({
           category_group?: string | null;
           notes?: string | null;
           pre_company_expense?: boolean;
-          payment_status?: "unpaid" | "paid" | "partial" | "refunded";
           invoice_status?: "none" | "draft" | "sent" | "overdue" | "paid";
           paid_by?: string | null;
           reimbursed?: boolean;
           accountant_approved?: boolean;
           documentation_status?: "unknown" | "missing" | "incomplete" | "complete";
-          entry_date?: string;
-          amount_gross?: number;
-          vat_rate?: number;
-          vat_amount?: number;
-          amount_net?: number;
+          private_expense?: boolean;
         } = {};
 
         if (v.description !== undefined) patch.description = v.description;
         if (v.counterparty !== undefined) patch.counterparty = v.counterparty;
         if (v.notes !== undefined) patch.notes = v.notes;
         if (v.pre_company_expense !== undefined) patch.pre_company_expense = v.pre_company_expense;
-        if (v.payment_status !== undefined) patch.payment_status = v.payment_status;
         if (v.invoice_status !== undefined) patch.invoice_status = v.invoice_status;
         if (v.paid_by !== undefined) patch.paid_by = v.paid_by;
         if (v.reimbursed !== undefined) patch.reimbursed = v.reimbursed;
         if (v.accountant_approved !== undefined) patch.accountant_approved = v.accountant_approved;
         if (v.documentation_status !== undefined) patch.documentation_status = v.documentation_status;
-        if (v.entry_date !== undefined) patch.entry_date = v.entry_date;
-        if (v.amount_gross !== undefined) patch.amount_gross = v.amount_gross;
-        if (v.vat_rate !== undefined) patch.vat_rate = v.vat_rate;
-        if (v.vat_amount !== undefined) patch.vat_amount = v.vat_amount;
-        if (v.amount_net !== undefined) patch.amount_net = v.amount_net;
+        if (v.private_expense !== undefined) patch.private_expense = v.private_expense;
 
         if (v.category !== undefined) {
           if (v.category === null) {
@@ -158,18 +143,6 @@ export const Route = createFileRoute("/api/public/v1/entries/$entryId")({
             }
             patch.category = cat;
             patch.category_group = syncCategoryGroup(cat);
-          }
-        }
-
-        if (v.amount_gross !== undefined || v.vat_rate !== undefined) {
-          const gross = v.amount_gross ?? Number(existing.amount_gross);
-          const rate = v.vat_rate ?? Number(existing.vat_rate);
-          if (v.vat_amount === undefined) {
-            patch.vat_amount = +(gross - gross / (1 + rate / 100)).toFixed(2);
-          }
-          if (v.amount_net === undefined) {
-            const vatAmt = patch.vat_amount ?? v.vat_amount ?? 0;
-            patch.amount_net = +(gross - vatAmt).toFixed(2);
           }
         }
 
@@ -205,33 +178,14 @@ export const Route = createFileRoute("/api/public/v1/entries/$entryId")({
           return Response.json({ error: "Entry not found" }, { status: 404 });
         }
 
-        // First: delete all linked attachments (storage + DB)
-        const { data: attachments } = await supabaseAdmin
-          .from("finance_attachments")
-          .select("id, storage_path")
-          .eq("entry_id", entryId)
-          .eq("organization_id", auth.client.organization_id);
-
-        const paths = (attachments ?? []).map((a) => a.storage_path).filter(Boolean);
-        if (paths.length > 0) {
-          await supabaseAdmin.storage.from("finance-attachments").remove(paths);
-        }
-        const attachmentIds = (attachments ?? []).map((a) => a.id);
-        if (attachmentIds.length > 0) {
-          await supabaseAdmin.from("finance_attachments").delete().in("id", attachmentIds);
-        }
-
-        // Then: delete the entry
-        const { error: delErr } = await supabaseAdmin
-          .from("finance_entries")
-          .delete()
-          .eq("id", entryId)
-          .eq("organization_id", auth.client.organization_id);
-        if (delErr) return Response.json({ error: delErr.message }, { status: 500 });
-
-        return Response.json({
-          data: { deleted: true, id: entryId, attachments_deleted: attachmentIds.length },
-        });
+        return Response.json(
+          {
+            error: "booked_entry_immutable",
+            message:
+              "Bokførte poster kan ikke slettes. Bruk POST /entries/{id}/void. Hard delete gjelder bare utkast (finance_receipt_drafts).",
+          },
+          { status: 409 },
+        );
       },
     },
   },

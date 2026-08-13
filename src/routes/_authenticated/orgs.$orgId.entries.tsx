@@ -28,6 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { formatNOK, formatDate } from "@/lib/format";
 import { MissionReturnLink } from "@/components/finance/MissionReturnLink";
+import { BookingStatusBadge, EntryLedgerActions } from "@/components/finance/EntryLedgerActions";
 import { CategorySelect, categoryOrDefault } from "@/lib/CategorySelect";
 import {
   DOCUMENTATION_STATUSES,
@@ -87,6 +88,12 @@ type Entry = {
   reimbursed: boolean;
   accountant_approved: boolean;
   documentation_status: string;
+  paid_at: string | null;
+  posting_kind: string | null;
+  booking_status: string | null;
+  private_expense: boolean | null;
+  void_reason: string | null;
+  reversed_by_entry_id: string | null;
 };
 
 function preCompanyLabel(pre: boolean): string {
@@ -176,7 +183,7 @@ function EntriesPage() {
       const { data, error } = await supabase
         .from("finance_entries")
         .select(
-          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes, pre_company_expense, paid_by, reimbursed, accountant_approved, documentation_status",
+          "id, voucher_number, entry_type, entry_date, description, counterparty, category, category_group, amount_gross, amount_net, vat_amount, vat_rate, payment_status, invoice_status, source_app, source_type, source_ref, external_url, notes, pre_company_expense, paid_by, reimbursed, accountant_approved, documentation_status, paid_at, posting_kind, booking_status, private_expense, void_reason, reversed_by_entry_id",
         )
         .eq("organization_id", orgId)
         .order("entry_date", { ascending: false })
@@ -585,6 +592,7 @@ function EntryRow({
               {entry.counterparty ?? entry.description}
             </span>
             <PreCompanyBadge pre={entry.pre_company_expense} />
+            <BookingStatusBadge entry={entry} />
             <MissingAttachmentBadge show={missingAttachment} />
             <MissingAttachmentBadge show={incomeWithoutDoc} label="Mangler dokumentasjon" />
           </div>
@@ -618,6 +626,7 @@ function EntryRow({
         <span className="truncate text-muted-foreground flex items-center gap-2">
           <span className="truncate">{entry.description}</span>
           <PreCompanyBadge pre={entry.pre_company_expense} />
+          <BookingStatusBadge entry={entry} />
           <MissingAttachmentBadge show={missingAttachment} />
           <MissingAttachmentBadge show={incomeWithoutDoc} label="Mangler dokumentasjon" />
         </span>
@@ -1058,6 +1067,8 @@ function DetailPanel({ entry, orgId }: { entry: Entry; orgId: string }) {
           </div>
         )}
       </div>
+
+      <EntryLedgerActions entry={entry} orgId={orgId} />
     </div>
   );
 }

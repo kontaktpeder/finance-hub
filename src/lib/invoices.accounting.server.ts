@@ -1,4 +1,4 @@
-// Server-only: auto-create / update finance_entries when an invoice is sent or paid.
+import { recordPayment } from "@/lib/ledger.server";
 
 export function slugSourceApp(name: string): string {
   return (name || "")
@@ -226,10 +226,10 @@ export async function createFinanceEntryForInvoice(params: {
     description: `Faktura ${inv.invoice_number}`,
     category: "Salg",
     category_group: "Salg",
-    payment_status: isPaid ? "paid" : "unpaid",
+    payment_status: "unpaid",
     invoice_status: isPaid ? "paid" : "sent",
     due_date: inv.due_date ?? null,
-    paid_at: isPaid ? todayDate() : null,
+    paid_at: null,
     source_app: sourceApp,
     source_type: "invoice",
     source_ref: inv.invoice_number,
@@ -283,6 +283,21 @@ export async function createFinanceEntryForInvoice(params: {
     entryId,
     pdfAttachmentId: inv.pdf_attachment_id,
   });
+  if (isPaid) {
+    await recordPayment(supabase, {
+      organizationId,
+      entryId,
+      amount: Number(inv.total),
+      paidOn: todayDate(),
+      kind: "payment",
+      notes: `Faktura ${inv.invoice_number}`,
+      actorId: params.createdBy ?? null,
+    });
+    await supabase
+      .from("finance_entries")
+      .update({ invoice_status: "paid" })
+      .eq("id", entryId);
+  }
   return entryId;
 }
 
@@ -310,12 +325,20 @@ export async function markFinanceEntryPaidForInvoice(params: {
   const { error } = await supabase
     .from("finance_entries")
     .update({
-      payment_status: "paid",
       invoice_status: "paid",
-      paid_at: todayDate(),
     })
     .eq("id", entryId);
   if (error) throw new Error(error.message);
+
+  await recordPayment(supabase, {
+    organizationId: invoice.organization_id,
+    entryId,
+    amount: Number(invoice.total),
+    paidOn: todayDate(),
+    kind: "payment",
+    notes: `Faktura ${invoice.invoice_number}`,
+    actorId: params.createdBy ?? null,
+  });
 
   await ensureInvoicePdfLinkedToEntry(supabase, {
     organizationId: invoice.organization_id,

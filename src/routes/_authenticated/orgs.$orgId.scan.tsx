@@ -11,9 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera, ImageIcon } from "lucide-react";
+import { AlertTriangle, Sparkles, Check, Loader2, CheckCircle2, ArrowRight, Camera, ImageIcon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { scanReceiptDraft, convertDraftToEntry, type ReceiptSuggestion } from "@/lib/receipt-drafts.functions";
+import { scanReceiptDraft, convertDraftToEntry, deleteReceiptDraft, type ReceiptSuggestion } from "@/lib/receipt-drafts.functions";
 import { CameraCapture } from "@/components/scan/CameraCapture";
 import { CategorySelect, categoryOrDefault } from "@/lib/CategorySelect";
 import {
@@ -46,6 +46,7 @@ function ScanPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const scanFn = useServerFn(scanReceiptDraft);
+  const deleteDraftFn = useServerFn(deleteReceiptDraft);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [convertedEntryId, setConvertedEntryId] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -323,10 +324,10 @@ function ScanPage() {
             <li className="p-4 text-sm text-muted-foreground">Ingen utkast ennå.</li>
           )}
           {drafts?.map((d) => (
-            <li key={d.id}>
+            <li key={d.id} className="flex items-stretch">
               <button
                 onClick={() => setActiveDraftId(d.id)}
-                className={`w-full text-left p-3 hover:bg-accent/40 transition ${activeDraftId === d.id ? "bg-accent/60" : ""}`}
+                className={`flex-1 text-left p-3 hover:bg-accent/40 transition ${activeDraftId === d.id ? "bg-accent/60" : ""}`}
               >
                 <div className="flex items-center justify-between gap-2 min-w-0">
                   <div className="text-sm font-medium truncate min-w-0 flex-1">
@@ -335,6 +336,27 @@ function ScanPage() {
                   <StatusBadge status={d.status} />
                 </div>
               </button>
+              {d.status !== "converted" && (
+                <button
+                  type="button"
+                  className="px-3 text-muted-foreground hover:text-destructive"
+                  title="Slett utkast"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!confirm("Slette dette utkastet? Dette sletter ikke bokførte poster.")) return;
+                    try {
+                      await deleteDraftFn({ data: { organizationId: orgId, draftId: d.id } });
+                      if (activeDraftId === d.id) setActiveDraftId(null);
+                      toast.success("Utkast slettet");
+                      qc.invalidateQueries({ queryKey: ["receipt-drafts", orgId] });
+                    } catch (err: any) {
+                      toast.error(err?.message ?? "Kunne ikke slette utkast");
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
             </li>
           ))}
         </ul>

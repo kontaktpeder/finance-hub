@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { PlatformLinkingCard } from "@/components/finance/PlatformLinkingCard";
+import { useServerFn } from "@tanstack/react-start";
+import { lockPeriodFn, unlockPeriodFn } from "@/lib/ledger.functions";
 
 export const Route = createFileRoute("/_authenticated/orgs/$orgId/settings")({
   component: SettingsPage,
@@ -170,6 +172,80 @@ function SettingsPage() {
           </form>
         </CardContent>
       </Card>
+
+      <PeriodLocksCard orgId={orgId} />
     </div>
+  );
+}
+
+function PeriodLocksCard({ orgId }: { orgId: string }) {
+  const qc = useQueryClient();
+  const lockFn = useServerFn(lockPeriodFn);
+  const unlockFn = useServerFn(unlockPeriodFn);
+  const now = new Date();
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    return { year: d.getFullYear(), month: d.getMonth() + 1 };
+  });
+
+  const { data: locks } = useQuery({
+    queryKey: ["period-locks", orgId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("finance_period_locks")
+        .select("period_year, period_month, locked_at, reason")
+        .eq("organization_id", orgId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const locked = new Set((locks ?? []).map((l) => `${l.period_year}-${l.period_month}`));
+
+  async function toggle(year: number, month: number, isLocked: boolean) {
+    try {
+      if (isLocked) {
+        const reason = window.prompt("Begrunnelse for å låse opp perioden (admin-unntak, logges):");
+        if (!reason || reason.trim().length < 3) return;
+        await unlockFn({ data: { organizationId: orgId, year, month, reason: reason.trim() } });
+        toast.success("Periode låst opp (unntak logget)");
+      } else {
+        await lockFn({ data: { organizationId: orgId, year, month } });
+        toast.success("Periode låst");
+      }
+      qc.invalidateQueries({ queryKey: ["period-locks", orgId] });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Klarte ikke oppdatere periodelås");
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Periodelås</CardTitle>
+        <CardDescription>
+          Låste perioder kan ikke få nye originalposter. Korreksjoner bokføres i neste åpne periode.
+          Opplåsing er et admin-unntak og krever begrunnelse.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {months.map(({ year, month }) => {
+          const key = `${year}-${month}`;
+          const isLocked = locked.has(key);
+          const label = new Date(year, month - 1, 1).toLocaleDateString("nb-NO", {
+            month: "long",
+            year: "numeric",
+          });
+          return (
+            <div key={key} className="flex items-center justify-between text-sm">
+              <span className="capitalize">{label}</span>
+              <Button size="sm" variant={isLocked ? "secondary" : "outline"} onClick={() => void toggle(year, month, isLocked)}>
+                {isLocked ? "Låst — lås opp" : "Lås periode"}
+              </Button>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 }

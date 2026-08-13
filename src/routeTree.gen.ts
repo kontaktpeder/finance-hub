@@ -47,6 +47,10 @@ import { Route as ApiPublicV1ModuleOrganizationRouteImport } from './routes/api/
 import { Route as ApiPublicV1ModuleWidgetsRouteImport } from './routes/api/public/v1/module.widgets'
 import { Route as ApiPublicV1ReportsSummaryRouteImport } from './routes/api/public/v1/reports.summary'
 import { Route as ApiPublicV1EntriesEntryIdAttachmentsRouteImport } from './routes/api/public/v1/entries.$entryId.attachments'
+import { Route as ApiPublicV1EntriesEntryIdCorrectRouteImport } from './routes/api/public/v1/entries.$entryId.correct'
+import { Route as ApiPublicV1EntriesEntryIdPaymentsRouteImport } from './routes/api/public/v1/entries.$entryId.payments'
+import { Route as ApiPublicV1EntriesEntryIdVoidRouteImport } from './routes/api/public/v1/entries.$entryId.void'
+import { Route as ApiPublicV1PeriodsRouteImport } from './routes/api/public/v1/periods'
 import { Route as ApiPublicV1InvoicesInvoiceIdPdfRouteImport } from './routes/api/public/v1/invoices.$invoiceId.pdf'
 import { Route as ApiPublicV1InvoicesInvoiceIdSendRouteImport } from './routes/api/public/v1/invoices.$invoiceId.send'
 import { Route as ApiPublicV1ModuleOrganizationOrgIdRouteImport } from './routes/api/public/v1/module.organization.$orgId'
@@ -264,6 +268,29 @@ const ApiPublicV1EntriesEntryIdAttachmentsRoute =
     path: '/attachments',
     getParentRoute: () => ApiPublicV1EntriesEntryIdRoute,
   } as any)
+const ApiPublicV1EntriesEntryIdCorrectRoute =
+  ApiPublicV1EntriesEntryIdCorrectRouteImport.update({
+    id: '/correct',
+    path: '/correct',
+    getParentRoute: () => ApiPublicV1EntriesEntryIdRoute,
+  } as any)
+const ApiPublicV1EntriesEntryIdPaymentsRoute =
+  ApiPublicV1EntriesEntryIdPaymentsRouteImport.update({
+    id: '/payments',
+    path: '/payments',
+    getParentRoute: () => ApiPublicV1EntriesEntryIdRoute,
+  } as any)
+const ApiPublicV1EntriesEntryIdVoidRoute =
+  ApiPublicV1EntriesEntryIdVoidRouteImport.update({
+    id: '/void',
+    path: '/void',
+    getParentRoute: () => ApiPublicV1EntriesEntryIdRoute,
+  } as any)
+const ApiPublicV1PeriodsRoute = ApiPublicV1PeriodsRouteImport.update({
+  id: '/api/public/v1/periods',
+  path: '/api/public/v1/periods',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1InvoicesInvoiceIdPdfRoute =
   ApiPublicV1InvoicesInvoiceIdPdfRouteImport.update({
     id: '/pdf',
@@ -321,6 +348,10 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/orgs/$orgId/invoices/': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
+  '/api/public/v1/entries/$entryId/correct': typeof ApiPublicV1EntriesEntryIdCorrectRoute
+  '/api/public/v1/entries/$entryId/payments': typeof ApiPublicV1EntriesEntryIdPaymentsRoute
+  '/api/public/v1/entries/$entryId/void': typeof ApiPublicV1EntriesEntryIdVoidRoute
+  '/api/public/v1/periods': typeof ApiPublicV1PeriodsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
   '/api/public/v1/module/organization/$orgId': typeof ApiPublicV1ModuleOrganizationOrgIdRoute
@@ -361,6 +392,10 @@ export interface FileRoutesByTo {
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/orgs/$orgId/invoices': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
+  '/api/public/v1/entries/$entryId/correct': typeof ApiPublicV1EntriesEntryIdCorrectRoute
+  '/api/public/v1/entries/$entryId/payments': typeof ApiPublicV1EntriesEntryIdPaymentsRoute
+  '/api/public/v1/entries/$entryId/void': typeof ApiPublicV1EntriesEntryIdVoidRoute
+  '/api/public/v1/periods': typeof ApiPublicV1PeriodsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
   '/api/public/v1/module/organization/$orgId': typeof ApiPublicV1ModuleOrganizationOrgIdRoute
@@ -405,6 +440,10 @@ export interface FileRoutesById {
   '/api/public/v1/reports/summary': typeof ApiPublicV1ReportsSummaryRoute
   '/_authenticated/orgs/$orgId/invoices/': typeof AuthenticatedOrgsOrgIdInvoicesIndexRoute
   '/api/public/v1/entries/$entryId/attachments': typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
+  '/api/public/v1/entries/$entryId/correct': typeof ApiPublicV1EntriesEntryIdCorrectRoute
+  '/api/public/v1/entries/$entryId/payments': typeof ApiPublicV1EntriesEntryIdPaymentsRoute
+  '/api/public/v1/entries/$entryId/void': typeof ApiPublicV1EntriesEntryIdVoidRoute
+  '/api/public/v1/periods': typeof ApiPublicV1PeriodsRoute
   '/api/public/v1/invoices/$invoiceId/pdf': typeof ApiPublicV1InvoicesInvoiceIdPdfRoute
   '/api/public/v1/invoices/$invoiceId/send': typeof ApiPublicV1InvoicesInvoiceIdSendRoute
   '/api/public/v1/module/organization/$orgId': typeof ApiPublicV1ModuleOrganizationOrgIdRoute
@@ -449,6 +488,10 @@ export interface FileRouteTypes {
     | '/api/public/v1/reports/summary'
     | '/orgs/$orgId/invoices/'
     | '/api/public/v1/entries/$entryId/attachments'
+    | '/api/public/v1/entries/$entryId/correct'
+    | '/api/public/v1/entries/$entryId/payments'
+    | '/api/public/v1/entries/$entryId/void'
+    | '/api/public/v1/periods'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
     | '/api/public/v1/module/organization/$orgId'
@@ -489,6 +532,10 @@ export interface FileRouteTypes {
     | '/api/public/v1/reports/summary'
     | '/orgs/$orgId/invoices'
     | '/api/public/v1/entries/$entryId/attachments'
+    | '/api/public/v1/entries/$entryId/correct'
+    | '/api/public/v1/entries/$entryId/payments'
+    | '/api/public/v1/entries/$entryId/void'
+    | '/api/public/v1/periods'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
     | '/api/public/v1/module/organization/$orgId'
@@ -532,6 +579,10 @@ export interface FileRouteTypes {
     | '/api/public/v1/reports/summary'
     | '/_authenticated/orgs/$orgId/invoices/'
     | '/api/public/v1/entries/$entryId/attachments'
+    | '/api/public/v1/entries/$entryId/correct'
+    | '/api/public/v1/entries/$entryId/payments'
+    | '/api/public/v1/entries/$entryId/void'
+    | '/api/public/v1/periods'
     | '/api/public/v1/invoices/$invoiceId/pdf'
     | '/api/public/v1/invoices/$invoiceId/send'
     | '/api/public/v1/module/organization/$orgId'
@@ -553,6 +604,7 @@ export interface RootRouteChildren {
   ApiPublicV1ModuleOrganizationRoute: typeof ApiPublicV1ModuleOrganizationRouteWithChildren
   ApiPublicV1ModuleWidgetsRoute: typeof ApiPublicV1ModuleWidgetsRoute
   ApiPublicV1ReportsSummaryRoute: typeof ApiPublicV1ReportsSummaryRoute
+  ApiPublicV1PeriodsRoute: typeof ApiPublicV1PeriodsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -823,6 +875,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRouteImport
       parentRoute: typeof ApiPublicV1EntriesEntryIdRoute
     }
+    '/api/public/v1/entries/$entryId/correct': {
+      id: '/api/public/v1/entries/$entryId/correct'
+      path: '/correct'
+      fullPath: '/api/public/v1/entries/$entryId/correct'
+      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdCorrectRouteImport
+      parentRoute: typeof ApiPublicV1EntriesEntryIdRoute
+    }
+    '/api/public/v1/entries/$entryId/payments': {
+      id: '/api/public/v1/entries/$entryId/payments'
+      path: '/payments'
+      fullPath: '/api/public/v1/entries/$entryId/payments'
+      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdPaymentsRouteImport
+      parentRoute: typeof ApiPublicV1EntriesEntryIdRoute
+    }
+    '/api/public/v1/entries/$entryId/void': {
+      id: '/api/public/v1/entries/$entryId/void'
+      path: '/void'
+      fullPath: '/api/public/v1/entries/$entryId/void'
+      preLoaderRoute: typeof ApiPublicV1EntriesEntryIdVoidRouteImport
+      parentRoute: typeof ApiPublicV1EntriesEntryIdRoute
+    }
+    '/api/public/v1/periods': {
+      id: '/api/public/v1/periods'
+      path: '/api/public/v1/periods'
+      fullPath: '/api/public/v1/periods'
+      preLoaderRoute: typeof ApiPublicV1PeriodsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/invoices/$invoiceId/pdf': {
       id: '/api/public/v1/invoices/$invoiceId/pdf'
       path: '/pdf'
@@ -937,12 +1017,18 @@ const ApiPublicV1AttachmentsRouteWithChildren =
 
 interface ApiPublicV1EntriesEntryIdRouteChildren {
   ApiPublicV1EntriesEntryIdAttachmentsRoute: typeof ApiPublicV1EntriesEntryIdAttachmentsRoute
+  ApiPublicV1EntriesEntryIdCorrectRoute: typeof ApiPublicV1EntriesEntryIdCorrectRoute
+  ApiPublicV1EntriesEntryIdPaymentsRoute: typeof ApiPublicV1EntriesEntryIdPaymentsRoute
+  ApiPublicV1EntriesEntryIdVoidRoute: typeof ApiPublicV1EntriesEntryIdVoidRoute
 }
 
 const ApiPublicV1EntriesEntryIdRouteChildren: ApiPublicV1EntriesEntryIdRouteChildren =
   {
     ApiPublicV1EntriesEntryIdAttachmentsRoute:
       ApiPublicV1EntriesEntryIdAttachmentsRoute,
+    ApiPublicV1EntriesEntryIdCorrectRoute: ApiPublicV1EntriesEntryIdCorrectRoute,
+    ApiPublicV1EntriesEntryIdPaymentsRoute: ApiPublicV1EntriesEntryIdPaymentsRoute,
+    ApiPublicV1EntriesEntryIdVoidRoute: ApiPublicV1EntriesEntryIdVoidRoute,
   }
 
 const ApiPublicV1EntriesEntryIdRouteWithChildren =
@@ -1022,6 +1108,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicV1ModuleOrganizationRouteWithChildren,
   ApiPublicV1ModuleWidgetsRoute: ApiPublicV1ModuleWidgetsRoute,
   ApiPublicV1ReportsSummaryRoute: ApiPublicV1ReportsSummaryRoute,
+  ApiPublicV1PeriodsRoute: ApiPublicV1PeriodsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

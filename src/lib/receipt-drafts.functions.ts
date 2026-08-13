@@ -263,3 +263,56 @@ export const convertDraftToEntry = createServerFn({ method: "POST" })
 
     return { entryId: entry.id, attachmentCount: linked?.length ?? (draft.attachment_id ? 1 : 0) };
   });
+
+const DeleteDraftInput = z.object({
+  organizationId: z.string().uuid(),
+  draftId: z.string().uuid(),
+});
+
+export const deleteReceiptDraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => DeleteDraftInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: membership } = await supabase
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", data.organizationId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!membership || !["owner", "admin", "editor"].includes((membership as any).role)) {
+      throw new Error("Du har ikke tilgang.");
+    }
+
+    const { data: draft, error } = await supabase
+      .from("finance_receipt_drafts")
+      .select("id, organization_id, status, converted_entry_id")
+      .eq("id", data.draftId)
+      .maybeSingle();
+    if (error || !draft) throw new Error("Utkastet finnes ikke.");
+    if (draft.organization_id !== data.organizationId) throw new Error("Feil organisasjon.");
+    if (draft.status === "converted" || draft.converted_entry_id) {
+      throw new Error("Bokførte utkast kan ikke slettes. Annuller posten i stedet.");
+    }
+
+    const { data: atts } = await supabase
+      .from("finance_attachments")
+      .select("id, storage_path")
+      .eq("receipt_draft_id", draft.id);
+    const paths = (atts ?? []).map((a: { storage_path: string }) => a.storage_path).filter(Boolean);
+    if (paths.length) {
+      await supabase.storage.from("finance-attachments").remove(paths);
+    }
+    if ((atts ?? []).length) {
+      await supabase.from("finance_attachments").delete().in(
+        "id",
+        (atts ?? []).map((a: { id: string }) => a.id),
+      );
+    }
+    const { error: delErr } = await supabase
+      .from("finance_receipt_drafts")
+      .delete()
+      .eq("id", draft.id);
+    if (delErr) throw new Error(delErr.message);
+    return { deleted: true, id: draft.id };
+  });
