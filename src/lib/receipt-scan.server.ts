@@ -298,10 +298,9 @@ export async function scanReceiptContentFromParts(
   try {
     const result = await generateText({
       model: getGeminiModel("flash"),
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: content as any },
-      ],
+      // Gemini / AI SDK 7 reject role:"system" in messages — use top-level system.
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: content as any }],
     });
     text = result.text;
   } catch (err: any) {
